@@ -1,0 +1,12 @@
+services:
+  novel-next-app:
+    build: .
+    container_name: novel-next-app
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/.next
+    restart: unless-stopped
+      

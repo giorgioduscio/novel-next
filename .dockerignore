@@ -1,0 +1,47 @@
+# Dipendenze (verranno reinstallate nel container)
+node_modules/
+
+# Build locale (Next.js genera /out o /.next nel container)
+.next/
+out/
+build/
+dist/
+
+# File di configurazione locale (es. .env)
+.env
+.env.*
+!.env.example
+
+# Git
+.git/
+.gitignore
+
+# IDE e editor
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Log
+*.log
+npm-debug.log*
+yarn-debug.log*
+
+# Docker (evita di copiare file Docker nel container)
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Test e coverage
+coverage/
+.nyc_output/
+.test.cache
+
+# TypeScript (cache)
+*.tsbuildinfo
+
+# File temporanei
+tmp/
+temp/
