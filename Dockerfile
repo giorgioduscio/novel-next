@@ -4,8 +4,8 @@ FROM node:20-alpine
 # Imposta la directory di lavoro all'interno del container
 WORKDIR /app
 
-# Copia tutto il progetto Next.js
-COPY . .
+# Copia solo package.json per installare le dipendenze
+COPY package*.json ./
 
 # Installa le dipendenze
 RUN npm install
