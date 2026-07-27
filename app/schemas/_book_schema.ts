@@ -2,32 +2,29 @@ import * as v from "valibot";
 
 /*
 Gerarchie 
-* Libro     •
-* Parte     ••
-* Sezione   
-* Capitolo  •••
+* Libro     file.md
+* Parte     #
+* Sezione   X Non usato
+* Capitolo  ##
 * Paragrafo ••••
 * Frase     •••••
 */
 
 export const paragraph_schema = v.object({
   style: v.optional(v.string()),
+  pre_text: v.optional(v.string()),
   text: v.string(),
-
-  phrases: v.array(v.object({
-    style: v.optional(v.string()),
-    text: v.string(),
-  })),
+  post_text: v.optional(v.string()),
 });
 
-export const chapter_schema = v.object({
+export const section_schema = v.object({
   title: v.string(),
   paragraphs: v.array(paragraph_schema),
 });
 
 export const parts_schema = v.object({
   title: v.string(),
-  sections: v.array(chapter_schema),
+  sections: v.array(section_schema),
 });
 
 export const book_schema = v.object({
@@ -40,5 +37,7 @@ export const book_schema = v.object({
 
 
 // Interfaces
-export type Chapter = v.InferOutput<typeof chapter_schema>;
 export type Book = v.InferOutput<typeof book_schema>;
+export type Part = v.InferOutput<typeof parts_schema>;
+export type Section = v.InferOutput<typeof section_schema>;
+export type Paragraph = v.InferOutput<typeof paragraph_schema>;

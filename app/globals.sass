@@ -1,0 +1,24 @@
+@import "tailwindcss";
+@import "./font-face.sass";
+
+.triangle 
+  clip-path: polygon(50% 0%, 0% 100%, 100% 100%)
+
+// Stili per elementi con lati obliqui
+// Ogni classe applica un clip-path diverso per creare l'effetto desiderato
+
+.angled-be 
+  // Bottom End: angolo in basso a destra obliquo (morbido)
+  clip-path: polygon(0% 0%, 100% 0%, 90% 100%, 0% 100%)
+
+.angled-bs 
+  // Bottom Start: angolo in basso a sinistra obliquo
+  clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 10% 100%)
+
+.angled-ts  
+  // Top Start: angolo in alto a sinistra obliquo
+  clip-path: polygon(10% 0%, 100% 0%, 100% 100%, 0% 100%)
+
+.angled-te 
+  // Top End: angolo in alto a destra obliquo
+  clip-path: polygon(0% 0%, 90% 0%, 100% 100%, 0% 100%)
