@@ -28,11 +28,11 @@ export const parts_schema = v.object({
 });
 
 export const book_schema = v.object({
-  id: v.number(),
-  title: v.string(),
-  description: v.string(),
-  author: v.string(),
-  parts: v.array(parts_schema),
+  id: v.optional(v.number()),
+  title: v.pipe(v.string(), v.minLength(3, "Il titolo deve contenere almeno 3 caratteri")),
+  description: v.pipe(v.string(), v.minLength(3, "La descrizione deve contenere almeno 3 caratteri")),
+  author: v.pipe(v.string(), v.minLength(3, "L'autore deve contenere almeno 3 caratteri")),
+  parts: v.optional(v.array(parts_schema)),
 });
 
 

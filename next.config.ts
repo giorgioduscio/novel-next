@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  turbopack: {},
   /* config options here */
   webpack: (config, { isServer }) => {
     // Abilita il watch per il hot-reload

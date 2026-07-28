@@ -2,53 +2,164 @@
 
 import Link from "next/link";
 import Navbar from "../shareds/navbar";
-import { useEffect, useState } from "react";
-import { BOOKS_DATA } from "../tools/_transformBooksDatas";
+import { useEffect, useMemo, useState } from "react";
+import { Book, book_schema } from "../schemas/_book_schema";
+import { books_store } from "../data/books_store";
+import { safeParse } from "valibot";
+import Frag from "../shareds/Frag";
+import { useEditMode } from "../data/EditModeContext";
 
 export default function Home() {
-  const books = BOOKS_DATA;
+  const [books, setBooks] = useState<Book[]>([]);
   const [weight, setWeight] = useState(0);
   const [limit, setLimit] = useState(0);
 
   useEffect(() => {
+    setBooks(books_store.getBooks());
+
     const handleResize = () => {
       setWeight(window.innerWidth);
       setLimit(Math.floor(window.innerWidth / 10));
     };
     handleResize();
-    // aggiunge e rimuove l'event listener per il ridimensionamento
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  // Funzione per eliminare un libro
+  const handleDeleteBook = (id?: number) => {
+    if (id !== undefined) {
+      books_store.deleteBook(id);
+      setBooks(books_store.getBooks()); // Aggiorna lo stato locale
+    }
+  };
+
   function ellipsis(text: string) {
-    return (weight > 350) ? text : text.slice(0, limit) + "...";
+    return weight > 350 ? text : text.slice(0, limit) + "...";
+  }
+
+  // Form ( invariato )
+  const { editMode } = useEditMode();
+  const form_editMode = editMode;
+  const [form_state, form_setState] = useState<Omit<Book, "id" | "parts">>({
+    title: "",
+    description: "",
+    author: "",
+  });
+
+  const form_array = useMemo(
+    () => Object.entries(form_state).map(([key, value]) => ({ key, value })),
+    [form_state]
+  );
+
+  function form_reset() {
+    form_setSubmitOnce(false);
+    form_setState({
+      title: "",
+      description: "",
+      author: "",
+    });
+  }
+
+  const [form_submitOnce, form_setSubmitOnce] = useState(false);
+  const form_newBook = useMemo(() => safeParse(book_schema, form_state), [form_state]);
+
+  const form_errors: { [k: string]: string } = useMemo(() => {
+    let result = {};
+    form_newBook.issues?.forEach((issue) => {
+      const path = (issue as any).path[0].key;
+      (result as any)[path] = issue.message;
+    });
+    return result;
+  }, [form_newBook]);
+
+  function form_handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    form_setSubmitOnce(true);
+
+    if (form_newBook.success) {
+      books_store.createBook(form_newBook.output);
+      form_reset();
+      setBooks(books_store.getBooks()); // Aggiorna lo stato locale
+    }
   }
 
   return (
     <main id="home">
       <Navbar />
       <section className="p-2 mx-auto container">
+        {/* FORM (invariato) */}
+        <Frag if={form_editMode} className="bg-white/10 p-2 rounded-lg">
+          <h2 className="py-3 text-center">Aggiungi libro</h2>
+          <p className="text-center text-sm">
+            I campi contrassegnati con <b className="text-red-500">*</b> sono obbligatori
+          </p>
 
-        <div className="text-center">
-          <h1 className="text-2xl font-bold">Libri</h1>
-          <p className="text-gray-400">Totale: {books.length} libri</p>
-        </div>
+          <form onSubmit={form_handleSubmit} className="overflow-hidden rounded-lg">
+            {form_array.map(({ key, value }) => (
+              <div key={key} className="my-3">
+                <label htmlFor={key} className="block">
+                  {key.charAt(0).toUpperCase() + key.slice(1)}{" "}
+                  {form_errors[key] && <b className="ms-1 text-red-500">*</b>}
+                </label>
+                <input
+                  id={key}
+                  name={key}
+                  type="text"
+                  className="w-full bg-gray-900 p-2"
+                  placeholder={"Inserire " + key}
+                  value={String(value)}
+                  onChange={(e) => form_setState({ ...form_state, [key]: e.target.value })}
+                />
+                <Frag if={!!form_submitOnce && !!form_errors[key]} className="text-red-500 text-sm">
+                  {form_errors[key]}
+                </Frag>
+              </div>
+            ))}
 
-        <ol className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-          {books.map((book) => (
-            <li key={book.title} className="bg-white/10 hover:bg-white/30 transition-colors rounded-lg">
-              <Link href={`/book/${book.id}`} className="p-2 block text-center">
-                <h4 className="font-bold">{book.title}</h4>
-                <p className="pb-2 mb-2 border-b border-gray-500 italic text-xs">
-                  By "{book.author}"
-                </p>
-                <p className="text-sm">{ellipsis(book.description)}</p>
-              </Link>
-            </li>
-          ))}
-        </ol>
+            <button type="submit" className="p-2 m-2 bg-green-700 hover:bg-green-800 transition-colors">
+              <i className="me-1 bi bi-plus-lg"></i>
+              <span>Aggiungi</span>
+            </button>
+            <button
+              type="reset"
+              className="p-2 m-2 bg-red-700 hover:bg-red-800 transition-colors"
+              onClick={() => form_reset()}
+            >
+              <i className="me-1 bi bi-x-lg"></i>
+              <span>Reset</span>
+            </button>
+          </form>
+        </Frag>
 
+        {/* LIBRI */}
+        <Frag if={books.length > 0} className="text-center">
+          <div className="my-5">
+            <h1 className="text-2xl font-bold">Libri</h1>
+            <p className="text-gray-400">Totale: {books.length} libri</p>
+          </div>
+
+          <ol className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            {books.map((book) => (
+              <li key={book.id} className="bg-white/10 hover:bg-white/30 transition-colors rounded-lg group">
+                <Link href={`/book/${book.id}`} className="p-2 block text-center">
+                  <h4 className="font-bold">{book.title}</h4>
+                  <p className="pb-2 mb-2 border-b border-gray-500 italic text-xs">
+                    By "{book.author}"
+                  </p>
+                  <p className="text-sm">{ellipsis(book.description)}</p>
+                </Link>
+                {/* Pulsante di eliminazione */}
+                <button
+                  onClick={() => handleDeleteBook(book.id)}
+                  className="w-full p-2 bg-red-800 hover:bg-red-900 transition-colors text-white opacity-0 group-hover:opacity-100"
+                >
+                  <i className="bi bi-trash-fill"></i>
+                </button>
+              </li>
+            ))}
+          </ol>
+        </Frag>
       </section>
     </main>
   );
