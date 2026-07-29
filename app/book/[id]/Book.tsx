@@ -6,6 +6,8 @@ import React, { useEffect, useMemo, useState } from "react";
 import { books_store } from "../../data/books_store";
 import Frag from "@/app/shareds/Frag";
 import { useEditMode } from "@/app/data/EditModeContext";
+import Navbar from "@/app/shareds/navbar";
+import Field from "@/app/shareds/Field";
 
 interface BookProps {
   id: number;
@@ -104,24 +106,11 @@ export default function Book({ id }: BookProps) {
 
   return (
     <>
-      {/* NAVBAR */}
-      <nav className="py-6">
-        <div className="fixed w-full top-0 start-0 bg-gray-800">
-          <div className="mx-auto container">
-            <div className="px-2 flex items-center gap-2">
-
-              <Link href="/" className="p-2 hover:bg-gray-700">
-                <i className="bi bi-chevron-left"></i>
-              </Link>
-              <h1 className="font-bold">{book?.title || "Libro"}</h1>
-
-            </div>
-          </div>
-        </div>
-      </nav>
-
       {/* MAIN */}
-      <main id="book" className="pb-10 mx-auto container max-w-[400px]">
+      <main id="book">
+        <Navbar back_btn={{ href:"/", label:"Libri", icon:"bi-book" }} 
+                prop_title={book?.title || ""}/>
+
         {!book ? (
           // LIBRO NON TROVATO
           <div className="p-3 py-8 text-center text-red-500">
@@ -131,11 +120,11 @@ export default function Book({ id }: BookProps) {
 
         ) : (
           // LIBRO TROVATO
-          <section>
+          <section className="pb-10 mx-auto container max-w-[400px]">
             {/* HEADER */}
             <div className="p-3 py-8 text-center">
               <div className="grid gap-5">
-                <h1 className="text-3xl font-bold">{book.title}</h1>
+                <h2 className="text-3xl font-bold">{book.title}</h2>
                 <p className="text-gray-400">{book.description}</p>
                 <p className="text-gray-400">{book.author}</p>
               </div>
@@ -143,43 +132,47 @@ export default function Book({ id }: BookProps) {
             <div className="mx-3 border-y border-gray-500"></div>
 
             {/* FORM */}
-            <Frag if={editMode} className="my-5">
-              <form onSubmit={form_submit} className="rounded overflow-hidden bg-white/20">
-                <h2 className="p-2 px-3 text-xl bg-green-600 text-center">Aggiungi parte e sezione</h2>
+            <Frag if={editMode} className="bg-white/10 p-2 rounded-lg">
+              <form onSubmit={form_submit} className="overflow-hidden rounded-lg">
+                <h2 className="py-3 text-center font-bold">Aggiungi parte e sezione</h2>
+                <p className="text-center text-sm">
+                  <b>Attenzione:</b> inserendo il nome esatto di una parte già esistente, la nuova sezione verrà aggiunta alla fine della parte già esistente.
+                </p>
     
-                <div className="p-2 flex flex-col gap-2">
-                  <p className="p-2 bg-orange-200 text-orange-900 border rounded text-sm">
-                    <b>Attenzione:</b> inserendo una parte già esistente, la nuova sezione verrà aggiunta alla fine della parte già esistente.
-                  </p>
-
+                <div className="p-2">
                   {form_value_array.map((item) => (
                     <React.Fragment key={item.key}>
-                      <label htmlFor={item.key} className="p-1">{item.label}</label>
-                      <input  type="text"
-                              id={item.key}
-                              name={item.key}
-                              className="p-2 bg-gray-700 border rounded"
-                              placeholder={item.placeholder}
-                              value={item.value ?? ""}
-                              onChange={(e) =>
-                                form_setValue({
-                                  ...form_value,
-                                  [item.key]: {
-                                    ...form_value[item.key as keyof typeof form_value],
-                                    value: e.target.value,
-                                  },
-                                })
-                              }
-                      />
+                      <div className="my-3">
+                        <Field id={item.key} 
+                               label={item.label} 
+                               type="text" 
+                               placeholder={item.placeholder} 
+                               value={item.value ?? ""} 
+                               input_class="w-full bg-gray-900 p-2"
+                               onChange={(value) => {
+                          form_setValue({
+                            ...form_value,
+                            [item.key]: value,
+                          });
+                        }} />
+                      </div>
                     </React.Fragment>
                   ))}
                 </div>
 
-                
-                <button className="m-2 p-2 bg-green-600 hover:bg-green-700 rounded" type="submit">
-                  <i className="bi bi-plus-lg"></i>
-                  Aggiungi
-                </button>
+                <div className="flex justify-between">
+                  <button type="submit" className="p-2 bg-green-700 hover:bg-green-800 transition-colors">
+                    <i className="me-1 bi bi-plus-lg"></i>
+                    <span>Aggiungi</span>
+                  </button>
+
+                  <button type="reset"
+                          className="p-2 bg-red-700 hover:bg-red-800 transition-colors"
+                          onClick={() => form_reset()}>
+                    <i className="me-1 bi bi-x-lg"></i>
+                    <span>Reset</span>
+                  </button>
+                </div>
 
               </form>
             </Frag>
@@ -196,14 +189,14 @@ export default function Book({ id }: BookProps) {
               <h2 className="p-2 text-2xl">Sezioni</h2>
 
               {book.parts?.map((part, part_i) => (
-                <div className="" key={part_i}>
+                <div className="" key={part.title + part_i}>
                   {!!part.sections.length && (
                     <h3 className="p-2 italic">{part.title}</h3>
                   )}
 
                   {/* SEZIONI */}
                   <div className="grid grid-cols-[auto_1fr] items-center">
-                    {part.sections.map((section, section_i) => <>
+                    {part.sections.map((section, section_i) => <React.Fragment key={section.title + section_i}>
                       {editMode ?(
                         <button className="p-2 bg-red-500" onClick={() => deleteSection(part_i, section_i)}>
                           <i className="bi bi-trash"></i>
@@ -219,7 +212,7 @@ export default function Book({ id }: BookProps) {
                           <i className="ms-auto bi bi-chevron-right text-gray-400"></i>
                         </div>
                       </Link>
-                    </>)}
+                    </React.Fragment>)}
                   </div>
                 </div>
               ))}

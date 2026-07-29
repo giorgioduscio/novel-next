@@ -2,15 +2,16 @@
 @import "./font-face.sass";
 
 #app
-  background: #333
+  --global-bg: #444
+  background: var(--global-bg)
   min-height: 100vh
   color: white
 
+button
+  cursor: pointer !important
+
 .triangle 
   clip-path: polygon(50% 0%, 0% 100%, 100% 100%)
-
-// Stili per elementi con lati obliqui
-// Ogni classe applica un clip-path diverso per creare l'effetto desiderato
 
 .angled-be 
   // Bottom End: angolo in basso a destra obliquo (morbido)

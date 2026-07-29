@@ -8,6 +8,7 @@ import { books_store } from "../data/books_store";
 import { safeParse } from "valibot";
 import Frag from "../shareds/Frag";
 import { useEditMode } from "../data/EditModeContext";
+import Field from "../shareds/Field";
 
 export default function Home() {
   const [books, setBooks] = useState<Book[]>([]);
@@ -28,10 +29,10 @@ export default function Home() {
 
   // Funzione per eliminare un libro
   const handleDeleteBook = (id?: number) => {
-    if (id !== undefined) {
-      books_store.deleteBook(id);
-      setBooks(books_store.getBooks()); // Aggiorna lo stato locale
-    }
+    if (!confirm("Rimuovere il libro?")) return;
+    if (id == undefined) return;
+    books_store.deleteBook(id);
+    setBooks(books_store.getBooks()); // Aggiorna lo stato locale
   };
 
   function ellipsis(text: string) {
@@ -87,10 +88,11 @@ export default function Home() {
   return (
     <main id="home">
       <Navbar />
-      <section className="p-2 mx-auto container">
-        {/* FORM (invariato) */}
+
+      <section className="p-2 mx-auto container max-w-[400px]">
+        {/* FORM */}
         <Frag if={form_editMode} className="bg-white/10 p-2 rounded-lg">
-          <h2 className="py-3 text-center">Aggiungi libro</h2>
+          <h2 className="py-3 text-center text-bold">Aggiungi libro</h2>
           <p className="text-center text-sm">
             I campi contrassegnati con <b className="text-red-500">*</b> sono obbligatori
           </p>
@@ -98,39 +100,34 @@ export default function Home() {
           <form onSubmit={form_handleSubmit} className="overflow-hidden rounded-lg">
             {form_array.map(({ key, value }) => (
               <div key={key} className="my-3">
-                <label htmlFor={key} className="block">
-                  {key.charAt(0).toUpperCase() + key.slice(1)}{" "}
-                  {form_errors[key] && <b className="ms-1 text-red-500">*</b>}
-                </label>
-                <input
-                  id={key}
-                  name={key}
-                  type="text"
-                  className="w-full bg-gray-900 p-2"
-                  placeholder={"Inserire " + key}
-                  value={String(value)}
-                  onChange={(e) => form_setState({ ...form_state, [key]: e.target.value })}
+                <Field id={key} 
+                       label={key.charAt(0).toUpperCase() + key.slice(1)} 
+                       type="text" 
+                       placeholder={"Inserire " + key} 
+                       value={String(value)} 
+                       input_class="w-full bg-gray-900 p-2"
+                       error_message={form_submitOnce ? (form_errors[key] || "") : ""}
+                       onChange={(value) => form_setState({ ...form_state, [key]: value })}
                 />
-                <Frag if={!!form_submitOnce && !!form_errors[key]} className="text-red-500 text-sm">
-                  {form_errors[key]}
-                </Frag>
               </div>
             ))}
 
-            <button type="submit" className="p-2 m-2 bg-green-700 hover:bg-green-800 transition-colors">
-              <i className="me-1 bi bi-plus-lg"></i>
-              <span>Aggiungi</span>
-            </button>
-            <button
-              type="reset"
-              className="p-2 m-2 bg-red-700 hover:bg-red-800 transition-colors"
-              onClick={() => form_reset()}
-            >
-              <i className="me-1 bi bi-x-lg"></i>
-              <span>Reset</span>
-            </button>
+            <div className="flex justify-between">
+              <button type="submit" className="p-2 bg-green-700 hover:bg-green-800 transition-colors">
+                <i className="me-1 bi bi-plus-lg"></i>
+                <span>Aggiungi</span>
+              </button>
+              <button type="reset"
+                      className="p-2 bg-red-700 hover:bg-red-800 transition-colors"
+                      onClick={() => form_reset()}>
+                <i className="me-1 bi bi-x-lg"></i>
+                <span>Reset</span>
+              </button>
+            </div>
+
           </form>
         </Frag>
+
 
         {/* LIBRI */}
         <Frag if={books.length > 0} className="text-center">
@@ -141,24 +138,31 @@ export default function Home() {
 
           <ol className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
             {books.map((book) => (
-              <li key={book.id} className="bg-white/10 hover:bg-white/30 transition-colors rounded-lg group">
-                <Link href={`/book/${book.id}`} className="p-2 block text-center">
-                  <h4 className="font-bold">{book.title}</h4>
-                  <p className="pb-2 mb-2 border-b border-gray-500 italic text-xs">
-                    By "{book.author}"
-                  </p>
-                  <p className="text-sm">{ellipsis(book.description)}</p>
-                </Link>
-                {/* Pulsante di eliminazione */}
-                <button
-                  onClick={() => handleDeleteBook(book.id)}
-                  className="w-full p-2 bg-red-800 hover:bg-red-900 transition-colors text-white opacity-0 group-hover:opacity-100"
-                >
-                  <i className="bi bi-trash-fill"></i>
-                </button>
+              <li key={book.id} className="bg-white/10 hover:bg-white/30 transition-colors rounded overflow-hidden">
+                <div className="text-center relative">
+
+                  {/* pulsante eliminazione */}
+                  <Frag if={editMode} className="absolute top-0 right-0">
+                    <button onClick={() => handleDeleteBook(book.id)} 
+                            className="py-1 px-2 bg-red-600 hover:bg-red-700 transition-colors">
+                      <i className="bi bi-trash-fill"></i>
+                    </button>
+                  </Frag>
+
+                  <Link href={`/book/${book.id}`} className="p-2 block">
+                    <h4 className="font-bold">{book.title}</h4>
+                    <p className="pb-2 mb-2 border-b border-gray-500 italic text-xs">
+                      By "{book.author}"
+                    </p>
+
+                    <p className="text-sm">{ellipsis(book.description)}</p>
+                  </Link>
+
+                </div>
               </li>
             ))}
           </ol>
+
         </Frag>
       </section>
     </main>

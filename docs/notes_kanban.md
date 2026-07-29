@@ -8,14 +8,10 @@
 
 * [1] implementare salvataggio (1 ora)
   - database, download, upload
-
 * [3] ottimizzare <Frag> con else (30min)
-* [3] implementare <Field> (30min)
-  - messaggi secondari, errori, input e textarea self-resize
+* [2] stili standard per la novella
 
 ## 🔄 In Progress (max 2-3)
-* [1] sostituire attributo post_text con ex_style
-* [1] validazione campi dei paragrafi (stili consentiti)
 
 ## ❌ Blocked
 *(vuoto)*
@@ -33,4 +29,6 @@
 * implementare pagina del libro con form e lista delle sezioni
 * implementare pagina della sezione con modifica e visualizzazione dei paragrafi
 * modifica e visualizzazione delle pagine
+* sostituire attributo post_text con ex_style e style con in_style
+* validazione campi dei paragrafi (stili consentiti)
 

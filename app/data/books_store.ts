@@ -48,12 +48,12 @@ export const books_store ={
   },
   
   // Update
-  updateBook(id: number, updatedBook: Partial<Book>): Book | null {
+  updateBook(id: number, updatedBook: Partial<Book>, validation=true): Book | null {
     const index = this.books.findIndex((book) => book.id === id);
     if (index === -1) return null;
   
     const book = { ...this.books[index], ...updatedBook };
-    const validatedBook = this.validateBook(book);
+    const validatedBook = validation ? this.validateBook(book) : book;
     this.books[index] = validatedBook;
     this.safeToLocalstorrage();
     return validatedBook;

@@ -1,13 +1,16 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Book, Paragraph } from "@/app/schemas/_book_schema";
+import { Book, Paragraph, paragraph_schema } from "@/app/schemas/_book_schema";
 import Frag from "@/app/shareds/Frag";
 import { books_store } from "@/app/data/books_store";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import "./chapter.sass";
 import { useEditMode } from "@/app/data/EditModeContext";
+import Field from "@/app/shareds/Field";
+import { safeParse } from "valibot";
+import Navbar from "@/app/shareds/navbar";
 
 interface ChapterProps {
   id: number;
@@ -85,6 +88,25 @@ export default function Chapter({ id, part, section }: ChapterProps) {
     redirect(`/book/${id}/${_part}/${_title}`);
   }
   
+  // oggetto di errori "2>text": "messaggio"
+  const errors_value =useMemo<Record<string, string>>(() => {
+    const obj: Record<string, string> = {};
+
+    chapter?.paragraphs.forEach((p, i) => {
+      const res = safeParse(paragraph_schema, p);
+      if (res.success) return;
+      
+      const attr_name = res.issues?.[0].path?.[0]?.key;        
+      if(!attr_name) return;
+
+      const newKey = `${i}>${attr_name}`;
+      obj[newKey] = res.issues?.map((i) => i.message).join(", ");
+    });
+
+    return obj;
+  }, [chapter]);
+
+
   const paragraph ={
     // inserisce un paragrafo vuoto alla fine
     handle_create(){
@@ -94,10 +116,10 @@ export default function Chapter({ id, part, section }: ChapterProps) {
       if (!sec) return;
   
       sec.paragraphs.push({
-        text: "",
+        ex_style: "",
         style: "",
         pre_text: "",
-        post_text: "",
+        text: "",
       } as Paragraph);
   
       saveAndSetBook(updated, false);
@@ -118,64 +140,21 @@ export default function Chapter({ id, part, section }: ChapterProps) {
       if (!book) return;
       const updated = structuredClone(book);
       const sec = getSection(updated);
-      if (!sec?.paragraphs[index]) return;
+      if (!sec?.paragraphs[index]) return console.error("Paragrafo non trovato");
   
-      (sec.paragraphs as any)[index][key] = value || (key === "text" ? "" : undefined);
-      saveAndSetBook(updated);
-    }
-  }
-
-  // larghezza dinamica dello schermo
-  const template ={
-    // imposta il numero di righe in base alla lunghezza del testo
-    getrows(p: Paragraph) {
-      let result = 0;
-      // se lunghezza <20 ==>1; <40 ==>2; <60 ==>3;
-      const lengthSteps =[20, 40, 60, 80, 100, 120, 140, 160, 180, 200, 220, 240, 260, 280, 300]
-      // per ogni elementto della lista
-      for (let i = 0; i < lengthSteps.length; i++) {
-        // se la lunghezza del testo è minore del valore corrente
-        if (p.text.length < lengthSteps[i]) {
-          // ritorna il numero di righe
-          result = i + 1;
-          break;
-        }
-      }
-      // se la lunghezza del testo è maggiore di tutti i valori, ritorna il massimo
-      if(!result) result = lengthSteps.length + 1;
-
-      // adatta alla larghezza dello schermo
-      // quando togliere 2 righe
-      if(width_value >= 300) result -=1
-      return result;
-    }
+      (sec.paragraphs as any)[index][key] = value || "";
+      setBook(updated);
+      // salvataggio     
+      books_store.updateBook(id, updated, false);
+    },
   }
 
   if (!isLoaded) return <div className="text-center text-gray-400 py-20">Caricamento...</div>
 
   return (
     <main id="chapter">
-      <nav className="py-5">
-        <div className="fixed top-0 start-0 z-10 w-full bg-gray-800">
-          <div className="px-1 flex items-center gap-2">
-            <Link href={`/book/${id}`} className="p-3 hover:bg-gray-700">
-              <i className="bi bi-chevron-left"></i>
-            </Link>
-
-            <h1 className="p-3 text-bold">{section}</h1>
-
-            <button onClick={toggleEditMode} className="ms-auto p-3 bg-green-700">
-              {editMode ?<>
-                  <i className="bi bi-eye"></i>
-              </>:<>
-                  <i className="bi bi-pencil"></i>
-              </>
-              }
-            </button>
-          </div>
-        </div>
-      </nav>
-
+      {/* NAVBAR */}
+      <Navbar back_btn={{ href:`/book/${id}` }} prop_title={section}/>
 
       <section className="mx-auto container max-w-[400px]">
         {!chapter ? (
@@ -187,78 +166,99 @@ export default function Chapter({ id, part, section }: ChapterProps) {
         ) : (<>
           {/* TITOLO */}
           <div className="p-3 py-10 text-center">
-            <input className="text-3xl font-bold text-center"
+            <Field  input_class="text-3xl font-bold text-center"
+                    hide_label={editMode ? false : true}
+                    label="Titolo del capitolo"
                     value={title_value}
                     disabled={!editMode}
-                    onChange={(e) => title_setValue(e.target.value)}
+                    onChange={(_v) => title_setValue(_v)}
+                    // @ts-ignore
                     onBlur={() => title_handleSubmit(title_value)}
-                    onKeyDown={(e) => {
+                    onKeyDown={(e:React.KeyboardEvent<HTMLInputElement>) => {
                       if (e.key === "Enter") {
                         e.preventDefault();
-                        (e.target as HTMLInputElement).blur();
+                        e.currentTarget.blur();
                       }
                     }}
             />
+            <div className="mt-5 border-y border-gray-500"></div>
           </div>
-          <div className="m-3 border-y border-gray-500"></div>
 
 
           {/* PARAGRAFO */}
           <div className="pb-30">
             {chapter.paragraphs.map((p, paragraph_i) => (
-              <div className="py-3 text-center" key={paragraph_i}>
-                <div className={`relative p-3 ${p.style || ""}`}> 
+              <div className="py-3" key={paragraph_i}>
+                <div className={`${p.ex_style || ""}`}>
+                  <div className={`relative p-3 ${p.in_style || ""}`}> 
 
-                  <Frag if={!!p.pre_text || !!editMode}>
-                    <div className="absolute top-0 start-1/2 -translate-x-1/2 rounded" 
-                          style={{transform: 'translateY(-15px)', 
-                                  background: p.style?.includes('bg-') ? 'inherit' : '#333', 
-                                  borderLeftWidth:'inherit', borderRightWidth:'inherit'}}>
-                      {/* input pre_text */}
-                      <input className="px-1 max-w-[100px] mx-auto font-bold text-center" type="text" 
-                              value={p.pre_text || ''} 
-                              disabled={!editMode}
-                              placeholder="Titolo"
-                              onChange={(e) => paragraph.handle_change(paragraph_i, "pre_text", e.target.value)}
+                    <Frag if={!!p.pre_text || !!editMode}>
+                      <div className="absolute top-0 start-1/2 -translate-x-1/2 rounded" 
+                            style={{transform: 'translateY(-15px)', 
+                                    background: (p.in_style?.includes('bg-') || p.ex_style?.includes('bg-')) ? 'inherit' : 'var(--global-bg)', 
+                                    borderLeftWidth:'inherit', borderRightWidth:'inherit',
+                                    borderLeftColor:'inherit', borderRightColor:'inherit'}}>
+                        {/* input pre_text */}
+                        <Field  input_class="px-1 max-w-[100px] mx-auto font-bold text-center text-inherit"
+                                type="text"
+                                id={"pre_text>" + paragraph_i}
+                                value={p.pre_text || ''}
+                                disabled={!editMode}
+                                placeholder="Titolo"
+                                onChange={(_v) => paragraph.handle_change(paragraph_i, "pre_text", _v)} 
+                                hide_label label={"Titolo"}
+                                error_message={errors_value[`${paragraph_i}>pre_text`]}
+                        />
+                      </div>
+                    </Frag>
+
+                    {/* input stile */}
+                    <Frag if={editMode}>
+                      <Field  input_class="mb-2 p-1 text-sm" 
+                              type="text" 
+                              value={p.ex_style || ''} 
+                              placeholder="* Stile esterno (tailwind)"
+                              onChange={(_v) => paragraph.handle_change(paragraph_i, "ex_style", _v)}
+                              id={"ex_style>" + paragraph_i}
+                              hide_label label={"Stile esterno (tailwind)"}
+                              error_message={errors_value[`${paragraph_i}>ex_style`]}
                       />
-                    </div>
-                  </Frag>
+                      <Field input_class="mb-2 p-1 text-sm" type="text" 
+                              value={p.in_style || ''} 
+                              placeholder="* Stile interno (tailwind)"
+                              onChange={(_v) => paragraph.handle_change(paragraph_i, "in_style", _v)}
+                              id={"in_style>" + paragraph_i}
+                              hide_label label={"Stile interno (tailwind)"}
+                              error_message={errors_value[`${paragraph_i}>in_style`]}
+                      />
+                    </Frag>
 
-                  {/* input stile */}
-                  <Frag if={editMode}>
-                    <input className="mb-2 p-1 text-sm" type="text" 
-                            value={p.style || ''} 
-                            placeholder="Stile (tailwind)"
-                            onChange={(e) => paragraph.handle_change(paragraph_i, "style", e.target.value)}
+
+                    {/* input testo */}
+                    <Field  input_class="mb-2 p-1 text-sm" 
+                            placeholder="Testo del paragrafo" 
+                            value={p.text} 
+                            disabled={!editMode}
+                            hide_label
+                            label="Testo del paragrafo"
+                            type="textarea"
+                            id={"text>" + paragraph_i}
+                            onChange={(_v) => paragraph.handle_change(paragraph_i, "text", _v)}
+                            error_message={errors_value[`${paragraph_i}>text`]}
                     />
-                  </Frag>
 
 
-                  {/* input testo */}
-                  <Frag if={editMode}>
-                    <textarea placeholder="Testo del paragrafo" 
-                              value={p.text} 
-                              disabled={!editMode}
-                              rows={template.getrows(p)}
-                              className={`bg-transparent text-inherit font-inherit outline-none`}
-                              onChange={(e) => paragraph.handle_change(paragraph_i, "text", e.target.value)}
-                    />
-                  </Frag>
-                  <Frag if={!editMode}>
-                    <div dangerouslySetInnerHTML={{__html: p.text}} />
-                  </Frag>
+                    {/* PULSANTE RIMUOVI PARAGRAFO */}
+                    <Frag if={editMode} className="absolute top-0 end-1">
+                      <button type="button" 
+                              onClick={() => paragraph.handle_remove(paragraph_i)}
+                              className="px-2 py-1 bg-red-600 text-white border rounded-full"
+                              style={{transform: "translateY(-50%)"}}>
+                        <i className="bi bi-trash"></i>
+                      </button>
+                    </Frag>
 
-
-                  {/* PULSANTE RIMUOVI PARAGRAFO */}
-                  <Frag if={editMode} className="absolute top-0 end-1">
-                    <button type="button" 
-                            onClick={() => paragraph.handle_remove(paragraph_i)}
-                            className="px-2 py-1 bg-red-600 text-white border rounded"
-                            style={{transform: "translateY(-50%)"}}>
-                      <i className="bi bi-trash"></i>
-                    </button>
-                  </Frag>
-
+                  </div>
                 </div>
               </div>
             ))}
