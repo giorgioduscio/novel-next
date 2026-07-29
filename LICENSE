@@ -1,21 +1,30 @@
-MIT License
+# LICENZA PROPRIETARIA
 
-Copyright (c) 2025 Giorgio D'uscio
+**Copyright © 2025 Giorgio D'uscio. Tutti i diritti riservati.**
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+Questo software, inclusi il codice sorgente, il codice compilato, la documentazione, le risorse grafiche, i file di configurazione e qualsiasi altro materiale correlato (il "Software"), è di esclusiva proprietà di Giorgio D'uscio ed è protetto dalle leggi nazionali e internazionali in materia di diritto d'autore e proprietà intellettuale.
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+## Restrizioni
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+Salvo preventiva autorizzazione scritta del titolare dei diritti, è **espressamente vietato**:
+
+* utilizzare il Software, in tutto o in parte;
+* copiare, riprodurre o duplicare il Software;
+* modificare, adattare, decompilare, disassemblare o creare opere derivate;
+* distribuire, pubblicare, concedere in licenza, sublicenza, vendere, noleggiare o trasferire il Software;
+* rendere disponibile il Software a terzi, sia gratuitamente sia a pagamento;
+* utilizzare il Software per finalità commerciali o non commerciali.
+
+Nessun diritto o licenza è concesso, implicitamente o esplicitamente, salvo quanto eventualmente autorizzato per iscritto dal titolare dei diritti.
+
+## Proprietà
+
+Tutti i diritti, i titoli e gli interessi relativi al Software rimangono di esclusiva proprietà di Giorgio D'uscio. Nessuna disposizione del presente documento può essere interpretata come una cessione, concessione o trasferimento di diritti di proprietà intellettuale.
+
+## Violazioni
+
+Qualsiasi utilizzo non autorizzato del Software costituisce una violazione dei diritti di proprietà intellettuale e potrà comportare azioni legali civili e penali nei limiti consentiti dalla legge.
+
+## Esclusione di responsabilità
+
+Il Software è fornito esclusivamente secondo gli eventuali termini concordati per iscritto con il titolare dei diritti. Salvo quanto previsto dalla legge applicabile o da un accordo scritto, il titolare non fornisce alcuna garanzia, espressa o implicita, relativamente al Software.
