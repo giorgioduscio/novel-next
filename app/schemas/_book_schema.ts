@@ -39,12 +39,12 @@ export const paragraph_schema = v.object({
 });
 
 export const section_schema = v.object({
-  title: v.string(),
+  title: v.pipe(v.string(), v.minLength(3, "Deve contenere almeno 3 caratteri")),
   paragraphs: v.array(paragraph_schema),
 });
 
 export const parts_schema = v.object({
-  title: v.string(),
+  title: v.pipe(v.string(), v.minLength(3, "Deve contenere almeno 3 caratteri")),
   sections: v.array(section_schema),
 });
 

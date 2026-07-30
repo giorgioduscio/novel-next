@@ -91,13 +91,13 @@ export default function Home() {
 
       <section className="p-2 mx-auto container max-w-[400px]">
         {/* FORM */}
-        <Frag if={form_editMode} className="bg-white/10 p-2 rounded-lg">
-          <h2 className="py-3 text-center text-bold">Aggiungi libro</h2>
-          <p className="text-center text-sm">
+        <Frag if={form_editMode} className="bg-black/20 p-3 rounded-lg">
+          <h2 className="py-3 text-2xl text-center">Aggiungi libro</h2>
+          <p className="text-sm text-center">
             I campi contrassegnati con <b className="text-red-500">*</b> sono obbligatori
           </p>
 
-          <form onSubmit={form_handleSubmit} className="overflow-hidden rounded-lg">
+          <form onSubmit={form_handleSubmit} className="">
             {form_array.map(({ key, value }) => (
               <div key={key} className="my-3">
                 <Field id={key} 
@@ -105,19 +105,19 @@ export default function Home() {
                        type="text" 
                        placeholder={"Inserire " + key} 
                        value={String(value)} 
-                       input_class="w-full bg-gray-900 p-2"
+                       input_class="py-1 px-2 w-full bg-white text-black rounded"
                        error_message={form_submitOnce ? (form_errors[key] || "") : ""}
                        onChange={(value) => form_setState({ ...form_state, [key]: value })}
                 />
               </div>
             ))}
 
-            <div className="flex justify-between">
+            <div className="grid grid-cols-2 rounded overflow-hidden">
               <button type="submit" className="p-2 bg-green-700 hover:bg-green-800 transition-colors">
                 <i className="me-1 bi bi-plus-lg"></i>
                 <span>Aggiungi</span>
               </button>
-              <button type="reset"
+              <button type="button"
                       className="p-2 bg-red-700 hover:bg-red-800 transition-colors"
                       onClick={() => form_reset()}>
                 <i className="me-1 bi bi-x-lg"></i>
@@ -131,6 +131,13 @@ export default function Home() {
 
         {/* LIBRI */}
         <Frag if={books.length > 0} className="text-center">
+          <Frag.Else>
+            <div className="mt-20 text-red-400 text-center">
+              <i className="bi bi-exclamation-triangle me-1"></i>
+              <span>Nessun libro trovato</span>
+            </div>
+          </Frag.Else>
+
           <div className="my-5">
             <h1 className="text-2xl font-bold">Libri</h1>
             <p className="text-gray-400">Totale: {books.length} libri</p>

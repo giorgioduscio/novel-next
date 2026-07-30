@@ -8,8 +8,8 @@
 
 * [1] implementare salvataggio (1 ora)
   - database, download, upload
-* [3] ottimizzare <Frag> con else (30min)
 * [2] stili standard per la novella
+* [3] font face efficace
 
 ## 🔄 In Progress (max 2-3)
 
@@ -31,4 +31,5 @@
 * modifica e visualizzazione delle pagine
 * sostituire attributo post_text con ex_style e style con in_style
 * validazione campi dei paragrafi (stili consentiti)
+* ottimizzare <Frag> con else 
 
