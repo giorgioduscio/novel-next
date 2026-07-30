@@ -1,19 +1,10 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.sass";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import Footer from "./shareds/footer";
 import EditModeProviderWrapper from "./data/EditModeProviderWrapper";
+import { bubblegum, comicNeue } from "./styles/fonts";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
   title: "Novel",
@@ -29,7 +20,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
+    <html lang="en" className={`${comicNeue.variable} ${bubblegum .variable}`}>
       <body>
         <EditModeProviderWrapper>
           <div id="app">
