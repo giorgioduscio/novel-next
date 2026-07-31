@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Part, parts_schema, section_schema, type Book, type Section } from "../../schemas/_book_schema";
+import { Part, parts_schema, section_schema, type Book, type Section } from "../../schemas/book_schema";
 import React, { useEffect, useMemo, useState } from "react";
 import { books_store } from "../../data/books_store";
 import Frag from "@/app/shareds/Frag";
@@ -9,6 +9,7 @@ import { useEditMode } from "@/app/data/EditModeContext";
 import Navbar from "@/app/shareds/navbar";
 import Field from "@/app/shareds/Field";
 import { safeParse } from "valibot";
+import { download } from "@/app/tools/feedbacksUI";
 
 interface BookProps {
   id: number;
@@ -151,6 +152,8 @@ export default function Book({ id }: BookProps) {
     form_reset();
   }
 
+  const actions =Object.values(books_store.download);
+
   // caricamento
   if (!isLoaded) return <main className="mx-auto container max-w-[400px] p-8 text-center text-gray-400">Caricamento...</main>
 
@@ -262,8 +265,23 @@ export default function Book({ id }: BookProps) {
                   </div>
                 </div>
               ))}
-
             </Frag>
+
+            {/* AZIONI */}
+            <div className="my-10 border border-gray-500"></div>
+            <h4 className="p-2 text-xl text-gray-400">Azioni</h4>
+            <div className="flex flex-col">
+              {actions.map((action, i) => (
+                <button key={i}  onClick={() => action.execute(book.id!)}
+                        className="py-2 px-3 bg-gray-800 hover:bg-gray-700 transition-colors" >
+                  <div className="flex justify-between items-center">
+                    <span>{action.label}</span>
+                    <i className={`bi ${action.icon}`}></i>
+                  </div>
+                </button>
+              ))}
+            </div>
+
           </section>
         )}
       </main>

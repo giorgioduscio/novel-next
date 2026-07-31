@@ -761,3 +761,97 @@ export function debounce<T extends (...args: any[]) => any>(callback: T, delay: 
     timer = setTimeout(() => callback(...args), delay) // esegue la callback dopo il delay
   }
 }
+
+export const download ={
+  text: (data:any, fileName='Backup')=> 
+    executeDownload(data, fileName, "text/plan", "txt"),
+
+  json: (data:any, fileName='Backup')=>{ 
+    const json = JSON.stringify(data, null, 2);
+    executeDownload(json, fileName, "application/json", "json")
+  },
+
+  markdown: (data:any, fileName='Backup')=> 
+    executeDownload(data, fileName, "text/markdown;charset=utf-8", "md"),
+  
+  document: (data:any, fileName='Backup')=> 
+    executeDownload(data, fileName, "application/msword", "doc"),
+}
+
+function executeDownload(data: string, fileName:string, blobType: string, fileExtention:string) {
+  const blob = new Blob([data], {
+    type: blobType,
+  });
+
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url; 
+  a.download = fileName + "." + fileExtention;
+  a.click();
+
+  URL.revokeObjectURL(url);
+}
+
+export const UPLOAD ={
+  json: <T>() => executeUpload<T>({ accept: ".json,application/json", parseJson: true }),
+  
+  markdown: () =>
+    executeUpload<string>({ accept: ".md,text/markdown" }),
+
+  
+  text: () =>
+    executeUpload<string>({ accept: ".txt,text/plain" }),
+  
+  yaml: () =>
+    executeUpload<string>({ accept: ".yaml,.yml,text/yaml,application/yaml" }),
+
+}
+
+type UploadOptions = {
+  accept?: string;
+  parseJson?: boolean;
+  multiple?: boolean;
+};
+
+async function executeUpload<T = string>({
+  accept = "*/*",
+  parseJson = false,
+  multiple = false,
+}: UploadOptions = {}): Promise<T | T[] | null> {
+  return new Promise((resolve, reject) => {
+    const input = document.createElement("input");
+
+    input.type = "file";
+    input.accept = accept;
+    input.multiple = multiple;
+
+    input.onchange = async () => {
+      try {
+        const files = Array.from(input.files ?? []);
+
+        if (files.length === 0) {
+          resolve(null);
+          return;
+        }
+
+        const readFile = async (file: File) => {
+          const text = await file.text();
+          return parseJson ? JSON.parse(text) : text;
+        };
+
+        if (multiple) {
+          const result = await Promise.all(files.map(readFile));
+          resolve(result as T[]);
+        } else {
+          const result = await readFile(files[0]);
+          resolve(result as T);
+        }
+      } catch (err) {
+        reject(err);
+      }
+    };
+
+    input.click();
+  });
+}

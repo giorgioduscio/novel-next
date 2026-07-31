@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Book, Paragraph, paragraph_schema } from "@/app/schemas/_book_schema";
+import { Book, Paragraph, paragraph_schema } from "@/app/schemas/book_schema";
 import Frag from "@/app/shareds/Frag";
 import { books_store } from "@/app/data/books_store";
 import Link from "next/link";

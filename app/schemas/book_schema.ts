@@ -18,6 +18,7 @@ const allowed_styles = [
 ] as const;
 
 function validateStyle(v:string){
+  if(v.trim().length === 0) return true;
   const classes = v.trim().split(" "); // tutte le classi tailwind
   // verifica se c'è almeno una classe che non appartiene a quelle permesse
   return classes.every((classe) => // verificare tutte le classi attuali

@@ -8,7 +8,10 @@
 
 * [1] implementare salvataggio (1 ora)
   - database, download, upload
+* [1] bug dei paragrafi
 * [2] stili standard per la novella
+* [3] separazione template e script
+* [3] unire bookcontext e books_stores
 
 ## 🔄 In Progress (max 2-3)
 

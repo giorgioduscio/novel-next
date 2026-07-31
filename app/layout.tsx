@@ -3,6 +3,7 @@ import "./globals.sass";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import Footer from "./shareds/footer";
 import EditModeProviderWrapper from "./data/EditModeProviderWrapper";
+import { BookProvider } from "./data/BookContext";
 import { bubblegum, comicNeue } from "./styles/fonts";
 
 
@@ -22,11 +23,13 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${comicNeue.variable} ${bubblegum .variable}`}>
       <body>
-        <EditModeProviderWrapper>
-          <div id="app">
-            <div>{children}</div>
-          </div>
-        </EditModeProviderWrapper>
+        <BookProvider>
+          <EditModeProviderWrapper>
+            <div id="app">
+              <div>{children}</div>
+            </div>
+          </EditModeProviderWrapper>
+        </BookProvider>
         <Footer />
       </body>
     </html>
