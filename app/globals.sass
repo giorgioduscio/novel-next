@@ -9,21 +9,57 @@
 button
   cursor: pointer !important
 
-.triangle 
-  clip-path: polygon(50% 0%, 0% 100%, 100% 100%)
 
-.angled-be 
-  // Bottom End: angolo in basso a destra obliquo (morbido)
-  clip-path: polygon(0% 0%, 100% 0%, 90% 100%, 0% 100%)
+// HELPER
 
-.angled-bs 
-  // Bottom Start: angolo in basso a sinistra obliquo
-  clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 10% 100%)
+// TRANSLATE
+.translate-y-1
+    transform: translateY(1rem)
+.translate-y-2
+    transform: translateY(2rem)
+.translate-y-3
+    transform: translateY(3rem)
+.translate-y-4
+    transform: translateY(4rem)
+.translate-y-5
+    transform: translateY(5rem)
 
-.angled-ts  
-  // Top Start: angolo in alto a sinistra obliquo
-  clip-path: polygon(10% 0%, 100% 0%, 100% 100%, 0% 100%)
+.-translate-y-1 
+    transform: translateY(-1rem)
+.-translate-y-2
+    transform: translateY(-2rem)
+.-translate-y-3
+    transform: translateY(-3rem)
+.-translate-y-4
+    transform: translateY(-4rem)
+.-translate-y-5
+    transform: translateY(-5rem)
 
-.angled-te 
-  // Top End: angolo in alto a destra obliquo
-  clip-path: polygon(0% 0%, 90% 0%, 100% 100%, 0% 100%)
+
+// bordi angolati
+.slash-left
+    clip-path: polygon(5% 0%,100% 0%,100% 100%,0% 100% )
+.slash-top
+    clip-path: polygon(0% 0%,100% 10%,100% 100%,0% 100% )
+.slash-right
+    clip-path: polygon(0% 0%,100% 0%,95% 100%,0% 100% )
+.slash-bottom
+    clip-path: polygon(0% 0%,100% 0%,100% 100%,0% 90% )
+.slash-x
+    clip-path: polygon(5% 0%,100% 0%,95% 100%,0% 100% )
+.slash-y
+    clip-path: polygon(0% 0%,100% 10%,100% 100%,0% 90% )
+
+.r-slash-left
+    clip-path: polygon(0% 0%,100% 0%,100% 100%,5% 100% )
+.r-slash-top
+    clip-path: polygon(0% 10%,100% 0%,100% 100%,0% 100% )
+.r-slash-right
+    clip-path: polygon(0% 0%,95% 0%,100% 100%,0% 100% )
+.r-slash-bottom
+    clip-path: polygon(0% 0%,100% 0%,100% 90%,0% 100% )
+.r-slash-x
+    clip-path: polygon(0% 0%,95% 0%,100% 100%,5% 100% )
+.r-slash-y
+    clip-path: polygon(0% 10%,100% 0%,100% 90%,0% 100% )
+    

@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import Home from "./Home";
+import Home from "./Books";
 
 // Metadata (solo qui, in un Server Component)
 export const metadata: Metadata = {

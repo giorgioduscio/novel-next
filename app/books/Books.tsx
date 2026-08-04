@@ -10,11 +10,10 @@ import Frag from "../shareds/Frag";
 import { useEditMode } from "../data/EditModeContext";
 import Field from "../shareds/Field";
 import { UPLOAD } from "../tools/feedbacksUI";
-import { books_store } from "../data/books_store";
 
 
 export default function Home() {
-  const { books, createBook, deleteBook, addBook } = useBooks();
+  const { books, createBook, deleteBook, addBook, download } = useBooks();
   const [weight, setWeight] = useState(0);
   const [limit, setLimit] = useState(0);
 
@@ -96,7 +95,7 @@ export default function Home() {
         try {
           const input = await UPLOAD.json();
           const validateBook = safeParse(book_schema, input)
-          if (!validateBook.success) return console.error("Dati non validi");
+          if (!validateBook.success) return console.error("Dati non validi", validateBook.issues);
           
           addBook(validateBook.output);
         } catch (err) {
@@ -292,16 +291,16 @@ export default function Home() {
 
                     <p className="text-sm">{ellipsis(book.description)}</p>
                   </Link>
-                  
+
                   {/* pulsante eliminazione */}
                   <div className="grid grid-cols-2 justify-between items-center">
-                    <button onClick={() => books_store.download.json.execute(book.id || -1)} 
+                    <button onClick={() => download.json.execute(book.id || -1)}
                             className="p-1 bg-green-700 hover:bg-green-800 transition-colors truncate">
-                      Json <i className="bi bi-download"></i> 
+                      Json <i className="bi bi-download"></i>
                     </button>
-                    <button onClick={() => books_store.download.md.execute(book.id || -1)} 
+                    <button onClick={() => download.md.execute(book.id || -1)}
                             className="p-1 bg-blue-700 hover:bg-blue-800 transition-colors truncate">
-                      Markdown <i className="bi bi-download"></i> 
+                      Markdown <i className="bi bi-download"></i>
                     </button>
                   </div>
 

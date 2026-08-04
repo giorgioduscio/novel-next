@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import Chapter from "./Chapter";
+import SectionComponent from "./SectionComponent";
 
 export const metadata: Metadata = {
   title: "Capitolo",
@@ -19,5 +19,5 @@ export default async function ChapterServer({ params }: ChapterServerProps) {
   const _parts = part.replaceAll("-", " ");
   const _section = section.replaceAll("-", " ");
 
-  return <Chapter id={parseInt(id)} part={_parts} section={_section} />;
+  return <SectionComponent id={parseInt(id)} part={_parts} section={_section} />;
 }

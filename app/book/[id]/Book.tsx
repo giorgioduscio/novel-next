@@ -3,13 +3,12 @@
 import Link from "next/link";
 import { Part, parts_schema, section_schema, type Book, type Section } from "../../schemas/book_schema";
 import React, { useEffect, useMemo, useState } from "react";
-import { books_store } from "../../data/books_store";
+import { useBooks } from "../../data/BookContext";
 import Frag from "@/app/shareds/Frag";
 import { useEditMode } from "@/app/data/EditModeContext";
 import Navbar from "@/app/shareds/navbar";
 import Field from "@/app/shareds/Field";
 import { safeParse } from "valibot";
-import { download } from "@/app/tools/feedbacksUI";
 
 interface BookProps {
   id: number;
@@ -19,13 +18,14 @@ export default function Book({ id }: BookProps) {
   const [book, setBook] = useState<Book | undefined>(undefined);
   const [isLoaded, setIsLoaded] = useState(false);
   const { editMode } = useEditMode();
+  const { getBookById, updateBook, download } = useBooks();
 
   useEffect(() => {
     if (!isNaN(id)) {
-      setBook(books_store.getBookById(id));
+      setBook(getBookById(id));
     }
     setIsLoaded(true);
-  }, [id]);
+  }, [id, getBookById]);
 
   function href(book_id: number, part: string, section: string) {
     part = part.replaceAll(" ", "-");
@@ -46,7 +46,7 @@ export default function Book({ id }: BookProps) {
       book.parts.splice(part_i, 1);
     }
 
-    books_store.updateBook(id, book);
+    updateBook(id, book);
     setBook({ ...book });
   }
 
@@ -145,14 +145,14 @@ export default function Book({ id }: BookProps) {
     }
 
     // 5. Aggiorna il libro nello store e nello stato locale
-    books_store.updateBook(id, book);
+    updateBook(id, book);
     setBook(book); // Aggiorna lo stato locale per riflettere le modifiche
 
     // 6. Resetta il form
     form_reset();
   }
 
-  const actions =Object.values(books_store.download);
+  const actions = Object.values(download);
 
   // caricamento
   if (!isLoaded) return <main className="mx-auto container max-w-[400px] p-8 text-center text-gray-400">Caricamento...</main>
@@ -161,7 +161,7 @@ export default function Book({ id }: BookProps) {
     <>
       {/* MAIN */}
       <main id="book">
-        <Navbar back_btn={{ href:"/", label:"Libri", icon:"bi-book" }} 
+        <Navbar back_btn={{ href:"/", label:"", icon:"bi-chevron-left" }} 
                 prop_title={book?.title || ""}/>
 
         {!book ? (

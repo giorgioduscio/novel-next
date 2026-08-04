@@ -1,17 +1,11 @@
 # Note
-
 (vuoto)
 
 # Kanban - Novel Writer (Next.js)
-
 ## 📌 To Do
-
-* [1] implementare salvataggio (1 ora)
-  - database, download, upload
-* [1] bug dei paragrafi
-* [2] stili standard per la novella
+* [1] implementare salvataggio cloud
 * [3] separazione template e script
-* [3] unire bookcontext e books_stores
+* [3] form per i libri
 
 ## 🔄 In Progress (max 2-3)
 
@@ -35,4 +29,6 @@
 * validazione campi dei paragrafi (stili consentiti)
 * ottimizzare <Frag> con else 
 * font face efficace
+* implementare salvataggio locale
+* stili standard per la novella
 

@@ -10,12 +10,14 @@ Gerarchie
 * Frase     
 */
 
-const allowed_styles = [
+const allowed_styles = ["w-", "h-",
   "m-", "my-", "mx-", "mt-", "mb-", "ml-", "mr-", 
   "p-", "py-", "px-", "pt-", "pb-", "pl-", "pr-", 
-  "text-", "border-", "bg-", "outline-", "shadow",
-  "translate-"
+  "text-", "border", "bg-", "outline", "shadow",
+  "translate-", "rounded", "slash-",
+  "full-", "mini"
 ] as const;
+
 
 function validateStyle(v:string){
   if(v.trim().length === 0) return true;
@@ -24,7 +26,7 @@ function validateStyle(v:string){
   return classes.every((classe) => // verificare tutte le classi attuali
     allowed_styles.some((style) => // verificare almeno una classe permessa
       // verifica corrispondenza 
-      classe.startsWith(style)) // (classe attuale deve cominciare con una delle classi permesse)
+      classe.includes(style)) // (classe attuale deve contenere una delle classi permesse)
   );
 }
 
@@ -63,3 +65,4 @@ export type Book = v.InferOutput<typeof book_schema>;
 export type Part = v.InferOutput<typeof parts_schema>;
 export type Section = v.InferOutput<typeof section_schema>;
 export type Paragraph = v.InferOutput<typeof paragraph_schema>;
+

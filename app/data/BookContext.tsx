@@ -3,14 +3,24 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { Book, book_schema } from "../schemas/book_schema";
 import * as v from "valibot";
+import { download, UPLOAD } from "../tools/feedbacksUI";
 
 interface BookContextType {
   books: Book[];
   createBook: (book: Omit<Book, "id">) => void;
-  updateBook: (id: number, updatedBook: Partial<Book>) => void;
+  updateBook: (id: number, updatedBook: Partial<Book>, validation?: boolean) => void;
   deleteBook: (id: number) => void;
   getBookById: (id: number) => Book | undefined;
   addBook: (book: Book) => void;
+  download: {
+    json: { label: string; icon: string; execute: (id: number) => void };
+    txt: { label: string; icon: string; execute: (id: number) => void };
+    md: { label: string; icon: string; execute: (id: number) => void };
+  };
+  upload: {
+    json: { label: string; icon: string; execute: () => Promise<void> };
+    markdown: { label: string; icon: string; execute: () => Promise<void> };
+  };
 }
 
 const BookContext = createContext<BookContextType | undefined>(undefined);
@@ -47,11 +57,15 @@ export function BookProvider({ children }: { children: React.ReactNode }) {
     setBooks((prev) => [...prev, validatedBook]);
   }
 
-  function updateBook(id: number, updatedBook: Partial<Book>) {
+  function updateBook(id: number, updatedBook: Partial<Book>, validation = true) {
     setBooks((prev) =>
-      prev.map((book) =>
-        book.id === id ? validateBook({ ...book, ...updatedBook }) : book
-      )
+      prev.map((book) => {
+        if (book.id === id) {
+          const merged = { ...book, ...updatedBook };
+          return validation ? validateBook(merged) : merged;
+        }
+        return book;
+      })
     );
   }
 
@@ -62,7 +76,6 @@ export function BookProvider({ children }: { children: React.ReactNode }) {
   function getBookById(id: number): Book | undefined {
     return books.find((book) => book.id === id);
   }
-
 
   const storage ={
     set() {
@@ -78,10 +91,106 @@ export function BookProvider({ children }: { children: React.ReactNode }) {
     },
   }
 
+  // Helper function to convert book to text
+  function bookToText(data: Book, useFormat = false) {
+    let result = `${useFormat ? '# ' : ''}${data.title}\n\n`;
+    for (let part of data.parts || []) {
+      result += `${useFormat ? '## ' : ''}${part.title}\n\n`;
+      for (let section of part.sections || []) {
+        result += `${useFormat ? '### ' : ''}${section.title}\n\n`;
+        for (let paragraph of section.paragraphs || []) {
+          result += `${paragraph.text}\n\n`;
+        }
+      }
+    }
+    return result;
+  }
+
+  // Download methods
+  const downloadMethods = {
+    json: {
+      label: "Download (.json)",
+      icon: "bi-download",
+      execute: (id: number) => {
+        const data = getBookById(id);
+        if (!data) throw new Error("libro non trovato");
+        download.json(data, data.title);
+      },
+    },
+    txt: {
+      label: "Download (.txt)",
+      icon: "bi-file",
+      execute: (id: number) => {
+        const data = getBookById(id);
+        if (!data) throw new Error("libro non trovato");
+        const result = bookToText(data);
+        download.text(result, data.title);
+      },
+    },
+    md: {
+      label: "Download (.md)",
+      icon: "bi-file-earmark-text",
+      execute: (id: number) => {
+        const data = getBookById(id);
+        if (!data) throw new Error("libro non trovato");
+        const result = bookToText(data, true);
+        download.markdown(result, data.title);
+      },
+    },
+  };
+
+  // Upload methods
+  const uploadMethods = {
+    json: {
+      label: "Upload (.json)",
+      icon: "bi-upload",
+      async execute() {
+        try {
+          const input = await UPLOAD.json();
+          if (!input) {
+            console.error("Nessun file selezionato");
+            return;
+          }
+          const validatedBook = validateBook(input);
+          setBooks((prev) => [...prev, validatedBook]);
+          console.log("Libro caricato con successo:", validatedBook);
+        } catch (err) {
+          console.error("Errore durante l'upload JSON:", err);
+        }
+      },
+    },
+    markdown: {
+      label: "Upload (.md)",
+      icon: "bi-upload",
+      async execute() {
+        try {
+          const input = await UPLOAD.text();
+          if (!input) {
+            console.error("Nessun file selezionato");
+            return;
+          }
+          const validatedBook = validateBook(input);
+          setBooks((prev) => [...prev, validatedBook]);
+          console.log("Libro caricato con successo:", validatedBook);
+        } catch (err) {
+          console.error("Errore durante l'upload markdown:", err);
+        }
+      },
+    },
+  };
+
   return (
     <BookContext.Provider
-      value={{ books, createBook, updateBook, deleteBook, getBookById, addBook }}>
-      {children} </BookContext.Provider>
+      value={{
+        books,
+        createBook,
+        updateBook,
+        deleteBook,
+        getBookById,
+        addBook,
+        download: downloadMethods,
+        upload: uploadMethods,
+      }}>{children} </BookContext.Provider>
   );
 }
 

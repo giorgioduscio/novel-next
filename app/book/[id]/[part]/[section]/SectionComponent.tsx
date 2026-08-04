@@ -1,12 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Book, Paragraph, paragraph_schema } from "@/app/schemas/book_schema";
 import Frag from "@/app/shareds/Frag";
-import { books_store } from "@/app/data/books_store";
-import Link from "next/link";
-import { redirect } from "next/navigation";
-import "./chapter.sass";
+import { useBooks } from "@/app/data/BookContext";
+import { useRouter } from "next/navigation";
+import "./Section.sass";
 import { useEditMode } from "@/app/data/EditModeContext";
 import Field from "@/app/shareds/Field";
 import { safeParse } from "valibot";
@@ -18,14 +17,10 @@ interface ChapterProps {
   section: string;
 }
 
-export default function Chapter({ id, part, section }: ChapterProps) {
+export default function SectionComponent({ id, part, section }: ChapterProps) {
   // dati
+  const router = useRouter();
   const [book, setBook] = useState<Book | undefined>(undefined);
-  const chapter = useMemo(() => {
-    if (!book?.parts) return undefined;
-    const foundPart = book.parts.find((p) => p.title.toLowerCase() === part.toLowerCase());
-    return foundPart?.sections.find((s) => s.title.toLowerCase() === section.toLowerCase());
-  }, [book, part, section]);
 
   // user interface
   const [isLoaded, setIsLoaded] = useState(false);
@@ -33,10 +28,16 @@ export default function Chapter({ id, part, section }: ChapterProps) {
   
   // editMode dal contesto globale
   const { editMode, toggleEditMode } = useEditMode();
+  const { getBookById, updateBook } = useBooks();
+
+  // TITOLO
+  const [title_value, title_setValue] = useState(section);
+  useEffect(() => title_setValue(section), [section]);
+
 
   useEffect(() => {
     if (!isNaN(id)) {
-      const foundBook = books_store.getBookById(id);
+      const foundBook = getBookById(id);
       setBook(foundBook);
     }
     setIsLoaded(true);
@@ -46,7 +47,26 @@ export default function Chapter({ id, part, section }: ChapterProps) {
     setWidth();
     window.addEventListener('resize', setWidth);
     return () => { window.removeEventListener('resize', setWidth) };
-  }, [id]);
+  }, [id, getBookById]);
+  
+
+  const chapter = useMemo(() => {
+    if (!book?.parts) return undefined;
+
+    const foundPart = book.parts.find(
+      (p) => p.title.toLowerCase() === part.toLowerCase()
+    );
+
+    return (
+      foundPart?.sections.find(
+        (s) => s.title.toLowerCase() === title_value.toLowerCase()
+      ) ??
+      foundPart?.sections.find(
+        (s) => s.title.toLowerCase() === section.toLowerCase()
+      )
+    );
+  }, [book, part, section, title_value]);
+
 
   // ritorna la sezione corrente
   function getSection(bookObj: Book) {
@@ -55,37 +75,25 @@ export default function Chapter({ id, part, section }: ChapterProps) {
       ?.sections.find((s) => s.title.toLowerCase() === section.toLowerCase());
   }
 
-  // aggiorna il template e (opsionale) salva il libro
-  function saveAndSetBook(updatedBook: Book, save=true) {
-    setBook(updatedBook);
-    if(save) books_store.updateBook(id, updatedBook);
-  }
-
-
-  // TITOLO
-  const [title_value, title_setValue] = useState(section);
-
-  useEffect(() => {
-    title_setValue(section);
-  }, [section]);
-
   // aggiorna il titolo della sezione e reindirizza alla nuova URL
-  function title_handleSubmit(newTitle: string) {
-    const trimmed = newTitle.trim();
-    if (!book || !trimmed || trimmed === section) return;
+  function title_handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    const trimmed = title_value.trim();
+    
+    if (!book || !trimmed || trimmed === section) throw new Error("Titolo non modificato");
 
     const updated = structuredClone(book);
     const sec = getSection(updated);
-    if (!sec) return;
+    if (!sec) throw new Error("Sezione non trovata");
 
     sec.title = trimmed;
-    books_store.updateBook(id, updated);
+    updateBook(id, updated);
     setBook(updated);
 
     // redirect alla nuova URL del capitolo
     const _part = part.replaceAll(" ", "-");
     const _title = trimmed.replaceAll(" ", "-");
-    redirect(`/book/${id}/${_part}/${_title}`);
+    router.push(`/book/${id}/${_part}/${_title}`);
   }
   
   // oggetto di errori "2>text": "messaggio"
@@ -122,18 +130,22 @@ export default function Chapter({ id, part, section }: ChapterProps) {
         text: "",
       } as Paragraph);
   
-      saveAndSetBook(updated, false);
+      setBook(updated);
     },
   
     // rimuove un paragrafo
-    handle_remove(index: number) {
-      if (!book) return;
+    handle_remove(index:number, paragraph: Paragraph) {
+      if(paragraph.text.length && !confirm(`Rimuovere il paragrafo "${paragraph.text}"?`)) return;
+
+      if (!book) throw new Error("Book not found");
       const updated = structuredClone(book);
       const sec = getSection(updated);
-      if (!sec) return;
+      if (!sec) throw new Error("Section not found");
   
       sec.paragraphs.splice(index, 1);
-      saveAndSetBook(updated);
+      
+      setBook(updated);
+      updateBook(id, updated);
     },
   
     handle_change(index: number, key: keyof Paragraph, value: string) {
@@ -145,7 +157,7 @@ export default function Chapter({ id, part, section }: ChapterProps) {
       (sec.paragraphs as any)[index][key] = value || "";
       setBook(updated);
       // salvataggio     
-      books_store.updateBook(id, updated, false);
+      updateBook(id, updated, false);
     },
   }
 
@@ -165,40 +177,67 @@ export default function Chapter({ id, part, section }: ChapterProps) {
 
         ) : (<>
           {/* TITOLO */}
-          <div className="p-3 py-10 text-center">
+          <form onSubmit={title_handleSubmit} className="p-3 py-10 text-center">
             <Field  input_class="text-3xl font-bold text-center"
                     hide_label={editMode ? false : true}
                     label="Titolo del capitolo"
                     value={title_value}
                     disabled={!editMode}
-                    onChange={(_v) => title_setValue(_v)}
-                    // @ts-ignore
-                    onBlur={() => title_handleSubmit(title_value)}
-                    onKeyDown={(e:React.KeyboardEvent<HTMLInputElement>) => {
-                      if (e.key === "Enter") {
-                        e.preventDefault();
-                        e.currentTarget.blur();
-                      }
-                    }}
+                    onChange={(_v) => title_setValue(_v)} 
+                    id={"title"} 
+                    type={"text"} 
+                    placeholder={"Titolo del capitolo"}            
             />
             <div className="mt-5 border-y border-gray-500"></div>
-          </div>
+          </form>
 
 
           {/* PARAGRAFO */}
           <div className="pb-30">
             {chapter.paragraphs.map((p, paragraph_i) => (
-              <div className="py-3" key={paragraph_i}>
-                <div className={`${p.ex_style || ""}`}>
-                  <div className={`relative p-3 ${p.in_style || ""}`}> 
+              <div key={paragraph_i} className="relative">
 
+                {/* PULSANTE RIMUOVI PARAGRAFO */}
+                <Frag if={editMode}>
+                  <div className="m-3 mt-10 border"></div>
+                  <div className="p-1 pb-5 grid grid-cols-[1fr_auto] gap-1">
+                    <Field  input_class="p-1 rounded border text-black bg-white" 
+                            type="textarea" 
+                            value={p.ex_style || ''} 
+                            placeholder="* Stile esterno (tailwind)"
+                            onChange={(_v) => paragraph.handle_change(paragraph_i, "ex_style", _v)}
+                            id={"ex_style>" + paragraph_i}
+                            hide_label label={"Stile esterno (tailwind)"}
+                            error_message={errors_value[`${paragraph_i}>ex_style`]}
+                    />
+
+                    <button type="button" 
+                            onClick={() => paragraph.handle_remove(paragraph_i, p)}
+                            className="px-2 py-1 bg-red-600 text-white outline rounded">
+                      <i className="bi bi-trash"></i>
+                    </button>
+
+                    <Field  input_class="p-1 rounded border text-black bg-white" 
+                            type="textarea" 
+                            value={p.in_style || ''} 
+                            placeholder="* Stile interno (tailwind)"
+                            onChange={(_v) => paragraph.handle_change(paragraph_i, "in_style", _v)}
+                            id={"in_style>" + paragraph_i}
+                            hide_label label={"Stile interno (tailwind)"}
+                            error_message={errors_value[`${paragraph_i}>in_style`]}
+                    />
+                  </div>
+                </Frag>
+
+
+                <div className={`relative ${p.ex_style || ""}`}>
+                  <div className={`flex flex-col gap-2  p-3 ${p.in_style || ""}`}> 
+
+                    {/* input pre_test */}
                     <Frag if={!!p.pre_text || !!editMode}>
-                      <div className="absolute top-0 start-1/2 -translate-x-1/2 rounded" 
-                            style={{transform: 'translateY(-15px)', 
-                                    background: (p.in_style?.includes('bg-') || p.ex_style?.includes('bg-')) ? 'inherit' : 'var(--global-bg)', 
-                                    borderLeftWidth:'inherit', borderRightWidth:'inherit',
-                                    borderLeftColor:'inherit', borderRightColor:'inherit'}}>
-                        {/* input pre_text */}
+                      <div className="text-center" 
+                            style={{background: (p.in_style?.includes('bg-') || p.ex_style?.includes('bg-')) ? 'inherit' : 'var(--global-bg)'}}>
+
                         <Field  input_class="px-1 max-w-[100px] mx-auto font-bold text-center text-inherit"
                                 type="text"
                                 id={"pre_text>" + paragraph_i}
@@ -212,30 +251,9 @@ export default function Chapter({ id, part, section }: ChapterProps) {
                       </div>
                     </Frag>
 
-                    {/* input stile */}
-                    <Frag if={editMode}>
-                      <Field  input_class="mb-2 p-1 text-sm" 
-                              type="text" 
-                              value={p.ex_style || ''} 
-                              placeholder="* Stile esterno (tailwind)"
-                              onChange={(_v) => paragraph.handle_change(paragraph_i, "ex_style", _v)}
-                              id={"ex_style>" + paragraph_i}
-                              hide_label label={"Stile esterno (tailwind)"}
-                              error_message={errors_value[`${paragraph_i}>ex_style`]}
-                      />
-                      <Field input_class="mb-2 p-1 text-sm" type="text" 
-                              value={p.in_style || ''} 
-                              placeholder="* Stile interno (tailwind)"
-                              onChange={(_v) => paragraph.handle_change(paragraph_i, "in_style", _v)}
-                              id={"in_style>" + paragraph_i}
-                              hide_label label={"Stile interno (tailwind)"}
-                              error_message={errors_value[`${paragraph_i}>in_style`]}
-                      />
-                    </Frag>
-
 
                     {/* input testo */}
-                    <Field  input_class="mb-2 p-1 text-sm" 
+                    <Field  input_class="p-1 text-center" 
                             placeholder="Testo del paragrafo" 
                             value={p.text} 
                             disabled={!editMode}
@@ -246,17 +264,6 @@ export default function Chapter({ id, part, section }: ChapterProps) {
                             onChange={(_v) => paragraph.handle_change(paragraph_i, "text", _v)}
                             error_message={errors_value[`${paragraph_i}>text`]}
                     />
-
-
-                    {/* PULSANTE RIMUOVI PARAGRAFO */}
-                    <Frag if={editMode} className="absolute top-0 end-1">
-                      <button type="button" 
-                              onClick={() => paragraph.handle_remove(paragraph_i)}
-                              className="px-2 py-1 bg-red-600 text-white border rounded-full"
-                              style={{transform: "translateY(-50%)"}}>
-                        <i className="bi bi-trash"></i>
-                      </button>
-                    </Frag>
 
                   </div>
                 </div>
