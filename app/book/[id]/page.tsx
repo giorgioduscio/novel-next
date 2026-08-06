@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import BookComponent from "@/app/book/[id]/Book";
+import BookComponent from "@/app/book/[id]/BookComponent";
 
 interface PageProps {
   params: Promise<{

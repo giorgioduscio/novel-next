@@ -10,12 +10,13 @@ Gerarchie
 * Frase     
 */
 
-const allowed_styles = ["w-", "h-",
+const allowed_styles = [
+  "w-", "h-",
   "m-", "my-", "mx-", "mt-", "mb-", "ml-", "mr-", 
   "p-", "py-", "px-", "pt-", "pb-", "pl-", "pr-", 
   "text-", "border", "bg-", "outline", "shadow",
   "translate-", "rounded", "slash-",
-  "full-", "mini"
+  "full-", "mini", "comix" // custom classes
 ] as const;
 
 

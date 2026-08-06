@@ -117,13 +117,13 @@ export default function SectionComponent({ id, part, section }: ChapterProps) {
 
   const paragraph ={
     // inserisce un paragrafo vuoto alla fine
-    handle_create(){
+    handle_create(index:number){
       if (!book) return;
       const updated = structuredClone(book);
       const sec = getSection(updated);
       if (!sec) return;
   
-      sec.paragraphs.push({
+      sec.paragraphs.splice(index+1, 0, {
         ex_style: "",
         style: "",
         pre_text: "",
@@ -183,7 +183,7 @@ export default function SectionComponent({ id, part, section }: ChapterProps) {
                     label="Titolo del capitolo"
                     value={title_value}
                     disabled={!editMode}
-                    onChange={(_v) => title_setValue(_v)} 
+                    onChange={(_e) => title_setValue(_e.target.value)} 
                     id={"title"} 
                     type={"text"} 
                     placeholder={"Titolo del capitolo"}            
@@ -197,62 +197,57 @@ export default function SectionComponent({ id, part, section }: ChapterProps) {
             {chapter.paragraphs.map((p, paragraph_i) => (
               <div key={paragraph_i} className="relative">
 
-                {/* PULSANTE RIMUOVI PARAGRAFO */}
-                <Frag if={editMode}>
-                  <div className="m-3 mt-10 border"></div>
-                  <div className="p-1 pb-5 grid grid-cols-[1fr_auto] gap-1">
-                    <Field  input_class="p-1 rounded border text-black bg-white" 
-                            type="textarea" 
-                            value={p.ex_style || ''} 
-                            placeholder="* Stile esterno (tailwind)"
-                            onChange={(_v) => paragraph.handle_change(paragraph_i, "ex_style", _v)}
-                            id={"ex_style>" + paragraph_i}
-                            hide_label label={"Stile esterno (tailwind)"}
-                            error_message={errors_value[`${paragraph_i}>ex_style`]}
-                    />
+                {/* PARAGRAFO */}
+                <div className={`pt-3 ${p.ex_style || ""}`}>
+                  <div className={`p-1 ${p.in_style || ""}`}> 
 
-                    <button type="button" 
-                            onClick={() => paragraph.handle_remove(paragraph_i, p)}
-                            className="px-2 py-1 bg-red-600 text-white outline rounded">
-                      <i className="bi bi-trash"></i>
-                    </button>
+                  {/* STRUMENTI EDITING */}
+                  <Frag if={editMode} className="mb-5 text-black bg-white/60 outline rounded overflow-hidden">
+                    <div className="grid grid-cols-[1fr_auto]">
+                      <Field  input_class="p-1 border" 
+                              type="text" 
+                              value={p.ex_style || ''} 
+                              placeholder="Stile esterno (tailwind)"
+                              onChange={(_e) => paragraph.handle_change(paragraph_i, "ex_style", _e.target.value.toLowerCase())}
+                              id={"ex_style>" + paragraph_i}
+                              hide_label label={"Stile esterno (tailwind)"}
+                              error_message={errors_value[`${paragraph_i}>ex_style`]}
+                      />
 
-                    <Field  input_class="p-1 rounded border text-black bg-white" 
-                            type="textarea" 
-                            value={p.in_style || ''} 
-                            placeholder="* Stile interno (tailwind)"
-                            onChange={(_v) => paragraph.handle_change(paragraph_i, "in_style", _v)}
-                            id={"in_style>" + paragraph_i}
-                            hide_label label={"Stile interno (tailwind)"}
-                            error_message={errors_value[`${paragraph_i}>in_style`]}
-                    />
-                  </div>
-                </Frag>
+                      <button type="button" 
+                              onClick={() => paragraph.handle_remove(paragraph_i, p)}
+                              className="px-2 py-1 bg-red-600 text-white">
+                        <i className="bi bi-trash"></i>
+                      </button>
 
+                      <Field  input_class="p-1 border" 
+                              type="text" 
+                              value={p.in_style || ''} 
+                              placeholder="Stile interno (tailwind)"
+                              onChange={(_e) => paragraph.handle_change(paragraph_i, "in_style", _e.target.value.toLowerCase())}
+                              id={"in_style>" + paragraph_i}
+                              hide_label label={"Stile interno (tailwind)"}
+                              error_message={errors_value[`${paragraph_i}>in_style`]}
+                      />
+                    </div>
+                  </Frag>
 
-                <div className={`relative ${p.ex_style || ""}`}>
-                  <div className={`flex flex-col gap-2  p-3 ${p.in_style || ""}`}> 
-
-                    {/* input pre_test */}
+                    {/* TITOLO */}
                     <Frag if={!!p.pre_text || !!editMode}>
-                      <div className="text-center" 
-                            style={{background: (p.in_style?.includes('bg-') || p.ex_style?.includes('bg-')) ? 'inherit' : 'var(--global-bg)'}}>
-
                         <Field  input_class="px-1 max-w-[100px] mx-auto font-bold text-center text-inherit"
                                 type="text"
                                 id={"pre_text>" + paragraph_i}
                                 value={p.pre_text || ''}
                                 disabled={!editMode}
                                 placeholder="Titolo"
-                                onChange={(_v) => paragraph.handle_change(paragraph_i, "pre_text", _v)} 
+                                onChange={(_e) => paragraph.handle_change(paragraph_i, "pre_text", _e.target.value)} 
                                 hide_label label={"Titolo"}
                                 error_message={errors_value[`${paragraph_i}>pre_text`]}
                         />
-                      </div>
                     </Frag>
 
 
-                    {/* input testo */}
+                    {/* TESTO */}
                     <Field  input_class="p-1 text-center" 
                             placeholder="Testo del paragrafo" 
                             value={p.text} 
@@ -261,24 +256,24 @@ export default function SectionComponent({ id, part, section }: ChapterProps) {
                             label="Testo del paragrafo"
                             type="textarea"
                             id={"text>" + paragraph_i}
-                            onChange={(_v) => paragraph.handle_change(paragraph_i, "text", _v)}
+                            onChange={(_e) => paragraph.handle_change(paragraph_i, "text", _e.target.value)}
                             error_message={errors_value[`${paragraph_i}>text`]}
                     />
 
                   </div>
                 </div>
+                {/* PARAGRAFO */}
+
+                {/* pulsante inserimento */}
+                <Frag if={editMode} className="py-4">
+                  <button onClick={_e=> paragraph.handle_create(paragraph_i)}
+                          className="mx-auto block px-1 border rounded-full bg-blue-500/30 text-blue-300">
+                    <i className="bi bi-plus-lg"></i>
+                  </button>
+                </Frag>
+
               </div>
             ))}
-              
-            {/* PULSANTE AGGIUNTA PARAGRAFO */}
-            <Frag if={editMode} className="py-5">
-              <button type="button" 
-                      onClick={paragraph.handle_create}
-                      className="px-3 py-2 m-auto bg-green-500/50 block rounded">
-                <i className="bi bi-plus"></i>
-                Aggiungi paragrafo
-              </button>
-            </Frag>
           </div>
           {/* PARAGRAFO */}
           

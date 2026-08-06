@@ -5,7 +5,6 @@
 ## 📌 To Do
 * [1] implementare salvataggio cloud
 * [3] separazione template e script
-* [3] form per i libri
 
 ## 🔄 In Progress (max 2-3)
 
@@ -31,4 +30,4 @@
 * font face efficace
 * implementare salvataggio locale
 * stili standard per la novella
-
+* sostituire i form con pulsanti auto-compilanti

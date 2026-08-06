@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import Home from "./Books";
+import BooksComponents from "./BooksComponent";
 
 // Metadata (solo qui, in un Server Component)
 export const metadata: Metadata = {
@@ -8,5 +8,5 @@ export const metadata: Metadata = {
 };
 
 export default function HomeRoute() {
-  return <Home />;
+  return <BooksComponents />;
 }

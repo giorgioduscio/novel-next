@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Navbar from "../shareds/navbar";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Book, book_schema } from "../schemas/book_schema";
 import { useBooks } from "../data/BookContext";
 import { safeParse } from "valibot";
@@ -12,8 +12,9 @@ import Field from "../shareds/Field";
 import { UPLOAD } from "../tools/feedbacksUI";
 
 
-export default function Home() {
-  const { books, createBook, deleteBook, addBook, download } = useBooks();
+export default function BooksComponents() {
+  const { books, createBook, deleteBook, addBook, updateBook, download } = useBooks();
+  const { editMode } = useEditMode();
   const [weight, setWeight] = useState(0);
   const [limit, setLimit] = useState(0);
 
@@ -28,69 +29,41 @@ export default function Home() {
   }, []);
 
   // Funzione per eliminare un libro
-  const handleDeleteBook = (id?: number) => {
+  function handleDeleteBook(id: number, index:number) {
     if (!confirm("Rimuovere il libro?")) return;
-    if (id == undefined) return;
-    deleteBook(id);
+    if (id !== -1){
+      deleteBook(id);
+      
+    } else {
+      const idMatch = books[index];
+      if (!idMatch) throw new Error("Id o indice non vaalido");
+      deleteBook(idMatch.id || -1);
+    }
   };
-
-  function ellipsis(text: string) {
-    return weight > 350 ? text : text.slice(0, limit) + "...";
+  
+  // crea un nuovo libro con valori predefiniti
+  function handleCreateBook(){
+    createBook({
+      title: "Book - " + Date.now(),
+      description: "Inserisci la descrizione",
+      author: "Inserisci l'autore"
+    });
   }
 
 
   // FORM 
-  const { editMode } = useEditMode();
-  // stato iniziale del form
-  const form_start ={
-    title:       {value: "", label:"Titolo", placeholder:"Inserisci il titolo", type:"text"},
-    description: {value: "", label:"Descrizione", placeholder:"Inserisci la descrizione", type: "textarea"},
-    author:      {value: "", label:"Autore", placeholder:"Inserisci l'autore", type:"text"},
-  };
-  
-  const [form_value, form_setValue] = useState(form_start);
-  const [form_submitOnce, form_setSubmitOnce] = useState(false);
-
-  // crea un nuovo oggetto validato
-  const form_newBook = useMemo(()=>{
-    const result = {} as typeof form_value;
-    Object.entries(form_value).forEach(([key, value]) => {
-      (result as any)[key] = value.value;
-    });
-    return safeParse(book_schema, result);
-  }, [form_value]);
-  
-  // crea oggetti di stringhe per gli errori
-  const form_errors: { [k: string]: string } = useMemo(() => {
-    let result = {};
-    form_newBook.issues?.forEach((issue) => {
-      const path = (issue as any).path[0].key;
-      (result as any)[path] = issue.message;
-    });
-    return result;
-  }, [form_newBook]);
-  
-  function form_reset() {
-    form_setSubmitOnce(false);
-    form_setValue(form_start);
+  // modifica i campi dei singoli libri
+  function handleChangebook(index: number, key: string, e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
+    const book = books[index];    
+    if (!book || !book.id) throw new Error("Libro non valido");
+    updateBook(book.id, { [key]: e.currentTarget.value });
   }
 
-  function form_handleChange(key:string, value:string) {
-    form_setValue({ ...form_value, [key]: { ...(form_value as any)[key], value } })
-  }
 
-  function form_handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    form_setSubmitOnce(true);
-
-    if (!form_newBook.success) return;
-    createBook(form_newBook.output);
-    form_reset();
-  }
 
   const upload ={
     json: {
-      label: 'Upload (.json)',
+      label: 'JSON',
       async execute(){
         try {
           const input = await UPLOAD.json();
@@ -104,7 +77,7 @@ export default function Home() {
       }
     },
     markdown: {
-      label: 'Upload (.md)',
+      label: 'MD',
       async execute() {
         try {
           const input = await UPLOAD.markdown() as string;
@@ -202,44 +175,6 @@ export default function Home() {
       <Navbar />
 
       <section className="p-2 mx-auto container max-w-[400px]">
-        {/* FORM */}
-        <Frag if={editMode} className="bg-black/20 p-3 rounded-lg">
-          <h2 className="py-3 text-2xl text-center">Aggiungi libro</h2>
-          <p className="text-sm text-center">
-            I campi contrassegnati con <b className="text-red-500">*</b> sono obbligatori
-          </p>
-
-          <form onSubmit={form_handleSubmit} className="">
-            {Object.entries(form_value).map(([key, obj]) => (
-              <div key={key} className="my-3">
-                <Field id={key} 
-                       label={key.charAt(0).toUpperCase() + key.slice(1)} 
-                       type={obj.type || "text"} 
-                       placeholder={obj.placeholder} 
-                       value={String(obj.value)} 
-                       input_class="py-1 px-2 w-full bg-white text-black rounded"
-                       error_message={form_submitOnce ? (form_errors[key] || "") : ""}
-                       onChange={(value) => form_handleChange(key, value)}
-                />
-              </div>
-            ))}
-
-            <div className="grid grid-cols-2 rounded overflow-hidden">
-              <button type="submit" className="p-2 bg-green-700 hover:bg-green-800 transition-colors">
-                <i className="me-1 bi bi-plus-lg"></i>
-                <span>Aggiungi</span>
-              </button>
-              <button type="button"
-                      className="p-2 bg-red-700 hover:bg-red-800 transition-colors"
-                      onClick={() => form_reset()}>
-                <i className="me-1 bi bi-x-lg"></i>
-                <span>Reset</span>
-              </button>
-            </div>
-
-          </form>
-        </Frag>
-
 
         {/* LIBRI */}
         <Frag if={books.length > 0} className="text-center">
@@ -251,46 +186,90 @@ export default function Home() {
           </Frag.Else>
 
           {/* UPLOAD */}
-          <div className="py-3 flex justify-center items-center gap-2">
+          <div className="flex justify-center items-center gap-2">
             {Object.values(upload).map((uploadOption) => (
               <button key={uploadOption.label}
                       onClick={uploadOption.execute}
                       className="py-2 px-3 text-sm rounded bg-black/50 hover:bg-black/70 transition-colors">
-                <i className="me-1 bi bi-upload"></i> 
-                {uploadOption.label}
+                <i className="mx-1 bi bi-upload"></i> 
+                <span className="hidden sm:inline">Upload</span>
+                <span>{uploadOption.label}</span>
               </button>
             ))}
           </div>
 
 
           {/* TITOLO */}
-          <div className="my-5">
+          <div className="my-5 flex justify-between items-center">
             <h1 className="text-2xl font-bold">Libri</h1>
             <p className="text-gray-400">Totale: {books.length} libri</p>
           </div>
 
+          <div className="my-5">
+            <button onClick={handleCreateBook} 
+                    className="w-full py-2 px-3 rounded bg-blue-600 hover:bg-blue-700 transition-colors">
+              <i className="bi bi-plus-lg"></i>
+              Aggiungi libro
+            </button>
+          </div>
+
 
           {/* LIBRI */}
-          <ol className="flex flex-wrap gap-2">
-            {books.map((book) => (
-              <li key={book.id} className="flex-1 min-w-[150px]  rounded overflow-hidden border border-gray-400">
+          <ol className="flex flex-wrap gap-2 items-start">
+
+            {/* LIBRO */}
+            {books.map((book, book_i) => (
+              <li key={book.id + book.title} className="flex-1 min-w-[150px]  rounded overflow-hidden border border-gray-400">
                 <div className="text-center relative bg-white/10 hover:bg-white/30 transition-colors">
 
                   <div className="absolute top-0 right-0 w-fit">
-                    <button onClick={() => handleDeleteBook(book.id)} 
+                    <button onClick={() => handleDeleteBook(book.id || -1, book_i)} 
                             className="py-1 px-2 rounded bg-red-600 hover:bg-red-700 transition-colors truncate">
                       <i className="bi bi-trash-fill"></i>
                     </button>
                   </div>
 
-                  <Link href={`/book/${book.id}`} className="p-2 block">
-                    <h4 className="font-bold">{book.title}</h4>
-                    <p className="pb-2 mb-2 border-b border-gray-500 italic text-xs">
-                      By "{book.author}"
-                    </p>
+                  <Frag if={editMode}>
+                    {/* visualizzazione */}
+                    <Frag.Else>
+                      <Link href={`/book/${book.id}`} className="p-2 block">
+                        <h4 className="text-center text-lg font-bold">{book.title}</h4>
+                        <h6 className="text-center">{book.author}</h6>
+                        <p className="text-center">{book.description}</p>
+                      </Link>
+                    </Frag.Else>
 
-                    <p className="text-sm">{ellipsis(book.description)}</p>
-                  </Link>
+                    {/* modifica */}
+                    <div className="p-2 block">
+                      <Field  id={"title"} 
+                              hide_label label={"Titolo del libro"} 
+                              type={"text"} 
+                              input_class="p-1 bg-white text-black border rounded text-center text-lg font-bold"
+                              disabled={!editMode}
+                              placeholder={"Inserisci il titolo"} 
+                              value={book.title} 
+                              onChange={e=> handleChangebook(book_i, "title", e)}
+                      />
+                      <Field  id={"author"} 
+                              hide_label label={"Autore del libro"} 
+                              type={"text"} 
+                              input_class="p-1 bg-white text-black border rounded text-center"
+                              disabled={!editMode}
+                              placeholder={"Inserisci l'autore"} 
+                              value={book.author} 
+                              onChange={e=> handleChangebook(book_i, "author", e)}
+                      />
+                      <Field  id={"description"} 
+                              hide_label label={"Descrizione del libro"} 
+                              type={"textarea"} 
+                              input_class="p-1 bg-white text-black border rounded text-center"
+                              disabled={!editMode}
+                              placeholder={"Inserisci la descrizione"} 
+                              value={book.description} 
+                              onChange={e=> handleChangebook(book_i, "description", e)}
+                      />
+                    </div>
+                  </Frag>
 
                   {/* pulsante eliminazione */}
                   <div className="grid grid-cols-2 justify-between items-center">
@@ -307,6 +286,7 @@ export default function Home() {
                 </div>
               </li>
             ))}
+            {/* LIBRO */}
           </ol>
 
         </Frag>

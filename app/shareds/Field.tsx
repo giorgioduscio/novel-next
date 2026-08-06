@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useRef } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 
 interface FieldProps {
   input_class?: string;
@@ -10,17 +10,50 @@ interface FieldProps {
   placeholder: string;
   value: string | boolean;
   disabled?: boolean;
-  onChange: (value: any) => void;
+  onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => any;
   rows?: number;
   error_message?: string;
+  [key: string]: any;
 }
 
 export default function Field({
   label,  type,  placeholder,  value,  onChange,
   hide_label,  input_class,  inline,  disabled,
   rows,  id,  error_message,
+  ...rest
 }: FieldProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [localValue, setLocalValue] = useState(value);
+
+  // Sincronizza il valore locale quando cambia il valore prop
+  useEffect(() => {
+    setLocalValue(value);
+  }, [value]);
+
+  const _events ={
+    // Gestisce il cambiamento del valore locale
+    handleLocalChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
+      setLocalValue(e.target.value);
+    },
+  
+    // Gestisce il blur (perdita di focus)
+    handleBlur(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
+      const hasChanged = localValue !== value;
+      
+      if (!hasChanged) return;
+      onChange(e);
+    },
+  
+    // Gestisce la pressione di Enter (solo per input non textarea)
+    handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+      if (e.key === 'Enter') {
+        const hasChanged = localValue !== value;
+        
+        if (!hasChanged) return;
+        onChange(e as any);
+      }
+    },
+  }
 
   // Adatta automaticamente l'altezza della textarea al contenuto.
   // Viene richiamata quando cambia il testo oppure quando cambia la larghezza
@@ -43,7 +76,7 @@ export default function Field({
     if (rows) return;
 
     applyResize();
-  }, [value, rows, applyResize]);
+  }, [localValue, rows, applyResize]);
 
   // Osserva eventuali variazioni di dimensione della textarea.
   // Se cambia la larghezza (es. layout responsive), viene ricalcolata
@@ -80,7 +113,7 @@ export default function Field({
           name={id}
           title={label}
           placeholder={placeholder}
-          value={value as string}
+          value={localValue as string}
           disabled={disabled}
           rows={rows || 1}
           className={`${input_class} ${error_message ? "invalid" : ""}`}
@@ -88,7 +121,9 @@ export default function Field({
             resize: rows ? "vertical" : "none",
             overflow: rows ? "auto" : "hidden",
           }}
-          onChange={(e) => onChange(e.target.value) }
+          onChange={_events.handleLocalChange}
+          onBlur={_events.handleBlur}
+          {...rest}
         />
 
       // BOOLEAN
@@ -102,7 +137,8 @@ export default function Field({
           title={label}
           disabled={disabled}
           className={`${input_class} ${error_message ? "invalid" : ""}`}
-          onChange={(e) => onChange(e.target.checked)}
+          onChange={onChange}
+          {...rest}
         />
 
       // DEFAULT
@@ -110,13 +146,16 @@ export default function Field({
         <input
           type={type}
           placeholder={placeholder}
-          value={value as string}
+          value={localValue as string}
           id={id}
           name={id}
           title={label}
           disabled={disabled}
           className={`${input_class} ${error_message ? "invalid" : ""}`}
-          onChange={(e) => onChange(e.target.value)}
+          onChange={_events.handleLocalChange}
+          onBlur={_events.handleBlur}
+          onKeyDown={_events.handleKeyDown}
+          {...rest}
         />
       )}
 
