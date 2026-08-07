@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Navbar from "../shareds/navbar";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Book, book_schema } from "../schemas/book_schema";
 import { useBooks } from "../data/BookContext";
 import { safeParse } from "valibot";
@@ -10,58 +10,66 @@ import Frag from "../shareds/Frag";
 import { useEditMode } from "../data/EditModeContext";
 import Field from "../shareds/Field";
 import { UPLOAD } from "../tools/feedbacksUI";
+import { LoadingComponent } from "../shareds/LoadingComponent";
 
 
 export default function BooksComponents() {
-  const { books, createBook, deleteBook, addBook, updateBook, download } = useBooks();
-  const { editMode } = useEditMode();
-  const [weight, setWeight] = useState(0);
-  const [limit, setLimit] = useState(0);
+  const BookContext = useBooks();
+  const { isEditMode, isPageLoaded } = useEditMode();
+  const [books, setbooks] = useState<Book[]>([]);
 
-  useEffect(() => {
-    const handleResize = () => {
-      setWeight(window.innerWidth);
-      setLimit(Math.floor(window.innerWidth / 10));
-    };
-    handleResize();
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
+  useEffect(()=>{
+    const allBooks = BookContext.readAll();
+    setbooks(allBooks);    
   }, []);
 
-  // Funzione per eliminare un libro
-  function handleDeleteBook(id: number, index:number) {
-    if (!confirm("Rimuovere il libro?")) return;
-    if (id !== -1){
-      deleteBook(id);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const bookFeat ={
+    // crea un nuovo libro con valori predefiniti
+    create(){
+      BookContext.createBook({
+        title: "Book - " + Date.now(),
+        description: "Inserisci la descrizione",
+        author: "Inserisci l'autore"
+      });
+    },
+
+    // modifica i campi dei singoli libri
+    update(index: number, key: string, e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
+      const book = books[index];    
+      if (!book || !book.id) throw new Error("Libro non valido");
+
+      const newBook = {...book, [key]: e.currentTarget.value};
       
-    } else {
-      const idMatch = books[index];
-      if (!idMatch) throw new Error("Id o indice non vaalido");
-      deleteBook(idMatch.id || -1);
-    }
-  };
-  
-  // crea un nuovo libro con valori predefiniti
-  function handleCreateBook(){
-    createBook({
-      title: "Book - " + Date.now(),
-      description: "Inserisci la descrizione",
-      author: "Inserisci l'autore"
-    });
+      // errori
+      const validated = safeParse(book_schema, newBook);
+      if (!validated.success){
+        const message = validated.issues?.[0].message
+        const newKey =`${book.id}>${key}`
+        setErrors(prev => ({...prev, 
+          [newKey]: message
+        }));
+      } 
+      
+      else BookContext.updateBook(book.id, newBook);
+    },
+
+    // Funzione per eliminare un libro
+    delete(id: number, index:number) {
+      if (!confirm("Rimuovere il libro?")) return;
+      if (id !== -1){
+        BookContext.deleteBook(id);
+        
+      } else {
+        const idMatch = books[index];
+        if (!idMatch) throw new Error("Id o indice non vaalido");
+        BookContext.deleteBook(idMatch.id || -1);
+      }
+    },
   }
 
 
-  // FORM 
-  // modifica i campi dei singoli libri
-  function handleChangebook(index: number, key: string, e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
-    const book = books[index];    
-    if (!book || !book.id) throw new Error("Libro non valido");
-    updateBook(book.id, { [key]: e.currentTarget.value });
-  }
-
-
-
-  const upload ={
+  const uploadFeat ={
     json: {
       label: 'JSON',
       async execute(){
@@ -70,7 +78,7 @@ export default function BooksComponents() {
           const validateBook = safeParse(book_schema, input)
           if (!validateBook.success) return console.error("Dati non validi", validateBook.issues);
           
-          addBook(validateBook.output);
+          BookContext.addBook(validateBook.output);
         } catch (err) {
           console.error("Errore upload JSON:", err);
         }
@@ -161,7 +169,7 @@ export default function BooksComponents() {
             });
           }
 
-          createBook(book);
+          BookContext.createBook(book);
 
         } catch (err) {
           console.error("Errore upload Markdown:", err);
@@ -169,6 +177,8 @@ export default function BooksComponents() {
       }
     },
   }
+
+  if (!isPageLoaded) return <LoadingComponent/>
 
   return (
     <main id="home">
@@ -187,7 +197,7 @@ export default function BooksComponents() {
 
           {/* UPLOAD */}
           <div className="flex justify-center items-center gap-2">
-            {Object.values(upload).map((uploadOption) => (
+            {Object.values(uploadFeat).map((uploadOption) => (
               <button key={uploadOption.label}
                       onClick={uploadOption.execute}
                       className="py-2 px-3 text-sm rounded bg-black/50 hover:bg-black/70 transition-colors">
@@ -205,13 +215,13 @@ export default function BooksComponents() {
             <p className="text-gray-400">Totale: {books.length} libri</p>
           </div>
 
-          <div className="my-5">
-            <button onClick={handleCreateBook} 
+          <Frag if={isEditMode} className="my-5">
+            <button onClick={bookFeat.create} 
                     className="w-full py-2 px-3 rounded bg-blue-600 hover:bg-blue-700 transition-colors">
               <i className="bi bi-plus-lg"></i>
-              Aggiungi libro
+              Crea Libro
             </button>
-          </div>
+          </Frag>
 
 
           {/* LIBRI */}
@@ -219,17 +229,17 @@ export default function BooksComponents() {
 
             {/* LIBRO */}
             {books.map((book, book_i) => (
-              <li key={book.id + book.title} className="flex-1 min-w-[150px]  rounded overflow-hidden border border-gray-400">
+              <li key={book.id + book.title} className="flex-1 min-w-[150px] rounded-lg overflow-hidden border border-gray-400">
                 <div className="text-center relative bg-white/10 hover:bg-white/30 transition-colors">
 
                   <div className="absolute top-0 right-0 w-fit">
-                    <button onClick={() => handleDeleteBook(book.id || -1, book_i)} 
+                    <button onClick={() => bookFeat.delete(book.id || -1, book_i)} 
                             className="py-1 px-2 rounded bg-red-600 hover:bg-red-700 transition-colors truncate">
                       <i className="bi bi-trash-fill"></i>
                     </button>
                   </div>
 
-                  <Frag if={editMode}>
+                  <Frag if={isEditMode}>
                     {/* visualizzazione */}
                     <Frag.Else>
                       <Link href={`/book/${book.id}`} className="p-2 block">
@@ -240,48 +250,60 @@ export default function BooksComponents() {
                     </Frag.Else>
 
                     {/* modifica */}
-                    <div className="p-2 block">
-                      <Field  id={"title"} 
-                              hide_label label={"Titolo del libro"} 
-                              type={"text"} 
-                              input_class="p-1 bg-white text-black border rounded text-center text-lg font-bold"
-                              disabled={!editMode}
-                              placeholder={"Inserisci il titolo"} 
-                              value={book.title} 
-                              onChange={e=> handleChangebook(book_i, "title", e)}
-                      />
-                      <Field  id={"author"} 
-                              hide_label label={"Autore del libro"} 
-                              type={"text"} 
-                              input_class="p-1 bg-white text-black border rounded text-center"
-                              disabled={!editMode}
-                              placeholder={"Inserisci l'autore"} 
-                              value={book.author} 
-                              onChange={e=> handleChangebook(book_i, "author", e)}
-                      />
-                      <Field  id={"description"} 
-                              hide_label label={"Descrizione del libro"} 
-                              type={"textarea"} 
-                              input_class="p-1 bg-white text-black border rounded text-center"
-                              disabled={!editMode}
-                              placeholder={"Inserisci la descrizione"} 
-                              value={book.description} 
-                              onChange={e=> handleChangebook(book_i, "description", e)}
-                      />
-                    </div>
+                    <Field  id={"title"} 
+                            hide_label label={"Titolo del libro"} 
+                            type={"text"} 
+                            input_class="p-1 bg-white text-black outline text-center text-lg font-bold"
+                            disabled={!isEditMode}
+                            placeholder={"Inserisci il titolo"} 
+                            value={book.title} 
+                            onChange={e=> bookFeat.update(book_i, "title", e)}
+                            error_message={errors[book.id + ">title"]}
+                    />
+                    <Field  id={"author"} 
+                            hide_label label={"Autore del libro"} 
+                            type={"text"} 
+                            input_class="p-1 bg-white text-black outline text-center"
+                            disabled={!isEditMode}
+                            placeholder={"Inserisci l'autore"} 
+                            value={book.author} 
+                            onChange={e=> bookFeat.update(book_i, "author", e)}
+                            error_message={errors[book.id + ">author"]}
+                    />
+                    <Field  id={"description"} 
+                            hide_label label={"Descrizione del libro"} 
+                            type={"textarea"} 
+                            input_class="p-1 bg-white text-black outline text-center"
+                            disabled={!isEditMode}
+                            placeholder={"Inserisci la descrizione"} 
+                            value={book.description} 
+                            onChange={e=> bookFeat.update(book_i, "description", e)}
+                            error_message={errors[book.id + ">description"]}
+                    />  
                   </Frag>
 
-                  {/* pulsante eliminazione */}
-                  <div className="grid grid-cols-2 justify-between items-center">
-                    <button onClick={() => download.json.execute(book.id || -1)}
-                            className="p-1 bg-green-700 hover:bg-green-800 transition-colors truncate">
-                      Json <i className="bi bi-download"></i>
-                    </button>
-                    <button onClick={() => download.md.execute(book.id || -1)}
-                            className="p-1 bg-blue-700 hover:bg-blue-800 transition-colors truncate">
-                      Markdown <i className="bi bi-download"></i>
-                    </button>
-                  </div>
+                  {/* pulsanti */}
+                  <Frag if={isEditMode}>
+                    <Frag.Else>
+                      <div className="grid grid-cols-2 justify-between items-center">
+                        <button onClick={() => BookContext.download.json.execute(book.id || -1)}
+                                className="p-1 bg-green-700 hover:bg-green-800 transition-colors truncate">
+                          Json <i className="bi bi-download"></i>
+                        </button>
+                        <button onClick={() => BookContext.download.md.execute(book.id || -1)}
+                                className="p-1 bg-blue-700 hover:bg-blue-800 transition-colors truncate">
+                          Markdown <i className="bi bi-download"></i>
+                        </button>
+                      </div>
+                    </Frag.Else>
+
+                    <Link href={`/book/${book.id}`} 
+                          className="py-1 px-2 bg-green-600 hover:bg-green-700 transition-colors block">
+                      Vai al libro
+                      <i className="bi bi-chevron-right ms-2"></i>
+                    </Link>
+                  </Frag>
+                  {/* pulsanti */}
 
                 </div>
               </li>

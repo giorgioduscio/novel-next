@@ -14,7 +14,7 @@ interface NavbarProps {
 export default function Navbar({ prop_title, back_btn }: NavbarProps) {
   const [title, setTitle] = useState('');
   const pathname = usePathname();
-  const { editMode, toggleEditMode } = useEditMode();
+  const { isEditMode, toggleEditMode } = useEditMode();
   
 
   useEffect(()=>{
@@ -40,7 +40,7 @@ export default function Navbar({ prop_title, back_btn }: NavbarProps) {
             )}
 
             <button onClick={toggleEditMode} className="m-2 ms-auto py-1 px-2 bg-green-700 rounded-full">
-              {editMode ?<>
+              {isEditMode ?<>
                   <i className="bi bi-eye"></i>
               </>:<>
                   <i className="bi bi-pencil"></i>

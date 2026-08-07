@@ -10,6 +10,7 @@ import { useEditMode } from "@/app/data/EditModeContext";
 import Field from "@/app/shareds/Field";
 import { safeParse } from "valibot";
 import Navbar from "@/app/shareds/navbar";
+import { LoadingComponent } from "@/app/shareds/LoadingComponent";
 
 interface ChapterProps {
   id: number;
@@ -21,13 +22,9 @@ export default function SectionComponent({ id, part, section }: ChapterProps) {
   // dati
   const router = useRouter();
   const [book, setBook] = useState<Book | undefined>(undefined);
-
-  // user interface
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [width_value, width_setValue] = useState(400);
   
-  // editMode dal contesto globale
-  const { editMode, toggleEditMode } = useEditMode();
+  // isEditMode dal contesto globale
+  const { isEditMode, isPageLoaded } = useEditMode();
   const { getBookById, updateBook } = useBooks();
 
   // TITOLO
@@ -40,13 +37,7 @@ export default function SectionComponent({ id, part, section }: ChapterProps) {
       const foundBook = getBookById(id);
       setBook(foundBook);
     }
-    setIsLoaded(true);
 
-    // larghezza
-    const setWidth =()=> width_setValue(window.innerWidth);
-    setWidth();
-    window.addEventListener('resize', setWidth);
-    return () => { window.removeEventListener('resize', setWidth) };
   }, [id, getBookById]);
   
 
@@ -117,20 +108,33 @@ export default function SectionComponent({ id, part, section }: ChapterProps) {
 
   const paragraph ={
     // inserisce un paragrafo vuoto alla fine
-    handle_create(index:number){
+    handle_create(index?:number){
       if (!book) return;
       const updated = structuredClone(book);
       const sec = getSection(updated);
       if (!sec) return;
-  
-      sec.paragraphs.splice(index+1, 0, {
-        ex_style: "",
-        style: "",
-        pre_text: "",
-        text: "",
-      } as Paragraph);
-  
-      setBook(updated);
+
+      // nessun indice -> aggiungi in fondo
+      if(index === undefined) {
+        sec.paragraphs.push({
+          ex_style: "",
+          style: "",
+          pre_text: "",
+          text: "",
+        } as Paragraph);
+        setBook(updated);
+
+      // inserisce dopo l'indice 
+      } else {
+        sec.paragraphs.splice(index + 1, 0, {
+          ex_style: "",
+          style: "",
+          pre_text: "",
+          text: "",
+        } as Paragraph);
+    
+        setBook(updated);
+      }
     },
   
     // rimuove un paragrafo
@@ -161,7 +165,7 @@ export default function SectionComponent({ id, part, section }: ChapterProps) {
     },
   }
 
-  if (!isLoaded) return <div className="text-center text-gray-400 py-20">Caricamento...</div>
+  if (!isPageLoaded) return <LoadingComponent />
 
   return (
     <main id="chapter">
@@ -176,13 +180,14 @@ export default function SectionComponent({ id, part, section }: ChapterProps) {
           </div>
 
         ) : (<>
-          {/* TITOLO */}
+          {/* TITOLO SEZIONE */}
           <form onSubmit={title_handleSubmit} className="p-3 py-10 text-center">
             <Field  input_class="text-3xl font-bold text-center"
-                    hide_label={editMode ? false : true}
+                    hide_label={isEditMode ? false : true}
                     label="Titolo del capitolo"
                     value={title_value}
-                    disabled={!editMode}
+                    disabled={!isEditMode}
+                    asterisk
                     onChange={(_e) => title_setValue(_e.target.value)} 
                     id={"title"} 
                     type={"text"} 
@@ -192,8 +197,23 @@ export default function SectionComponent({ id, part, section }: ChapterProps) {
           </form>
 
 
-          {/* PARAGRAFO */}
-          <div className="pb-30">
+          {/* WRAPPER PARAGRAFI */}
+          <Frag if={chapter.paragraphs.length > 0} className="pb-30">
+            <Frag.Else>
+              <div className="py-10 text-center">
+                <i className="me-1 bi bi-file-text"></i> 
+                Nessun paragrafo
+              </div>
+
+              <Frag if={isEditMode} className="flex justify-center">
+                <button onClick={_e=> paragraph.handle_create()}
+                        className="py-2 px-3 border rounded bg-blue-500/30 text-blue-300">
+                  <i className="bi bi-plus-lg"></i>
+                  Aggiungi paragrafo
+                </button>
+              </Frag>
+            </Frag.Else>
+
             {chapter.paragraphs.map((p, paragraph_i) => (
               <div key={paragraph_i} className="relative">
 
@@ -202,7 +222,7 @@ export default function SectionComponent({ id, part, section }: ChapterProps) {
                   <div className={`p-1 ${p.in_style || ""}`}> 
 
                   {/* STRUMENTI EDITING */}
-                  <Frag if={editMode} className="mb-5 text-black bg-white/60 outline rounded overflow-hidden">
+                  <Frag if={isEditMode} className="mb-5 text-black bg-white/60 outline rounded overflow-hidden">
                     <div className="grid grid-cols-[1fr_auto]">
                       <Field  input_class="p-1 border" 
                               type="text" 
@@ -233,12 +253,12 @@ export default function SectionComponent({ id, part, section }: ChapterProps) {
                   </Frag>
 
                     {/* TITOLO */}
-                    <Frag if={!!p.pre_text || !!editMode}>
-                        <Field  input_class="px-1 max-w-[100px] mx-auto font-bold text-center text-inherit"
+                    <Frag if={!!p.pre_text || !!isEditMode}>
+                        <Field  input_class="mb-3 px-1 max-w-[100px] mx-auto font-bold text-center text-inherit"
                                 type="text"
                                 id={"pre_text>" + paragraph_i}
                                 value={p.pre_text || ''}
-                                disabled={!editMode}
+                                disabled={!isEditMode}
                                 placeholder="Titolo"
                                 onChange={(_e) => paragraph.handle_change(paragraph_i, "pre_text", _e.target.value)} 
                                 hide_label label={"Titolo"}
@@ -251,9 +271,10 @@ export default function SectionComponent({ id, part, section }: ChapterProps) {
                     <Field  input_class="p-1 text-center" 
                             placeholder="Testo del paragrafo" 
                             value={p.text} 
-                            disabled={!editMode}
+                            disabled={!isEditMode}
                             hide_label
                             label="Testo del paragrafo"
+                            asterisk
                             type="textarea"
                             id={"text>" + paragraph_i}
                             onChange={(_e) => paragraph.handle_change(paragraph_i, "text", _e.target.value)}
@@ -265,7 +286,7 @@ export default function SectionComponent({ id, part, section }: ChapterProps) {
                 {/* PARAGRAFO */}
 
                 {/* pulsante inserimento */}
-                <Frag if={editMode} className="py-4">
+                <Frag if={isEditMode} className="py-4">
                   <button onClick={_e=> paragraph.handle_create(paragraph_i)}
                           className="mx-auto block px-1 border rounded-full bg-blue-500/30 text-blue-300">
                     <i className="bi bi-plus-lg"></i>
@@ -274,8 +295,8 @@ export default function SectionComponent({ id, part, section }: ChapterProps) {
 
               </div>
             ))}
-          </div>
-          {/* PARAGRAFO */}
+          </Frag>
+          {/* WRAPPER PARAGRAFI */}
           
         </>)}
       </section>

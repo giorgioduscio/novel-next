@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 
 interface FieldProps {
   input_class?: string;
@@ -13,13 +13,15 @@ interface FieldProps {
   onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => any;
   rows?: number;
   error_message?: string;
+  message?: string;
+  asterisk?: boolean;
   [key: string]: any;
 }
 
 export default function Field({
-  label,  type,  placeholder,  value,  onChange,
-  hide_label,  input_class,  inline,  disabled,
-  rows,  id,  error_message,
+  label, type, placeholder, value, onChange,
+  hide_label, input_class, inline, disabled,
+  rows, id, error_message, asterisk, message, 
   ...rest
 }: FieldProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -30,30 +32,30 @@ export default function Field({
     setLocalValue(value);
   }, [value]);
 
-  const _events ={
+  const _events = {
     // Gestisce il cambiamento del valore locale
     handleLocalChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
       setLocalValue(e.target.value);
     },
-  
+
     // Gestisce il blur (perdita di focus)
     handleBlur(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
       const hasChanged = localValue !== value;
-      
+
       if (!hasChanged) return;
       onChange(e);
     },
-  
+
     // Gestisce la pressione di Enter (solo per input non textarea)
     handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
-      if (e.key === 'Enter') {
+      if (e.key === "Enter") {
         const hasChanged = localValue !== value;
-        
+
         if (!hasChanged) return;
         onChange(e as any);
       }
     },
-  }
+  };
 
   // Adatta automaticamente l'altezza della textarea al contenuto.
   // Viene richiamata quando cambia il testo oppure quando cambia la larghezza
@@ -96,27 +98,39 @@ export default function Field({
     return () => observer.disconnect();
   }, [rows, applyResize]);
 
+  const errorId = `${id}-error`;
 
   return (
-    <div className={`grid items-center ${inline ? "grid-cols-[auto_1fr]" : "grid-cols-1"}`}>
+    <React.Fragment>
       {/* LABEL */}
-      <label htmlFor={id} className={hide_label ? "sr-only" : "py-1 px-2 text-sm truncate"}>
+      <label
+        htmlFor={id}
+        className={hide_label ? "sr-only" : "block py-1 px-2 text-sm truncate"}
+      >
         <span className="truncate">{label}</span>
-        {error_message && <b className="ms-1 text-red-500">*</b>}
+        {asterisk && (
+          <>
+            <b className="ms-1 text-red-500" aria-hidden="true">*</b>
+            <span className="sr-only"> campo obbligatorio</span>
+          </>
+        )}
       </label>
 
       {/* TEXTAREA */}
       {type === "textarea" ? (
         <textarea
-          ref={textareaRef} // assegna il riferimento
+          ref={textareaRef}
           id={id}
           name={id}
-          title={label}
           placeholder={placeholder}
           value={localValue as string}
           disabled={disabled}
           rows={rows || 1}
-          className={`${input_class} ${error_message ? "invalid" : ""}`}
+          required={asterisk}
+          aria-required={asterisk || undefined}
+          aria-invalid={!!error_message}
+          aria-describedby={error_message ? errorId : undefined}
+          className={`block w-full ${input_class} ${error_message ? "border border-red-500" : ""}`}
           style={{
             resize: rows ? "vertical" : "none",
             overflow: rows ? "auto" : "hidden",
@@ -126,22 +140,24 @@ export default function Field({
           {...rest}
         />
 
-      // BOOLEAN
+      /* BOOLEAN */
       ) : typeof value === "boolean" ? (
         <input
           type={type}
-          placeholder={placeholder}
           checked={value}
           id={id}
           name={id}
-          title={label}
           disabled={disabled}
-          className={`${input_class} ${error_message ? "invalid" : ""}`}
+          required={asterisk}
+          aria-required={asterisk || undefined}
+          aria-invalid={!!error_message}
+          aria-describedby={error_message ? errorId : undefined}
+          className={`block w-full ${input_class} ${error_message ? "border border-red-500" : ""}`}
           onChange={onChange}
           {...rest}
         />
 
-      // DEFAULT
+      /* DEFAULT */
       ) : (
         <input
           type={type}
@@ -149,9 +165,12 @@ export default function Field({
           value={localValue as string}
           id={id}
           name={id}
-          title={label}
           disabled={disabled}
-          className={`${input_class} ${error_message ? "invalid" : ""}`}
+          required={asterisk}
+          aria-required={asterisk || undefined}
+          aria-invalid={!!error_message}
+          aria-describedby={error_message ? errorId : undefined}
+          className={`block w-full ${input_class} ${error_message ? "border border-red-500" : ""}`}
           onChange={_events.handleLocalChange}
           onBlur={_events.handleBlur}
           onKeyDown={_events.handleKeyDown}
@@ -161,13 +180,30 @@ export default function Field({
 
       {/* ERROR MESSAGE */}
       {error_message && (
-        <div className="px-1 text-red-400 bg-red-900/50">
-          <div className="grid grid-cols-[auto_1fr] gap-1 text-sm">
-            <i className="bi bi-exclamation-triangle"></i>
+        <div
+          id={errorId}
+          role="alert"
+          aria-live="polite"
+          className="block w-full px-1 text-white bg-red-700"
+        >
+          <div className="grid grid-cols-[auto_1fr] gap-1 text-sm text-left">
+            <i className="bi bi-exclamation-triangle" aria-hidden="true"></i>
             <span>{error_message}</span>
           </div>
         </div>
       )}
-    </div>
+
+      {/* MESSAGGIO AGGIUNTIVO */}
+      {message && (
+        <div
+          id={errorId}
+          role="alert"
+          aria-live="polite"
+          className="block w-full px-2 bg-gray-600 text-xs text-left"
+        >
+          {message}
+        </div>
+      )}
+    </React.Fragment>
   );
 }

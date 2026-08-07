@@ -2,30 +2,22 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 
-interface EditModeContextType {
-  editMode: boolean;
+const EditModeContext = createContext<{
+  isEditMode: boolean;
   toggleEditMode: () => void;
-  setEditMode: (value: boolean) => void;
-}
-
-const EditModeContext = createContext<EditModeContextType | undefined>(undefined);
+  setIsEditMode: (value: boolean) => void;
+  isPageLoaded: boolean;
+  screenWidth: number;
+} | undefined>(undefined);
 
 export function EditModeProvider({ children }: { children: ReactNode }) {
-  const [editMode, setEditMode] = useState(false);
+  // imposta modalità editing o view
+  const [isEditMode, setIsEditMode] = useState(false);
+  function toggleEditMode() {
+    const newEditMode = !isEditMode;
+    setIsEditMode(newEditMode);
 
-  // Leggi lo stato iniziale dall'URL
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const hasEditQuery = window.location.search.includes('edit');
-      setEditMode(hasEditQuery);
-    }
-  }, []);
-
-  const toggleEditMode = () => {
-    const newEditMode = !editMode;
-    setEditMode(newEditMode);
-
-    // Aggiorna l'URL senza ricaricare la pagina
+    // aggiorna l'URL senza ricaricare la pagina
     if (typeof window !== 'undefined') {
       const url = new URL(window.location.href);
       if (newEditMode) {
@@ -37,8 +29,31 @@ export function EditModeProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // stato di caricamento della pagina
+  const [isPageLoaded, setIsPageLoaded] = useState(false);
+  // larghezza schermo
+  const [screenWidth, setScreenWidth] = useState(400);
+
+
+  useEffect(() => {
+    if (typeof window == 'undefined') return;
+
+    // leggi lo stato iniziale dall'URL
+    const hasEditQuery = window.location.search.includes('edit');
+    setIsEditMode(hasEditQuery);
+    setIsPageLoaded(true);
+    
+    // larghezza schermo
+    const setWidth =()=> setScreenWidth(window.innerWidth);
+    setWidth();
+    window.addEventListener('resize', setWidth);
+    return () => { window.removeEventListener('resize', setWidth) };
+    
+  }, []);
+
+
   return (
-    <EditModeContext.Provider value={{ editMode, toggleEditMode, setEditMode }}>
+    <EditModeContext.Provider value={{ isEditMode, toggleEditMode, setIsEditMode, isPageLoaded, screenWidth }}>
       {children}
     </EditModeContext.Provider>
   );

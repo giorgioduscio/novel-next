@@ -5,25 +5,26 @@ import { Book, book_schema } from "../schemas/book_schema";
 import * as v from "valibot";
 import { download, UPLOAD } from "../tools/feedbacksUI";
 
-interface BookContextType {
+interface Load { label: string; icon: string; execute: (id: number) => void };
+
+const BookContext = createContext<{
   books: Book[];
   createBook: (book: Omit<Book, "id">) => void;
+  readAll: () => Book[];
+  getBookById: (id: number) => Book | undefined;
   updateBook: (id: number, updatedBook: Partial<Book>, validation?: boolean) => void;
   deleteBook: (id: number) => void;
-  getBookById: (id: number) => Book | undefined;
   addBook: (book: Book) => void;
   download: {
-    json: { label: string; icon: string; execute: (id: number) => void };
-    txt: { label: string; icon: string; execute: (id: number) => void };
-    md: { label: string; icon: string; execute: (id: number) => void };
+    json: Load;
+    txt: Load;
+    md: Load;
   };
   upload: {
-    json: { label: string; icon: string; execute: () => Promise<void> };
-    markdown: { label: string; icon: string; execute: () => Promise<void> };
+    json: Load;
+    markdown: Load;
   };
-}
-
-const BookContext = createContext<BookContextType | undefined>(undefined);
+} | undefined>(undefined);
 
 export function BookProvider({ children }: { children: React.ReactNode }) {
   const [books, setBooks] = useState<Book[]>([]);
@@ -41,20 +42,38 @@ export function BookProvider({ children }: { children: React.ReactNode }) {
     }
   }, [books]);
 
-  const validateBook = (book: unknown): Book => {
-    return v.parse(book_schema, book);
+  
+  
+  function validateBook(book: unknown): Book | null {
+    try {
+      return v.parse(book_schema, book);
+    } catch (error) {
+      console.error("Validation error:", error);
+      return null;
+    }
   };
 
   function addBook(book: Book) {
     // validazione
-    const validatedBook = validateBook(book); 
+    const validatedBook = validateBook(book);
+    if (!validatedBook) return null;
     setBooks((prev) => [...prev, validatedBook]);    
   }
 
   function createBook(book: Omit<Book, "id">) {
     const newBook = { ...book, id: Date.now(), parts: book.parts || [] };
     const validatedBook = validateBook(newBook);
+    if (!validatedBook) return null;
     setBooks((prev) => [...prev, validatedBook]);
+  }
+
+  function readAll(): Book[] {
+    const stored = storage.get();
+    return stored;
+  }
+
+  function getBookById(id: number): Book | undefined {
+    return books.find((book) => book.id === id);
   }
 
   function updateBook(id: number, updatedBook: Partial<Book>, validation = true) {
@@ -62,7 +81,11 @@ export function BookProvider({ children }: { children: React.ReactNode }) {
       prev.map((book) => {
         if (book.id === id) {
           const merged = { ...book, ...updatedBook };
-          return validation ? validateBook(merged) : merged;
+          if (validation) {
+            const validated = validateBook(merged);
+            return validated || book;
+          }
+          return merged;
         }
         return book;
       })
@@ -73,9 +96,6 @@ export function BookProvider({ children }: { children: React.ReactNode }) {
     setBooks((prev) => prev.filter((book) => book.id !== id));
   }
 
-  function getBookById(id: number): Book | undefined {
-    return books.find((book) => book.id === id);
-  }
 
   const storage ={
     set() {
@@ -152,6 +172,7 @@ export function BookProvider({ children }: { children: React.ReactNode }) {
             return;
           }
           const validatedBook = validateBook(input);
+          if (!validatedBook) return console.error("Formato non valido");
           setBooks((prev) => [...prev, validatedBook]);
           console.log("Libro caricato con successo:", validatedBook);
         } catch (err) {
@@ -170,6 +191,7 @@ export function BookProvider({ children }: { children: React.ReactNode }) {
             return;
           }
           const validatedBook = validateBook(input);
+          if (!validatedBook) return console.error("Formato non valido");
           setBooks((prev) => [...prev, validatedBook]);
           console.log("Libro caricato con successo:", validatedBook);
         } catch (err) {
@@ -183,10 +205,11 @@ export function BookProvider({ children }: { children: React.ReactNode }) {
     <BookContext.Provider
       value={{
         books,
+        readAll,
+        getBookById,
         createBook,
         updateBook,
         deleteBook,
-        getBookById,
         addBook,
         download: downloadMethods,
         upload: uploadMethods,

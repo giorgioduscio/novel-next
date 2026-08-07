@@ -5,6 +5,8 @@
 ## 📌 To Do
 * [1] implementare salvataggio cloud
 * [3] separazione template e script
+* [3] implementa toast, agree, popover
+* [5] migliorare grafica
 
 ## 🔄 In Progress (max 2-3)
 
@@ -31,3 +33,4 @@
 * implementare salvataggio locale
 * stili standard per la novella
 * sostituire i form con pulsanti auto-compilanti
+* ottimizzazione <Field> 
