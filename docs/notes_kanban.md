@@ -3,7 +3,6 @@
 
 # Kanban - Novel Writer (Next.js)
 ## 📌 To Do
-* [1] implementare salvataggio cloud
 * [3] separazione template e script
 * [3] bredcrumb
 * [5] migliorare grafica
@@ -36,3 +35,4 @@
 * sostituire i form con pulsanti auto-compilanti
 * ottimizzazione <Field> 
 * implementare feedback (toast, agree, debounce) 
+* implementare salvataggio cloud (firebase)

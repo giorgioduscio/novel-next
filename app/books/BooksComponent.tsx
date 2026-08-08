@@ -22,7 +22,7 @@ export default function BooksComponents() {
   useEffect(()=>{
     const allBooks = BookContext.readAll();
     setbooks(allBooks);    
-  }, []);
+  }, [BookContext]);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const bookFeat ={
@@ -192,7 +192,7 @@ export default function BooksComponents() {
     },
   }
 
-  if (!isPageLoaded) return <LoadingComponent/>
+  if (!isPageLoaded || BookContext.loading) return <LoadingComponent/>
 
   return (
     <main id="home">
