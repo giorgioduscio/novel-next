@@ -16,8 +16,8 @@ interface ChapterServerProps {
 
 export default async function ChapterServer({ params }: ChapterServerProps) {
   const { id, part, section } = await params;
-  const _parts = part.replaceAll("-", " ");
-  const _section = section.replaceAll("-", " ");
+  const parsedParts = part.replaceAll("-", " ");
+  const parsedSection = section.replaceAll("-", " ");
 
-  return <SectionComponent id={parseInt(id)} part={_parts} section={_section} />;
+  return <SectionComponent book_id={parseInt(id)} part_title={parsedParts} section_title={parsedSection} />;
 }

@@ -3,18 +3,17 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { Book, book_schema } from "../schemas/book_schema";
 import * as v from "valibot";
-import { download, UPLOAD } from "../tools/feedbacksUI";
+import { ui_upload, debounce, ui_download } from "../tools/feedbacksUI";
 
 interface Load { label: string; icon: string; execute: (id: number) => void };
 
 const BookContext = createContext<{
-  books: Book[];
-  createBook: (book: Omit<Book, "id">) => void;
+  createBook: (book: Omit<Book, "id">) => Book | null;
+  addBook: (book: Book) => Book | null;
   readAll: () => Book[];
   getBookById: (id: number) => Book | undefined;
-  updateBook: (id: number, updatedBook: Partial<Book>, validation?: boolean) => void;
+  updateBook: (id: number, updatedBook: Partial<Book>, validation?: boolean) => Book | null;
   deleteBook: (id: number) => void;
-  addBook: (book: Book) => void;
   download: {
     json: Load;
     txt: Load;
@@ -26,23 +25,7 @@ const BookContext = createContext<{
   };
 } | undefined>(undefined);
 
-export function BookProvider({ children }: { children: React.ReactNode }) {
-  const [books, setBooks] = useState<Book[]>([]);
-
-  // Carica i libri dal localStorage all'avvio
-  useEffect(() => {
-    const stored = storage.get();
-    if (stored.length)  setBooks(stored);
-  }, []);
-
-  // Salva i libri nel localStorage quando cambiano
-  useEffect(() => {
-    if (typeof window !== "undefined" && books.length > 0) {
-      storage.set();
-    }
-  }, [books]);
-
-  
+export function BookProvider({ children }: { children: React.ReactNode }) {  
   
   function validateBook(book: unknown): Book | null {
     try {
@@ -57,52 +40,72 @@ export function BookProvider({ children }: { children: React.ReactNode }) {
     // validazione
     const validatedBook = validateBook(book);
     if (!validatedBook) return null;
-    setBooks((prev) => [...prev, validatedBook]);    
+    const currentBooks = storage.get();
+    storage.set([...currentBooks, validatedBook]);
+    return validatedBook;  
   }
 
   function createBook(book: Omit<Book, "id">) {
     const newBook = { ...book, id: Date.now(), parts: book.parts || [] };
-    const validatedBook = validateBook(newBook);
-    if (!validatedBook) return null;
-    setBooks((prev) => [...prev, validatedBook]);
+    return addBook(newBook);
   }
 
+
+  // read
   function readAll(): Book[] {
     const stored = storage.get();
     return stored;
   }
 
   function getBookById(id: number): Book | undefined {
-    return books.find((book) => book.id === id);
+    const stored = storage.get();
+    return stored.find((book) => book.id === id);
   }
 
+  
   function updateBook(id: number, updatedBook: Partial<Book>, validation = true) {
-    setBooks((prev) =>
-      prev.map((book) => {
-        if (book.id === id) {
-          const merged = { ...book, ...updatedBook };
-          if (validation) {
-            const validated = validateBook(merged);
-            return validated || book;
-          }
-          return merged;
-        }
-        return book;
-      })
-    );
+    const stored = getBookById(id);
+    if (!stored){
+      console.error("Libro non trovato");
+      return null;
+    } 
+    
+    const validatedBook = validateBook({
+      ...stored,
+      ...updatedBook
+    });
+    if (!validatedBook) return null;
+    
+    const currentBooks = storage.get();
+    const updatedBooks = currentBooks.map(book => book.id === id ? validatedBook : book);
+    
+    // Use debounced storage update for frequent changes, immediate for validation=false (typing)
+    if (validation === false) {
+      storage.debouncedStorageSet(updatedBooks);
+    } else {
+      storage.set(updatedBooks);
+    }
+    
+    return validatedBook;
   }
-
+  
   function deleteBook(id: number) {
-    setBooks((prev) => prev.filter((book) => book.id !== id));
+    const books = storage.get();
+    storage.set(books.filter((book) => book.id !== id));
   }
-
-
+  
+  
   const storage ={
-    set() {
+    debouncedStorageSet: debounce((books: Book[]) => {
+      storage.set(books);
+    }, 1000),
+
+    set(books: Book[]) {
       if (typeof window !== "undefined") {
         localStorage.setItem("books", JSON.stringify(books));
       }
     },
+
     get() :Book[] {
       if (typeof window == "undefined") return [];
       const books = localStorage.getItem("books");
@@ -134,7 +137,7 @@ export function BookProvider({ children }: { children: React.ReactNode }) {
       execute: (id: number) => {
         const data = getBookById(id);
         if (!data) throw new Error("libro non trovato");
-        download.json(data, data.title);
+        ui_download.json(data, data.title);
       },
     },
     txt: {
@@ -144,7 +147,7 @@ export function BookProvider({ children }: { children: React.ReactNode }) {
         const data = getBookById(id);
         if (!data) throw new Error("libro non trovato");
         const result = bookToText(data);
-        download.text(result, data.title);
+        ui_download.text(result, data.title);
       },
     },
     md: {
@@ -154,7 +157,7 @@ export function BookProvider({ children }: { children: React.ReactNode }) {
         const data = getBookById(id);
         if (!data) throw new Error("libro non trovato");
         const result = bookToText(data, true);
-        download.markdown(result, data.title);
+        ui_download.markdown(result, data.title);
       },
     },
   };
@@ -166,14 +169,15 @@ export function BookProvider({ children }: { children: React.ReactNode }) {
       icon: "bi-upload",
       async execute() {
         try {
-          const input = await UPLOAD.json();
+          const input = await ui_upload.json();
           if (!input) {
             console.error("Nessun file selezionato");
             return;
           }
           const validatedBook = validateBook(input);
           if (!validatedBook) return console.error("Formato non valido");
-          setBooks((prev) => [...prev, validatedBook]);
+          const currentBooks = storage.get();
+          storage.set([...currentBooks, validatedBook]);
           console.log("Libro caricato con successo:", validatedBook);
         } catch (err) {
           console.error("Errore durante l'upload JSON:", err);
@@ -185,14 +189,15 @@ export function BookProvider({ children }: { children: React.ReactNode }) {
       icon: "bi-upload",
       async execute() {
         try {
-          const input = await UPLOAD.text();
+          const input = await ui_upload.text();
           if (!input) {
             console.error("Nessun file selezionato");
             return;
           }
           const validatedBook = validateBook(input);
           if (!validatedBook) return console.error("Formato non valido");
-          setBooks((prev) => [...prev, validatedBook]);
+          const currentBooks = storage.get();
+          storage.set([...currentBooks, validatedBook]);
           console.log("Libro caricato con successo:", validatedBook);
         } catch (err) {
           console.error("Errore durante l'upload markdown:", err);
@@ -204,10 +209,9 @@ export function BookProvider({ children }: { children: React.ReactNode }) {
   return (
     <BookContext.Provider
       value={{
-        books,
+        createBook,
         readAll,
         getBookById,
-        createBook,
         updateBook,
         deleteBook,
         addBook,

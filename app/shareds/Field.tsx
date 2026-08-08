@@ -10,7 +10,7 @@ interface FieldProps {
   placeholder: string;
   value: string | boolean;
   disabled?: boolean;
-  onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => any;
+  onChange?: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => any;
   rows?: number;
   error_message?: string;
   message?: string;
@@ -22,6 +22,7 @@ export default function Field({
   label, type, placeholder, value, onChange,
   hide_label, input_class, inline, disabled,
   rows, id, error_message, asterisk, message, 
+  autoComplete ="off",
   ...rest
 }: FieldProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -43,16 +44,16 @@ export default function Field({
       const hasChanged = localValue !== value;
 
       if (!hasChanged) return;
-      onChange(e);
+      onChange?.(e);
     },
 
     // Gestisce la pressione di Enter (solo per input non textarea)
     handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
       if (e.key === "Enter") {
-        const hasChanged = localValue !== value;
+        const hasChanged = localValue !== value;       
 
         if (!hasChanged) return;
-        onChange(e as any);
+        onChange?.(e as any);
       }
     },
   };
@@ -174,6 +175,7 @@ export default function Field({
           onChange={_events.handleLocalChange}
           onBlur={_events.handleBlur}
           onKeyDown={_events.handleKeyDown}
+          autoComplete={autoComplete}
           {...rest}
         />
       )}

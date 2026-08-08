@@ -107,7 +107,7 @@ class ToastManager {
       const style = document.createElement('style');
       style.textContent = `
         .toast-notification {
-          padding: 15px 20px;
+          padding: 10px 20px;
           margin: 0 auto;
           position: fixed;
           top: 20px;
@@ -762,7 +762,7 @@ export function debounce<T extends (...args: any[]) => any>(callback: T, delay: 
   }
 }
 
-export const download ={
+export const ui_download ={
   text: (data:any, fileName='Backup')=> 
     executeDownload(data, fileName, "text/plan", "txt"),
 
@@ -793,7 +793,7 @@ function executeDownload(data: string, fileName:string, blobType: string, fileEx
   URL.revokeObjectURL(url);
 }
 
-export const UPLOAD ={
+export const ui_upload ={
   json: <T>() => executeUpload<T>({ accept: ".json,application/json", parseJson: true }),
   
   markdown: () =>

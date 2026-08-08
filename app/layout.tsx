@@ -4,6 +4,7 @@ import "bootstrap-icons/font/bootstrap-icons.css";
 import Footer from "./shareds/footer";
 import EditModeProviderWrapper from "./data/EditModeProviderWrapper";
 import { BookProvider } from "./data/BookContext";
+import { AgreeProvider } from "./shareds/Agree";
 import { bubblegum, comicNeue } from "./styles/fonts";
 
 
@@ -25,9 +26,11 @@ export default function RootLayout({
       <body>
         <BookProvider>
           <EditModeProviderWrapper>
-            <div id="app">
-              <div>{children}</div>
-            </div>
+            <AgreeProvider>
+              <div id="app">
+                <div>{children}</div>
+              </div>
+            </AgreeProvider>
           </EditModeProviderWrapper>
         </BookProvider>
         <Footer />

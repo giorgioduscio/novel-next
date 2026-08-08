@@ -4,18 +4,19 @@ import Link from "next/link";
 import Navbar from "../shareds/navbar";
 import { useEffect, useMemo, useState } from "react";
 import { Book, book_schema } from "../schemas/book_schema";
-import { useBooks } from "../data/BookContext";
-import { safeParse } from "valibot";
+import { useBooks } from "@/app/data/BookContext";
+import { useEditMode } from "@/app/data/EditModeContext";
+import { useAgreeWrapper } from "@/app/shareds/Agree";
 import Frag from "../shareds/Frag";
-import { useEditMode } from "../data/EditModeContext";
 import Field from "../shareds/Field";
-import { UPLOAD } from "../tools/feedbacksUI";
+import { ui_upload, toast } from "../tools/feedbacksUI";
 import { LoadingComponent } from "../shareds/LoadingComponent";
-
+import { safeParse } from "valibot";
 
 export default function BooksComponents() {
   const BookContext = useBooks();
   const { isEditMode, isPageLoaded } = useEditMode();
+  const agree = useAgreeWrapper();
   const [books, setbooks] = useState<Book[]>([]);
 
   useEffect(()=>{
@@ -32,39 +33,47 @@ export default function BooksComponents() {
         description: "Inserisci la descrizione",
         author: "Inserisci l'autore"
       });
+      setbooks(BookContext.readAll());
+      toast.success("Libro creato");
     },
 
     // modifica i campi dei singoli libri
     update(index: number, key: string, e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
       const book = books[index];    
-      if (!book || !book.id) throw new Error("Libro non valido");
+      if (!book) throw new Error("Libro non valido");
 
       const newBook = {...book, [key]: e.currentTarget.value};
       
       // errori
       const validated = safeParse(book_schema, newBook);
+      const newKey =`${book.id}>${key}`
       if (!validated.success){
+        // aggiunge un campo d'errore
         const message = validated.issues?.[0].message
-        const newKey =`${book.id}>${key}`
         setErrors(prev => ({...prev, 
           [newKey]: message
         }));
       } 
       
-      else BookContext.updateBook(book.id, newBook);
+      else {
+        // rimuove il campo con l'errore
+        setErrors(prev => {
+          const newErrors = {...prev};
+          delete newErrors[newKey];
+          return newErrors;
+        });
+        
+        BookContext.updateBook(book.id, newBook);
+        setbooks(BookContext.readAll());
+      }
     },
 
     // Funzione per eliminare un libro
-    delete(id: number, index:number) {
-      if (!confirm("Rimuovere il libro?")) return;
-      if (id !== -1){
-        BookContext.deleteBook(id);
-        
-      } else {
-        const idMatch = books[index];
-        if (!idMatch) throw new Error("Id o indice non vaalido");
-        BookContext.deleteBook(idMatch.id || -1);
-      }
+    async delete(id: number) {
+      if (!(await agree.danger("Rimuovere il libro?", "Rimuovi"))) return;
+      BookContext.deleteBook(id);
+      setbooks(BookContext.readAll());
+      toast.success("Libro rimosso");
     },
   }
 
@@ -74,11 +83,13 @@ export default function BooksComponents() {
       label: 'JSON',
       async execute(){
         try {
-          const input = await UPLOAD.json();
+          const input = await ui_upload.json();
           const validateBook = safeParse(book_schema, input)
           if (!validateBook.success) return console.error("Dati non validi", validateBook.issues);
           
           BookContext.addBook(validateBook.output);
+          setbooks(BookContext.readAll());
+          toast.success("Libro caricato da JSON");
         } catch (err) {
           console.error("Errore upload JSON:", err);
         }
@@ -88,9 +99,10 @@ export default function BooksComponents() {
       label: 'MD',
       async execute() {
         try {
-          const input = await UPLOAD.markdown() as string;
+          const input = await ui_upload.markdown() as string;
 
           const book :Book= {
+            id: 0,
             title: "Inserire titolo",
             description: "Inserire descrizione",
             author: "Inserire autore",
@@ -170,6 +182,8 @@ export default function BooksComponents() {
           }
 
           BookContext.createBook(book);
+          setbooks(BookContext.readAll());
+          toast.success("Libro caricato da Markdown");
 
         } catch (err) {
           console.error("Errore upload Markdown:", err);
@@ -187,13 +201,7 @@ export default function BooksComponents() {
       <section className="p-2 mx-auto container max-w-[400px]">
 
         {/* LIBRI */}
-        <Frag if={books.length > 0} className="text-center">
-          <Frag.Else>
-            <div className="mt-20 text-red-400 text-center">
-              <i className="bi bi-exclamation-triangle me-1"></i>
-              <span>Nessun libro trovato</span>
-            </div>
-          </Frag.Else>
+        <div className="text-center">
 
           {/* UPLOAD */}
           <div className="flex justify-center items-center gap-2">
@@ -225,93 +233,102 @@ export default function BooksComponents() {
 
 
           {/* LIBRI */}
-          <ol className="flex flex-wrap gap-2 items-start">
+          <Frag if={books.length > 0}>
+            
+            <Frag.Else>
+              <div className="mt-20 text-red-400 text-center">
+                <i className="bi bi-exclamation-triangle me-1"></i>
+                <span>Nessun libro trovato</span>
+              </div>
+            </Frag.Else>
 
             {/* LIBRO */}
-            {books.map((book, book_i) => (
-              <li key={book.id + book.title} className="flex-1 min-w-[150px] rounded-lg overflow-hidden border border-gray-400">
-                <div className="text-center relative bg-white/10 hover:bg-white/30 transition-colors">
+            <ol className="flex flex-wrap gap-2 items-start">
+              {books.map((book, book_i) => (
+                <li key={book.id + book.title} className="flex-1 min-w-[150px] rounded-lg overflow-hidden border border-gray-400">
+                  <div className="text-center relative bg-white/10 hover:bg-white/30 transition-colors">
 
-                  <div className="absolute top-0 right-0 w-fit">
-                    <button onClick={() => bookFeat.delete(book.id || -1, book_i)} 
-                            className="py-1 px-2 rounded bg-red-600 hover:bg-red-700 transition-colors truncate">
-                      <i className="bi bi-trash-fill"></i>
-                    </button>
-                  </div>
+                    <div className="absolute top-0 right-0 w-fit">
+                      <button onClick={() => bookFeat.delete(book.id)} 
+                              className="py-1 px-2 rounded bg-red-600 hover:bg-red-700 transition-colors truncate">
+                        <i className="bi bi-trash-fill"></i>
+                      </button>
+                    </div>
 
-                  <Frag if={isEditMode}>
-                    {/* visualizzazione */}
-                    <Frag.Else>
-                      <Link href={`/book/${book.id}`} className="p-2 block">
-                        <h4 className="text-center text-lg font-bold">{book.title}</h4>
-                        <h6 className="text-center">{book.author}</h6>
-                        <p className="text-center">{book.description}</p>
+                    <Frag if={isEditMode}>
+                      {/* visualizzazione */}
+                      <Frag.Else>
+                        <Link href={`/book/${book.id}`} className="p-2 block">
+                          <h4 className="text-center text-lg font-bold">{book.title}</h4>
+                          <h6 className="text-center">{book.author}</h6>
+                          <p className="text-center">{book.description}</p>
+                        </Link>
+                      </Frag.Else>
+
+                      {/* modifica */}
+                      <Field  id={"title"} 
+                              hide_label label={"Titolo del libro"} 
+                              type={"text"} 
+                              input_class="p-1 bg-white text-black outline text-center text-lg font-bold"
+                              disabled={!isEditMode}
+                              placeholder={"Inserisci il titolo"} 
+                              value={book.title} 
+                              onChange={e=> bookFeat.update(book_i, "title", e)}
+                              error_message={errors[book.id + ">title"]}
+                      />
+                      <Field  id={"author"} 
+                              hide_label label={"Autore del libro"} 
+                              type={"text"} 
+                              input_class="p-1 bg-white text-black outline text-center"
+                              disabled={!isEditMode}
+                              placeholder={"Inserisci l'autore"} 
+                              value={book.author} 
+                              onChange={e=> bookFeat.update(book_i, "author", e)}
+                              error_message={errors[book.id + ">author"]}
+                      />
+                      <Field  id={"description"} 
+                              hide_label label={"Descrizione del libro"} 
+                              type={"textarea"} 
+                              input_class="p-1 bg-white text-black outline text-center"
+                              disabled={!isEditMode}
+                              placeholder={"Inserisci la descrizione"} 
+                              value={book.description} 
+                              onChange={e=> bookFeat.update(book_i, "description", e)}
+                              error_message={errors[book.id + ">description"]}
+                      />  
+                    </Frag>
+
+                    {/* pulsanti */}
+                    <Frag if={isEditMode}>
+                      <Frag.Else>
+                        <div className="grid grid-cols-2 justify-between items-center">
+                          <button onClick={() => BookContext.download.json.execute(book.id)}
+                                  className="p-1 bg-green-700 hover:bg-green-800 transition-colors truncate">
+                            Json <i className="bi bi-download"></i>
+                          </button>
+                          <button onClick={() => BookContext.download.md.execute(book.id)}
+                                  className="p-1 bg-blue-700 hover:bg-blue-800 transition-colors truncate">
+                            Markdown <i className="bi bi-download"></i>
+                          </button>
+                        </div>
+                      </Frag.Else>
+
+                      <Link href={`/book/${book.id}`} 
+                            className="py-1 px-2 bg-green-600 hover:bg-green-700 transition-colors block">
+                        Vai al libro
+                        <i className="bi bi-chevron-right ms-2"></i>
                       </Link>
-                    </Frag.Else>
+                    </Frag>
+                    {/* pulsanti */}
 
-                    {/* modifica */}
-                    <Field  id={"title"} 
-                            hide_label label={"Titolo del libro"} 
-                            type={"text"} 
-                            input_class="p-1 bg-white text-black outline text-center text-lg font-bold"
-                            disabled={!isEditMode}
-                            placeholder={"Inserisci il titolo"} 
-                            value={book.title} 
-                            onChange={e=> bookFeat.update(book_i, "title", e)}
-                            error_message={errors[book.id + ">title"]}
-                    />
-                    <Field  id={"author"} 
-                            hide_label label={"Autore del libro"} 
-                            type={"text"} 
-                            input_class="p-1 bg-white text-black outline text-center"
-                            disabled={!isEditMode}
-                            placeholder={"Inserisci l'autore"} 
-                            value={book.author} 
-                            onChange={e=> bookFeat.update(book_i, "author", e)}
-                            error_message={errors[book.id + ">author"]}
-                    />
-                    <Field  id={"description"} 
-                            hide_label label={"Descrizione del libro"} 
-                            type={"textarea"} 
-                            input_class="p-1 bg-white text-black outline text-center"
-                            disabled={!isEditMode}
-                            placeholder={"Inserisci la descrizione"} 
-                            value={book.description} 
-                            onChange={e=> bookFeat.update(book_i, "description", e)}
-                            error_message={errors[book.id + ">description"]}
-                    />  
-                  </Frag>
-
-                  {/* pulsanti */}
-                  <Frag if={isEditMode}>
-                    <Frag.Else>
-                      <div className="grid grid-cols-2 justify-between items-center">
-                        <button onClick={() => BookContext.download.json.execute(book.id || -1)}
-                                className="p-1 bg-green-700 hover:bg-green-800 transition-colors truncate">
-                          Json <i className="bi bi-download"></i>
-                        </button>
-                        <button onClick={() => BookContext.download.md.execute(book.id || -1)}
-                                className="p-1 bg-blue-700 hover:bg-blue-800 transition-colors truncate">
-                          Markdown <i className="bi bi-download"></i>
-                        </button>
-                      </div>
-                    </Frag.Else>
-
-                    <Link href={`/book/${book.id}`} 
-                          className="py-1 px-2 bg-green-600 hover:bg-green-700 transition-colors block">
-                      Vai al libro
-                      <i className="bi bi-chevron-right ms-2"></i>
-                    </Link>
-                  </Frag>
-                  {/* pulsanti */}
-
-                </div>
-              </li>
-            ))}
+                  </div>
+                </li>
+              ))}
+            </ol>
             {/* LIBRO */}
-          </ol>
+          </Frag>
 
-        </Frag>
+        </div>
       </section>
     </main>
   );

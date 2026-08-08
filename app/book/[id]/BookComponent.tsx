@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { type Book } from "../../schemas/book_schema";
+import { book_schema, type Book } from "../../schemas/book_schema";
 import React, { useEffect, useState } from "react";
 import { useBooks } from "../../data/BookContext";
 import Frag from "@/app/shareds/Frag";
@@ -9,6 +9,9 @@ import { useEditMode } from "@/app/data/EditModeContext";
 import Navbar from "@/app/shareds/navbar";
 import Field from "@/app/shareds/Field";
 import { LoadingComponent } from "@/app/shareds/LoadingComponent";
+import { toast } from "@/app/tools/feedbacksUI";
+import { safeParse } from "valibot";
+import { useAgreeWrapper } from "@/app/shareds/Agree";
 
 interface BookProps {
   id: number;
@@ -18,6 +21,7 @@ export default function BookComponent({ id }: BookProps) {
   const [book, setBook] = useState<Book | undefined>(undefined);
   const { isEditMode, isPageLoaded } = useEditMode();
   const bookStore = useBooks();
+  const agree = useAgreeWrapper()
 
   useEffect(() => {
     if (!isNaN(id)) {
@@ -27,11 +31,40 @@ export default function BookComponent({ id }: BookProps) {
 
 
   // LIBRO
+  const [errors, setErrors] = useState<{[k:string]: string}>({});
+  function toggleErrors(key:string, bookParam: unknown) {
+    // validazione fallita
+    const validatedBook = safeParse(book_schema, bookParam);
+
+    if (!validatedBook.success) {
+      setErrors(prev=> ({...prev, [key]: validatedBook.issues[0].message}));
+      toast.danger("Errore di validazione");
+      
+      return null;
+  
+    // validazione riuscita
+    } else {
+      setErrors(prev=> {
+        const newErrors = {...prev};
+        delete newErrors[key];
+        return newErrors;
+      });
+      
+      return validatedBook.output;
+    }
+  }
+
   function handleUpdateBook(key:string, value: any) {
     if(!book) throw new Error("Libro non trovato");
-    (book as any)[key] = value;
-    bookStore.updateBook(id, book);
-    setBook({ ...book });
+    const newBook = { ...book };
+    (newBook as any)[key] = value;
+
+    // validazione
+    const validatedBook = toggleErrors(key, newBook);
+    if (!validatedBook) return;
+
+    setBook(validatedBook);
+    bookStore.updateBook(id, validatedBook);
   }
 
 
@@ -40,9 +73,11 @@ export default function BookComponent({ id }: BookProps) {
     // aggiunge una parte vuota
     create() {
       if(!book) throw new Error("Libro non trovato");
-  
-      if(!book.parts) book.parts = [];
-      book.parts.push({
+
+      const newBook = { ...book, parts: [...(book.parts || [])] };
+      if(!newBook.parts) newBook.parts = [];
+      
+      newBook.parts.push({
         title: "Parte"+ Date.now(),
         sections: [
           {
@@ -51,17 +86,24 @@ export default function BookComponent({ id }: BookProps) {
           }
         ]
       });
-      bookStore.updateBook(id, book);
-      setBook({ ...book });
+
+      const updatedBook = bookStore.updateBook(id, newBook);
+      if (updatedBook) setBook(updatedBook);
+      toast.success("Parte aggiunta");
     },
 
     // modifica il titolo della parte
     updateTitle(index:number, value: string) {
       if(!book) throw new Error("Libro non trovato");
-      (book.parts as any)[index].title = value;
+      const newBook = { ...book, parts: [...(book.parts || [])] };
+      (newBook.parts as any)[index].title = value;
       
-      bookStore.updateBook(id, book);
-      setBook({ ...book });
+      const errorKey = `part_title_${index}`;
+      const validatedBook = toggleErrors(errorKey, newBook);
+      if (!validatedBook) return;
+      
+      const updatedBook = bookStore.updateBook(id, validatedBook);
+      if (updatedBook) setBook(updatedBook);
     },
   }
 
@@ -71,14 +113,16 @@ export default function BookComponent({ id }: BookProps) {
       if(!book) throw new Error("Libro non trovato");
       if(!book.parts || book.parts.length === 0) book.parts = [];
 
+      const newBook = { ...book, parts: [...(book.parts || [])] };
       // aggiunge una sezione vuota alla parte selezionata
-      book.parts[part_i].sections.push({
+      newBook.parts[part_i].sections.push({
         title: "Sezione"+ Date.now(),
         paragraphs: []
       });
 
-      bookStore.updateBook(id, book);
-      setBook({ ...book });
+      const updatedBook = bookStore.updateBook(id, newBook);
+      if (updatedBook) setBook(updatedBook);
+      toast.success("Sezione aggiunta");
     },
 
     writeHref(book_id: number, part: string, section: string) {
@@ -89,27 +133,34 @@ export default function BookComponent({ id }: BookProps) {
     
     updateTitle(part_i: number, section_i: number, value: string) {
       if(!book) throw new Error("Libro non trovato");
-      (book.parts as any)[part_i].sections[section_i].title = value;
+      const newBook = { ...book, parts: [...(book.parts || [])] };
+      (newBook.parts as any)[part_i].sections[section_i].title = value;
       
-      bookStore.updateBook(id, book);
-      setBook({ ...book });
+      const errorKey = `section_title_${value}`;
+      const validatedBook = toggleErrors(errorKey, newBook);
+      if (!validatedBook) return;
+      
+      const updatedBook = bookStore.updateBook(id, validatedBook);
+      if (updatedBook) setBook(updatedBook);
     },
 
-    delete(part_i: number, section_i: number) {
-      if(!confirm("Sei sicuro di voler eliminare questa sezione?")) return;
+    async delete(part_i: number, section_i: number) {
+      if(!(await agree.danger("Sei sicuro di voler eliminare questa sezione?", "Rimuovi"))) return;
       if(!book || !book.parts || !book.parts[part_i]) 
         return console.error("Libro non esistente o parte non trovata");
       
+      const newBook = { ...book, parts: [...(book.parts || [])] };
       // Rimuovi la sezione dall'array
-      book.parts[part_i].sections.splice(section_i, 1);
+      newBook.parts[part_i].sections.splice(section_i, 1);
   
       // se la parte è rimasta senza sezioni, rimuovila
-      if(book.parts[part_i].sections.length === 0){
-        book.parts.splice(part_i, 1);
+      if(newBook.parts[part_i].sections.length === 0){
+        newBook.parts.splice(part_i, 1);
       }
   
-      bookStore.updateBook(id, book);
-      setBook({ ...book });
+      const updatedBook = bookStore.updateBook(id, newBook);
+      if (updatedBook) setBook(updatedBook);
+      toast.success("Sezione rimossa");
     }  
   }
 
@@ -136,7 +187,7 @@ export default function BookComponent({ id }: BookProps) {
       return isLastPart && isLastSection;
     },
 
-    pushOrder: (direction: "up" | "down", part_i: number, section_i: number) => {
+    async pushOrder(direction: "up" | "down", part_i: number, section_i: number) {
       if(!book) throw new Error("Libro non trovato");
       if(!book.parts || book.parts.length === 0) book.parts = [];
       const directionToUp = direction === "up";
@@ -154,46 +205,48 @@ export default function BookComponent({ id }: BookProps) {
 
       // controlla che la parte abbia più di una sezione
       const isAloneOnPart = book.parts[part_i].sections.length === 1;
-      if(isAloneOnPart && !confirm("Sei sicuro di voler spostare questa sezione? Rimuoverai la parte dal libro.")) return;
+      if(isAloneOnPart && !(await agree.warning("Spostare questa sezione? Rimuoverai la parte dal libro.", "Sposta"))) return;
       
-      const targetSection = book.parts[part_i].sections[section_i];
+      const newBook = { ...book, parts: [...(book.parts || [])] };
+      const targetSection = newBook.parts[part_i].sections[section_i];
       
       // spostamento verso l'alto
       if(directionToUp){
         // se è la prima sezione, la sposta in fondo alla parte precedente
         if(isHemSectionOfPart){
           // sposta la sezione in fondo alla parte precedente
-          book.parts[part_i - 1].sections.push(targetSection);
+          newBook.parts[part_i - 1].sections.push(targetSection);
           // rimuove la sezione dalla parte corrente
-          book.parts[part_i].sections.splice(section_i, 1);
+          newBook.parts[part_i].sections.splice(section_i, 1);
           
         // altrimenti scambia solo le sezioni della stessa parte
         } else {
-          book.parts[part_i].sections[section_i] = book.parts[part_i].sections[section_i - 1];
-          book.parts[part_i].sections[section_i - 1] = targetSection;
+          newBook.parts[part_i].sections[section_i] = newBook.parts[part_i].sections[section_i - 1];
+          newBook.parts[part_i].sections[section_i - 1] = targetSection;
         }
         
         // spostamento verso il basso
       } else {
-        // se è l'ultima sezione, la sposta in fondo alla parte successiva
+        // se è l'ultima sezione, la sposta in cima alla parte successiva
         if(isHemSectionOfPart){
-          // sposta la sezione in fondo alla parte successiva
-          book.parts[part_i + 1].sections.push(targetSection);
+          // sposta la sezione in cima alla parte successiva
+          newBook.parts[part_i + 1].sections.unshift(targetSection);
           // rimuove la sezione dalla parte corrente
-          book.parts[part_i].sections.splice(section_i, 1);
+          newBook.parts[part_i].sections.splice(section_i, 1);
           
         // altrimenti scambia solo le sezioni della stessa parte
         } else {
-          book.parts[part_i].sections[section_i] = book.parts[part_i].sections[section_i + 1];
-          book.parts[part_i].sections[section_i + 1] = targetSection;
+          newBook.parts[part_i].sections[section_i] = newBook.parts[part_i].sections[section_i + 1];
+          newBook.parts[part_i].sections[section_i + 1] = targetSection;
         }
       }
       
       // rimuove tutte le parti del libro senza sezioni
-      book.parts = book.parts.filter(part => part.sections.length > 0);
-      bookStore.updateBook(id, book);
-      console.log(book.parts);
-      setBook({ ...book });
+      newBook.parts = newBook.parts.filter(part => part.sections.length > 0);
+      
+      const updatedBook = bookStore.updateBook(id, newBook);
+      if (updatedBook) setBook(updatedBook);
+      toast.success("Sezione spostata");
     },
     
   }
@@ -248,6 +301,7 @@ export default function BookComponent({ id }: BookProps) {
                         placeholder={"Titolo"} 
                         disabled={!isEditMode}
                         value={book.title} 
+                        error_message={errors.title}
                         onChange={_e=> handleUpdateBook("title", _e.target.value)} 
                 />
                 <Field id={"author"} 
@@ -259,6 +313,7 @@ export default function BookComponent({ id }: BookProps) {
                         placeholder={"Autore"} 
                         disabled={!isEditMode}
                         value={book.author} 
+                        error_message={errors.author}
                         onChange={_e=> handleUpdateBook("author", _e.target.value)} 
                 />
                 <Field id={"description"} 
@@ -270,6 +325,7 @@ export default function BookComponent({ id }: BookProps) {
                         placeholder={"Descrizione"} 
                         disabled={!isEditMode}
                         value={book.description} 
+                        error_message={errors.description}
                         onChange={_e=> handleUpdateBook("description", _e.target.value)} 
                 />
               </div>
@@ -298,14 +354,17 @@ export default function BookComponent({ id }: BookProps) {
                           <h3 className="p-2 italic">{part.title}</h3>
                         </Frag.Else>
 
-                        <Field  id={part_i.toString()} 
-                                hide_label label={"Titolo della parte"} 
-                                input_class="py-1 px-2 border"
-                                type={"text"} 
-                                placeholder={"Modifica il titolo della parte"} 
-                                value={part.title} 
-                                onChange={(e) => PART.updateTitle(part_i, e.target.value)}
-                        />
+                        <div>
+                          <Field  id={part_i.toString()} 
+                                  hide_label label={"Titolo della parte"} 
+                                  input_class="py-1 px-2 border"
+                                  type={"text"} 
+                                  placeholder={"Modifica il titolo della parte"} 
+                                  value={part.title} 
+                                  error_message={errors[`part_title_${part_i}`]}
+                                  onChange={(e) => PART.updateTitle(part_i, e.target.value)}
+                          />
+                        </div>
                       </Frag>
                     )}
 
@@ -331,7 +390,7 @@ export default function BookComponent({ id }: BookProps) {
                             <div className="grid grid-cols-[auto_1fr_auto]">
 
                               {/* DROPDOWN */}
-                              <div className="relative dropdown">
+                              <div className="relative dropdown bg-gray-600">
                                 <button onClick={() => DROPDOWN.toggle(section.title)} 
                                         className="p-1 bg-gray-600 hover:bg-gray-500 transition-colors">
                                   <i className="bi bi-three-dots"></i>
@@ -360,16 +419,18 @@ export default function BookComponent({ id }: BookProps) {
                                 </Frag>
                               </div>
 
-                              
-                              <Field  id={"section-" + section_i} 
-                                      hide_label label={"Sezione " + (section_i + 1)} 
-                                      input_class="py-1 px-2 bg-gray-800"
-                                      type={"text"} 
-                                      placeholder={"Nome della sezione"} 
-                                      value={section.title} 
-                                      onChange={(e) => SECTION.updateTitle(part_i, section_i, e.target.value)} 
-                              />
-                              <Link className="p-1 bg-green-600" 
+                              <div>
+                                <Field  id={"section-" + section_i} 
+                                        hide_label label={"Sezione " + (section_i + 1)} 
+                                        input_class="py-1 px-2 bg-gray-800"
+                                        type={"text"} 
+                                        placeholder={"Nome della sezione"} 
+                                        value={section.title} 
+                                        error_message={errors[`section_title_${section.title}`]}
+                                        onChange={(e) => SECTION.updateTitle(part_i, section_i, e.target.value)} 
+                                />
+                              </div>
+                              <Link className="p-1 bg-green-600 flex items-center" 
                                       href={SECTION.writeHref(book.id!, part.title, section.title)}>
                                 <i className="bi bi-chevron-right"></i>
                               </Link>

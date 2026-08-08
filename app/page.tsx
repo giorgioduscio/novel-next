@@ -1,5 +1,5 @@
-import { redirect } from "next/navigation";
+import BooksComponent from "./books/BooksComponent";
 
-export default function redirectToHome() {
-  return redirect("/books");
-};
+export default function Home() {
+  return <BooksComponent />;
+}

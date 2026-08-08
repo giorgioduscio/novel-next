@@ -5,8 +5,9 @@
 ## 📌 To Do
 * [1] implementare salvataggio cloud
 * [3] separazione template e script
-* [3] implementa toast, agree, popover
+* [3] bredcrumb
 * [5] migliorare grafica
+* [5] fix: upload di due libri con lo stesso id
 
 ## 🔄 In Progress (max 2-3)
 
@@ -34,3 +35,4 @@
 * stili standard per la novella
 * sostituire i form con pulsanti auto-compilanti
 * ottimizzazione <Field> 
+* implementare feedback (toast, agree, debounce) 
