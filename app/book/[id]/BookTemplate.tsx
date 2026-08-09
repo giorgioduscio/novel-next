@@ -2,6 +2,7 @@ import Field from "@/app/shareds/Field";
 import Frag from "@/app/shareds/Frag";
 import { LoadingComponent } from "@/app/shareds/LoadingComponent";
 import Navbar from "@/app/shareds/navbar";
+import { Breadcrumb } from "@/app/shareds/Breadcrumb";
 import Link from "next/link";
 import { useBookComponent } from "./BookComponent";
 
@@ -27,6 +28,7 @@ export default function BookTemplate({
       <main id="book" onClick={dropdownFeat.autoClose}>
         <Navbar back_btn={{ href:"/", label:"", icon:"bi-chevron-left" }} 
                 page_title={book?.title || ""}/>
+        <Breadcrumb />
 
         {!book ? (
           // LIBRO NON TROVATO

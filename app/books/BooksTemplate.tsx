@@ -8,6 +8,7 @@ import Field from "../shareds/Field";
 import { LoadingComponent } from "../shareds/LoadingComponent";
 import Navbar from "../shareds/navbar";
 import { useBooksComponent } from "./BooksComponent";
+import { Breadcrumb } from "../shareds/Breadcrumb";
 
 // Tipo per le props del componente BooksTemplate basato sull'hook useBooksComponent
 type BooksTemplateProps = ReturnType<typeof useBooksComponent>;
@@ -30,6 +31,7 @@ export default function BooksTemplate({
   return (
     <main id="BooksTemplate">
       <Navbar />
+      <Breadcrumb />
 
       {/* Sezione principale per la gestione dei libri */}
       <section className="p-2 mx-auto container max-w-[400px]">

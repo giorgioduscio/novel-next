@@ -3,6 +3,7 @@ import Field from "@/app/shareds/Field";
 import Frag from "@/app/shareds/Frag";
 import { LoadingComponent } from "@/app/shareds/LoadingComponent";
 import Navbar from "@/app/shareds/navbar";
+import { Breadcrumb } from "@/app/shareds/Breadcrumb";
 import { useSectionComponent } from "./SectionComponent";
 
 
@@ -19,6 +20,7 @@ export default function SectionTemplate({
   return (
     <main id="SectionComponent">
       <Navbar back_btn={{ href: `/book/${book_id}` }} page_title={section_title} />
+      <Breadcrumb />
 
       <section className="mx-auto container max-w-[400px]">
         {!sectionFeat.bookSection ? (

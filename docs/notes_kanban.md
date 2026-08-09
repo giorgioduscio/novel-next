@@ -3,7 +3,6 @@
 
 # Kanban - Novel Writer (Next.js)
 ## 📌 To Do
-* [3] bredcrumb
 * [5] migliorare grafica
 * [5] fix: upload di due libri con lo stesso id
 
@@ -35,3 +34,4 @@
 * implementare feedback (toast, agree, debounce) 
 * implementare salvataggio cloud (firebase)
 * separazione template e logica
+* implementare bredcrumb per migliorare l'accessibilità
