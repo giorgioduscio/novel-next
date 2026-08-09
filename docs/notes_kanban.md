@@ -3,7 +3,6 @@
 
 # Kanban - Novel Writer (Next.js)
 ## 📌 To Do
-* [3] separazione template e script
 * [3] bredcrumb
 * [5] migliorare grafica
 * [5] fix: upload di due libri con lo stesso id
@@ -28,11 +27,11 @@
 * modifica e visualizzazione delle pagine
 * sostituire attributo post_text con ex_style e style con in_style
 * validazione campi dei paragrafi (stili consentiti)
-* ottimizzare <Frag> con else 
+* ottimizzazione <Field> 
 * font face efficace
 * implementare salvataggio locale
 * stili standard per la novella
 * sostituire i form con pulsanti auto-compilanti
-* ottimizzazione <Field> 
 * implementare feedback (toast, agree, debounce) 
 * implementare salvataggio cloud (firebase)
+* separazione template e logica

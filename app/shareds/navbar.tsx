@@ -4,22 +4,21 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { useEditMode } from '../data/EditModeContext';
-import Frag from './Frag';
 
 interface NavbarProps {
-  prop_title?: string;
+  page_title?: string;
   back_btn?: { icon?:string, label?:string, href:string };
 }
 
-export default function Navbar({ prop_title, back_btn }: NavbarProps) {
+export default function Navbar({ page_title, back_btn }: NavbarProps) {
   const [title, setTitle] = useState('');
   const pathname = usePathname();
   const { isEditMode, toggleEditMode } = useEditMode();
   
 
   useEffect(()=>{
-    setTitle(prop_title || document.title);
-  }, [pathname, prop_title]);
+    setTitle(page_title || document.title);
+  }, [pathname, page_title]);
   
   return (
     <div className="sticky top-0 z-50">
