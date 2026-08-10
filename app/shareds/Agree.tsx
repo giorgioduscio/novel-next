@@ -14,10 +14,10 @@ interface AgreeComponentProps {
 
 function AgreeComponent({ title, message, btn_label, btn_color, callback, onCancel }: AgreeComponentProps) {
   const colors = {
-    primary: "bg-blue-600   hover:bg-blue-700   transition-colors text-white",
-    success: "bg-green-600  hover:bg-green-700  transition-colors text-white",
-    danger:  "bg-red-600    hover:bg-red-700    transition-colors text-white",
-    warning: "bg-yellow-600 hover:bg-yellow-700 transition-colors text-white",
+    primary: "bg-blue-600   active:bg-blue-700   transition-colors text-white",
+    success: "bg-green-600  active:bg-green-700  transition-colors text-white",
+    danger:  "bg-red-600    active:bg-red-700    transition-colors text-white",
+    warning: "bg-yellow-600 active:bg-yellow-700 transition-colors text-white",
   }
 
   return (
@@ -47,7 +47,7 @@ function AgreeComponent({ title, message, btn_label, btn_color, callback, onCanc
 
           <button
             type="button"
-            className="py-2 px-3 rounded bg-gray-600 hover:bg-gray-700 transition-colors truncate"
+            className="py-2 px-3 rounded bg-gray-600 active:bg-gray-700 transition-colors truncate"
             onClick={onCancel}
           >
             <i className="bi bi-x-lg me-2" aria-hidden="true"></i>

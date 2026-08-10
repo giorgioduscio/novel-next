@@ -26,9 +26,11 @@ export function useBookComponent({ id }: UseBookComponentProps) {
 
   useEffect(() => {
     if (!isNaN(id)) {
-      setBook(bookStore.getBookById(id));
+      const bookFromStore = bookStore.getBookById(id);
+      setBook(bookFromStore ? structuredClone(bookFromStore) : undefined);
     }
   }, [id, bookStore.getBookById]);
+
 
   // 1) ERRORI
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -82,7 +84,6 @@ export function useBookComponent({ id }: UseBookComponentProps) {
         sections: [
           {
             title: "Sezione" + Date.now(),
-            paragraphs: [],
           },
         ],
       });
@@ -117,9 +118,8 @@ export function useBookComponent({ id }: UseBookComponentProps) {
       // aggiunge una sezione vuota alla parte selezionata
       newBook.parts[part_i].sections.push({
         title: "Sezione" + Date.now(),
-        paragraphs: [],
       });
-
+      
       const updatedBook = bookStore.updateBook(id, newBook);
       if (updatedBook) setBook(updatedBook);
       toast.success("Sezione aggiunta");
@@ -197,9 +197,10 @@ export function useBookComponent({ id }: UseBookComponentProps) {
 
     async pushOrder(direction: "up" | "down", part_i: number, section_i: number) {
       if (!book) throw new Error("Libro non trovato");
-      if (!book.parts || book.parts.length === 0) book.parts = [];
+      if (!book.parts || book.parts.length === 0) throw new Error("Libro non ha parti");
+      
+      // 1) esegue controlli
       const directionToUp = direction === "up";
-
       // controlla se la parte è la prima / ultima del libro
       const isHemPart = directionToUp
         ? part_i === 0
@@ -210,23 +211,17 @@ export function useBookComponent({ id }: UseBookComponentProps) {
         : section_i === book.parts[part_i].sections.length - 1;
 
       if (isHemPart && isHemSectionOfPart)
-        return console.error(
-          "La sezione è già la prima / ultima del libro"
-        );
+        return console.error("La sezione è già la prima / ultima del libro");
 
-      // controlla che la parte abbia più di una sezione
+      // 2) controlla che la parte abbia più di una sezione
       const isAloneOnPart = book.parts[part_i].sections.length === 1;
-      if (
-        isAloneOnPart &&
-        !(await agree.warning(
-          "Spostare questa sezione? Rimuoverai la parte dal libro.",
-          "Sposta"
-        ))
-      )
-        return;
+      if (isAloneOnPart && !(await agree.warning(
+        "Spostare questa sezione? Rimuoverai la parte dal libro.", "Sposta"
+      ))) return;
 
-      const newBook = { ...book, parts: [...(book.parts || [])] };
-      const targetSection = newBook.parts[part_i].sections[section_i];
+      let newBook = structuredClone(book);
+      newBook.parts = newBook.parts || [];
+      const targetSection = structuredClone(newBook.parts[part_i].sections[section_i]);
 
       // spostamento verso l'alto
       if (directionToUp) {

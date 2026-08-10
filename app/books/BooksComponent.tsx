@@ -33,9 +33,9 @@ export function useBooksComponent() {
     // Crea un nuovo libro con valori predefiniti
     create() {
       BookContext.createBook({
-        title: "Book - " + Date.now(),
-        description: "Inserisci la descrizione",
-        author: "Inserisci l'autore",
+        title: "Book_" + Date.now(),
+        description: "Descrizione_" + Date.now(),
+        author: "Autore_" + Date.now(),
       });
 
       setbooks(BookContext.readAll());

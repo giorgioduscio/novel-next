@@ -30,33 +30,36 @@ export default function BooksTemplate({
 
   return (
     <main id="BooksTemplate">
-      <Navbar />
+      <Navbar page_title="Gestione Libri" />
       <Breadcrumb />
 
       {/* Sezione principale per la gestione dei libri */}
       <section className="p-2 mx-auto container max-w-[400px]">
         <div className="text-center">
+
+
           {/* UPLOAD */}
           <div className="flex justify-center items-center gap-2">
+            <div className="truncate">Upload:</div>
+
             <button onClick={uploadFeat.json.execute}
-                    className="py-2 px-3 text-sm rounded bg-black/50 hover:bg-black/70 transition-colors">
-              <i className="mx-1 bi bi-upload"></i>
-              <span className="hidden sm:inline">Upload</span>
+                    className="py-2 px-3 text-sm rounded bg-green-800 active:bg-green-700 transition-colors">
+              <i className="me-2 bi bi-upload"></i>
               <span>{uploadFeat.json.label}</span>
             </button>
 
             <button onClick={uploadFeat.markdown.execute}
-                    className="py-2 px-3 text-sm rounded bg-black/50 hover:bg-black/70 transition-colors">
-              <i className="mx-1 bi bi-upload"></i>
-              <span className="hidden sm:inline">Upload</span>
+                    className="py-2 px-3 text-sm rounded bg-blue-800 active:bg-blue-700 transition-colors">
+              <i className="me-2 bi bi-upload"></i>
               <span>{uploadFeat.markdown.label}</span>
             </button>
           </div>
           {/* UPLOAD */}
 
+
           {/* HEAD */}
-          <div className="my-5 flex justify-between items-center">
-            <h1 className="text-2xl font-bold">Libri</h1>
+          <div className="my-5 flex flex-wrap justify-between items-center">
+            <h1 className="text-2xl font-bold">Gestione Libri</h1>
             <p className="text-gray-400">
               Totale: {books.length} libri
             </p>
@@ -65,8 +68,8 @@ export default function BooksTemplate({
           {/* NUOVO LIBRO */}
           <Frag if={isEditMode} className="my-5">
             <button onClick={bookFeat.create} 
-                    className="w-full py-2 px-3 rounded bg-blue-600 hover:bg-blue-700 transition-colors">
-              <i className="bi bi-plus-lg"></i>
+                    className="w-full py-2 px-3 rounded bg-blue-700 active:bg-blue-600 transition-colors">
+              <i className="me-2 bi bi-plus-lg"></i>
               Crea Libro
             </button>
           </Frag>
@@ -84,16 +87,16 @@ export default function BooksTemplate({
             {/* LISTA LIBRI */}
             <ol className="flex flex-wrap gap-2 items-start">
               {books.map((book, book_i) => (
-                <li
-                  key={book.id + book.title}
-                  className="flex-1 min-w-[150px] rounded-lg overflow-hidden border border-gray-400"
+                <li key={book.id + book.title}
+                    className="flex-1 min-w-[150px] rounded overflow-hidden border border-gray-400 shadow-lg"
                 >
-                  <div className="text-center relative bg-white/10 hover:bg-white/30 transition-colors">
-                    {/* Pulsante per eliminare un libro */}
+                  <div className="text-center relative bg-white/10 active:bg-white/30 transition-colors">
+                    {/* ELIMINA LIBRO */}
                     <div className="absolute top-0 right-0 w-fit">
                       <button
+                        aria-label={"Rimuovi libro " + book.title}
                         onClick={() => bookFeat.delete(book.id)}
-                        className="py-1 px-2 rounded bg-red-600 hover:bg-red-700 transition-colors truncate"
+                        className="py-1 px-2 rounded bg-red-800 active:bg-red-600 transition-colors truncate"
                       >
                         <i className="bi bi-trash-fill"></i>
                       </button>
@@ -101,11 +104,9 @@ export default function BooksTemplate({
 
                     {/* Visualizzazione o modifica dei dettagli del libro */}
                     <Frag if={isEditMode}>
+                      {/* VISUALIZZA LIBRO */}
                       <Frag.Else>
-                        {/* Link per visualizzare il libro (modalità non edit) */}
-                        <Link href={`/book/${book.id}`}
-                              className="p-2 block"
-                        >
+                        <Link href={`/book/${book.id}`} className="p-3 block">
                           <h4 className="text-center text-lg font-bold">
                             {book.title}
                           </h4>
@@ -118,7 +119,7 @@ export default function BooksTemplate({
                         </Link>
                       </Frag.Else>
 
-                      {/* Campi per modificare i dettagli del libro (modalità edit) */}
+                      {/* MODIFICA LIBRO */}
                       <Field id="title"
                              hide_label
                              label="Titolo del libro"
@@ -127,12 +128,8 @@ export default function BooksTemplate({
                              disabled={!isEditMode}
                              placeholder="Inserisci il titolo"
                              value={book.title}
-                             onChange={e =>
-                               bookFeat.update(book_i, "title", e)
-                             }
-                             error_message={
-                               errors[`${book.id}>title`]
-                             }
+                             onChange={e=> bookFeat.update(book_i, "title", e)}
+                             error_message={errors[`${book.id}>title`]}
                       />
 
                       <Field id="author"
@@ -143,12 +140,8 @@ export default function BooksTemplate({
                              disabled={!isEditMode}
                              placeholder="Inserisci l'autore"
                              value={book.author}
-                             onChange={e =>
-                               bookFeat.update(book_i, "author", e)
-                             }
-                             error_message={
-                               errors[`${book.id}>author`]
-                             }
+                             onChange={e =>bookFeat.update(book_i, "author", e)}
+                             error_message={errors[`${book.id}>author`]}
                       />
 
                       <Field id="description"
@@ -159,33 +152,29 @@ export default function BooksTemplate({
                              disabled={!isEditMode}
                              placeholder="Inserisci la descrizione"
                              value={book.description}
-                             onChange={e =>
-                               bookFeat.update(book_i, "description", e)
-                             }
-                             error_message={
-                               errors[`${book.id}>description`]
-                             }
+                             onChange={e => bookFeat.update(book_i, "description", e)}
+                             error_message={errors[`${book.id}>description`]}
                       />
                     </Frag>
 
-                    {/* Pulsanti per scaricare il libro o link per visualizzarlo */}
+                    {/* DOWNLOAD */}
                     <Frag if={isEditMode}>
                       <Frag.Else>
                         <div className="grid grid-cols-2 justify-between items-center">
                           <button onClick={() => BookContext.download.json.execute(book.id)}
-                                  className="p-1 bg-green-700 hover:bg-green-800 transition-colors truncate">
+                                  className="p-1 bg-green-800 active:bg-green-700 transition-colors truncate">
                             Json <i className="bi bi-download"></i>
                           </button>
 
                           <button onClick={() => BookContext.download.md.execute(book.id)}
-                                  className="p-1 bg-blue-700 hover:bg-blue-800 transition-colors truncate">
-                            Markdown <i className="bi bi-download"></i>
+                                  className="p-1 bg-blue-800 active:bg-blue-700 transition-colors truncate">
+                            Markdown <i className="bi bi-markdown"></i>
                           </button>
                         </div>
                       </Frag.Else>
 
                       <Link href={`/book/${book.id}`}
-                            className="py-1 px-2 bg-green-600 hover:bg-green-700 transition-colors block">
+                            className="py-1 px-2 bg-green-800 active:bg-green-700 transition-colors block">
                         Vai al libro
                         <i className="bi bi-chevron-right ms-2"></i>
                       </Link>

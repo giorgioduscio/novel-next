@@ -33,30 +33,30 @@ function validateStyle(v:string){
 
 export const paragraph_schema = v.object({
   ex_style: v.optional(v.pipe(v.string(), 
-    v.check((v) => validateStyle(v), "Solo stili ornamentali (m-, p-, text-, border-, bg-, outline-, shadow-, translate-)")
+    v.check((v) => validateStyle(v), "ex_style: Solo stili ornamentali (m-, p-, text-, border-, bg-, outline-, shadow-, translate-)")
   )),
   in_style: v.optional(v.pipe(v.string(), 
-    v.check((v) => validateStyle(v), "Solo stili ornamentali (m-, p-, text-, border-, bg-, outline-, shadow-, translate-)")
+    v.check((v) => validateStyle(v), "in_style: Solo stili ornamentali (m-, p-, text-, border-, bg-, outline-, shadow-, translate-)")
   )),
   pre_text: v.optional(v.string()),
-  text: v.pipe(v.string(), v.minLength(3, "Deve contenere almeno 3 caratteri")),
+  text: v.pipe(v.string(), v.minLength(3, "text: Il testo del paragrafo deve contenere almeno 3 caratteri")),
 });
 
 export const section_schema = v.object({
-  title: v.pipe(v.string(), v.minLength(3, "Deve contenere almeno 3 caratteri")),
-  paragraphs: v.array(paragraph_schema),
+  title: v.pipe(v.string(), v.minLength(3, "title: Il titolo della sezione deve contenere almeno 3 caratteri")),
+  paragraphs: v.optional(v.array(paragraph_schema)),
 });
 
 export const parts_schema = v.object({
-  title: v.pipe(v.string(), v.minLength(3, "Deve contenere almeno 3 caratteri")),
+  title: v.pipe(v.string(), v.minLength(3, "title: Il titolo della parte deve contenere almeno 3 caratteri")),
   sections: v.array(section_schema),
 });
 
 export const book_schema = v.object({
   id: v.number(),
-  title: v.pipe(v.string(), v.minLength(3, "Il titolo deve contenere almeno 3 caratteri")),
-  description: v.pipe(v.string(), v.minLength(3, "La descrizione deve contenere almeno 3 caratteri")),
-  author: v.pipe(v.string(), v.minLength(3, "L'autore deve contenere almeno 3 caratteri")),
+  title: v.pipe(v.string(), v.minLength(3, "title: Il titolo deve contenere almeno 3 caratteri")),
+  description: v.pipe(v.string(), v.minLength(3, "description: La descrizione deve contenere almeno 3 caratteri")),
+  author: v.pipe(v.string(), v.minLength(3, "author: L'autore deve contenere almeno 3 caratteri")),
   parts: v.optional(v.array(parts_schema)),
 });
 

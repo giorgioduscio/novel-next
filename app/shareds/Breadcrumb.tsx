@@ -89,7 +89,7 @@ export function Breadcrumb() {
   }
 
   return (
-    <nav aria-label="Breadcrumb" className="p-2 bg-gray-900 text-xs sm:text-sm">
+    <nav aria-label="Breadcrumb" className="p-2 bg-gray-900 text-sm">
       <ol className="mx-auto container max-w-[400px] flex items-center flex-wrap gap-2 text-gray-400">
         {items.map((item, index) => 
             <li key={index} className="flex items-center gap-1 min-w-0">
@@ -107,7 +107,7 @@ export function Breadcrumb() {
               ) : (
                 <Link
                   href={item.href}
-                  className="hover:text-white transition-colors truncate max-w-[110px]"
+                  className="active:text-white transition-colors truncate max-w-[110px]"
                   title={item.label}
                 >
                   {index === 0 && 

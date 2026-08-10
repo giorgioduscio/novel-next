@@ -91,23 +91,30 @@ export function BookProvider({ children }: { children: React.ReactNode }) {
   }
 
   // Debounce del salvataggio su Firebase per modifiche frequenti
-  const debouncedSaveSingleBook = useMemo(
-    () =>
-      debounce((bookToSave: Book) => {
-        saveSingleBook(bookToSave);
-      }, 1000),
-    []
+  const debouncedSaveSingleBook = useMemo(() =>
+    debounce((bookToSave: Book) => {
+      saveSingleBook(bookToSave);
+    }, 1000), []
   );
 
+  // Valida un libro usando valibot
   function validateBook(book: unknown): Book | null {
     try {
-      return v.parse(book_schema, book);
+      const result = v.safeParse(book_schema, book);
+
+      if (!result.success) {
+        console.error("Validation error:", result.issues);
+        return null;
+      }
+      return result.output;
+
     } catch (error) {
       console.error("Validation error:", error);
       return null;
     }
   }
 
+  // Aggiunge un libro alla lista e lo salva su Firebase
   function addBook(book: Book) {
     const validatedBook = validateBook(book);
     if (!validatedBook) return null;
@@ -123,6 +130,7 @@ export function BookProvider({ children }: { children: React.ReactNode }) {
     return validatedBook;
   }
 
+  // Crea un nuovo libro con un ID univoco e lo aggiunge alla lista
   function createBook(book: Omit<Book, "id">) {
     let newId = Date.now();
     while (books.some((b) => b.id === newId)) {
@@ -133,17 +141,19 @@ export function BookProvider({ children }: { children: React.ReactNode }) {
     return addBook(newBook);
   }
 
+  // Restituisce tutti i libri
   const readAll = useCallback((): Book[] => {
     return books;
   }, [books]);
 
+  // Trova un libro per ID
   const getBookById = useCallback(
     (id: number): Book | undefined => {
       return books.find((book) => book.id === id);
-    },
-    [books]
+    }, [books]
   );
 
+  // Aggiorna un libro esistente
   function updateBook(id: number, updatedBook: Partial<Book>, validation = true) {
     const stored = getBookById(id);
     if (!stored) {

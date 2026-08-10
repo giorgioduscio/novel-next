@@ -42,7 +42,7 @@ export default function BookTemplate({
           <section className="pb-10 mx-auto container max-w-[400px]">
             {/* HEADER */}
             <div className="p-3 py-8 text-center">
-              <div className="grid gap-3 overflow-x-hidden">
+              <div className="grid gap-1 overflow-x-hidden">
                 <h2 className="hidden">{book.title}</h2>
                 <div>
                   <Field id={"title"} 
@@ -106,7 +106,7 @@ export default function BookTemplate({
                   <div className="" key={part.title + part_i}>
 
                     {/* titolo parte */}
-                    {!!part.sections.length && (
+                    {!!part.sections?.length && (
                       <Frag if={isEditMode}>
                         <Frag.Else>
                           <h3 className="p-2 italic">{part.title}</h3>
@@ -129,13 +129,13 @@ export default function BookTemplate({
 
                     {/* SEZIONI */}
                     <div>
-                      {part.sections.map((section, section_i) => 
+                      {part.sections?.map((section, section_i) => 
                         <Frag if={isEditMode} key={section.title + section_i}>
 
-                          {/* link sezione */}
+                          {/* VISUALIZZA SEZIONE */}
                           <Frag.Else>
                             <Link href={sectionFeat.writeHref(book.id!, part.title, section.title)}
-                                  className="p-2 block bg-gray-800 hover:bg-gray-700 transition-colors">
+                                  className={`p-3 block bg-gray-800 active:bg-gray-700 transition-colors ${section_i ? "border-t border-gray-400" : ""}`}>
                               <div className="flex items-center gap-2">
                                 <h4>{section.title}</h4>
 
@@ -144,13 +144,14 @@ export default function BookTemplate({
                             </Link>
                           </Frag.Else>
 
+                          {/* MODIFICA SEZIONE */}
                           <div className="my-1 border rounded">
                             <div className="grid grid-cols-[auto_1fr_auto]">
 
                               {/* DROPDOWN */}
                               <div className="relative dropdown bg-gray-600">
                                 <button onClick={() => dropdownFeat.toggle(section.title)} 
-                                        className="p-1 bg-gray-600 hover:bg-gray-500 transition-colors">
+                                        className="p-3 bg-gray-600 active:bg-gray-500 transition-colors">
                                   <i className="bi bi-three-dots"></i>
                                 </button>
 
@@ -180,7 +181,7 @@ export default function BookTemplate({
                               <div>
                                 <Field  id={"section-" + section_i} 
                                         hide_label label={"Sezione " + (section_i + 1)} 
-                                        input_class="py-1 px-2 bg-gray-800"
+                                        input_class="p-3 bg-gray-800"
                                         type={"text"} 
                                         placeholder={"Nome della sezione"} 
                                         value={section.title} 
@@ -188,17 +189,18 @@ export default function BookTemplate({
                                         onChange={(e) => sectionFeat.updateTitle(part_i, section_i, e.target.value)} 
                                 />
                               </div>
-                              <Link className="p-1 bg-green-600 flex items-center" 
+                              <Link className="p-3 bg-green-700 active:bg-green-600 flex items-center" 
                                       href={sectionFeat.writeHref(book.id!, part.title, section.title)}>
                                 <i className="bi bi-chevron-right"></i>
                               </Link>
                             </div>
                           </div>
+
                         
                           {/* Pulsante aggiunta sezione */}
                           <Frag if={section_i === (book.parts?.[part_i]?.sections.length || 0) - 1}>
                             <button onClick={() => sectionFeat.create(part_i)}
-                                    className="py-1 px-2 mx-auto my-3 block bg-gray-800 rounded text-sm hover:bg-gray-900 transition-colors">
+                                    className="py-1 px-2 mx-auto my-3 block bg-gray-800 rounded text-sm active:bg-gray-900 transition-colors">
                               <i className="bi bi-arrow-down"></i>
                               <span>Aggiungi sezione</span>
                             </button>
@@ -215,7 +217,7 @@ export default function BookTemplate({
             {/* pulsante aggiunta */}
             <Frag if={isEditMode}>
               <button onClick={() => partFeat.create()}
-                      className="py-2 px-3 mx-auto my-3 block bg-green-600 rounded hover:bg-green-700 transition-colors">
+                      className="py-2 px-3 mx-auto my-3 block bg-green-600 rounded active:bg-green-700 transition-colors">
                 <i className="bi bi-plus-lg"></i>
                 <span>Aggiungi parte</span>
               </button>
@@ -228,7 +230,7 @@ export default function BookTemplate({
             <div className="flex flex-col">
               {Object.values(bookStore.download).map((action, i) => (
                 <button key={i}  onClick={() => action.execute(book.id!)}
-                        className="py-2 px-3 bg-gray-800 hover:bg-gray-700 transition-colors" >
+                        className="py-2 px-3 bg-gray-800 active:bg-gray-700 transition-colors" >
                   <div className="flex justify-between items-center">
                     <span>{action.label}</span>
                     <i className={`bi ${action.icon}`}></i>

@@ -5,6 +5,7 @@ import { LoadingComponent } from "@/app/shareds/LoadingComponent";
 import Navbar from "@/app/shareds/navbar";
 import { Breadcrumb } from "@/app/shareds/Breadcrumb";
 import { useSectionComponent } from "./SectionComponent";
+import { useMemo } from "react";
 
 
 type SectionTemplateProps = ReturnType<typeof useSectionComponent>;
@@ -14,6 +15,11 @@ export default function SectionTemplate({
   isEditMode,  sectionFeat_title,
   errors,  sectionFeat,  paragraphFeat,
 }: SectionTemplateProps) {
+
+  const showWtapperCondiction = useMemo(() => 
+    !!sectionFeat.bookSection?.paragraphs?.length
+  , [sectionFeat.bookSection]);
+  
 
   if (!isPageLoaded) return <LoadingComponent />;
 
@@ -26,7 +32,7 @@ export default function SectionTemplate({
         {!sectionFeat.bookSection ? (
           <div className="py-10 text-center text-red-500">
             <i className="me-1 bi bi-exclamation-triangle"></i>
-            Capitolo non trovato
+            Sezione non trovata
           </div>
         ) : (
           <>
@@ -35,30 +41,31 @@ export default function SectionTemplate({
               <Field
                 input_class="text-3xl font-bold text-center"
                 hide_label={!isEditMode}
-                label="Titolo del capitolo"
+                label="Titolo della sezione"
                 value={sectionFeat_title}
                 disabled={!isEditMode}
                 asterisk
                 onChange={(_e) =>sectionFeat.handleChange(_e.target.value)}
-                error_message={errors["section_title"]}
+                error_message={errors["section>title"]}
                 id={"title"}
                 type={"text"}
-                placeholder={"Titolo del capitolo"}
+                placeholder={"Titolo della sezione"}
               />
 
               <div className="mt-5 border-y border-gray-500"></div>
             </form>
 
+
             {/* WRAPPER PARAGRAFI */}
-            <Frag if={sectionFeat.bookSection?.paragraphs.length > 0} className="pb-30">
+            <Frag if={showWtapperCondiction} className="pb-30">
               {/* nessun paragrafo */}
               <Frag.Else>
                 <div className="py-10 text-center">
                   <i className="me-1 bi bi-file-text"></i>
-                  Nessun paragrafo
+                  Nessun paragrafo 
                 </div>
 
-                <Frag if={isEditMode} className="flex justify-center">
+                <Frag if={!!isEditMode} className="flex justify-center">
                   <button onClick={() =>paragraphFeat.handleCreate()}
                           className="py-2 px-3 border rounded bg-blue-500/30 text-blue-300">
                     <i className="bi bi-plus-lg"></i>
@@ -67,9 +74,22 @@ export default function SectionTemplate({
                 </Frag>
               </Frag.Else>
 
-              {sectionFeat.bookSection?.paragraphs.map(
+              {sectionFeat.bookSection?.paragraphs?.map(
                 (p, paragraph_i) => (
                   <div key={paragraph_i} className="relative">
+                    
+                    {/* PULSANTE INSERIMENTO */}
+                    <Frag if={isEditMode && paragraph_i === 0} className="py-4 border-t border-blue-400/50">
+                      <div className="-translate-y-1">
+                        <button
+                          onClick={() => paragraphFeat.handleCreate("top")}
+                          className="mx-auto block px-1 border rounded-full bg-blue-500/30 text-blue-300"
+                          aria-label="Aggiungi paragrafo"
+                        >
+                          <i className="bi bi-plus-lg"></i>
+                        </button>
+                      </div>
+                    </Frag>
 
                     {/* PARAGRAFO */}
                     <div className={`pt-3 ${p.ex_style || ""}`}>
@@ -151,13 +171,18 @@ export default function SectionTemplate({
                     {/* PARAGRAFO */}
 
                     {/* PULSANTE INSERIMENTO */}
-                    <Frag if={isEditMode} className="py-4">
-                      <button
-                        onClick={() => paragraphFeat.handleCreate(paragraph_i)}
-                        className="mx-auto block px-1 border rounded-full bg-blue-500/30 text-blue-300">
-                        <i className="bi bi-plus-lg"></i>
-                      </button>
+                    <Frag if={isEditMode} className="mt-5 pt-5 border-t border-blue-400/50">
+                      <div className="-translate-y-1">
+                        <button
+                          onClick={() => paragraphFeat.handleCreate(paragraph_i)}
+                          className="mx-auto block px-1 border rounded-full bg-blue-500/30 text-blue-300"
+                          aria-label="Aggiungi paragrafo"
+                        >
+                          <i className="bi bi-plus-lg"></i>
+                        </button>
+                      </div>
                     </Frag>
+
                   </div>
                 )
               )}

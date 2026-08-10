@@ -3,7 +3,6 @@
 
 # Kanban - Novel Writer (Next.js)
 ## 📌 To Do
-* [5] migliorare grafica
 * [5] fix: upload di due libri con lo stesso id
 
 ## 🔄 In Progress (max 2-3)
@@ -35,3 +34,4 @@
 * implementare salvataggio cloud (firebase)
 * separazione template e logica
 * implementare bredcrumb per migliorare l'accessibilità
+* Fix: migliorare grafica
