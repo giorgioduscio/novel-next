@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.sass";
 import "bootstrap-icons/font/bootstrap-icons.css";
-import Footer from "./shareds/footer";
+import Footer from "./shareds/Footer";
 import EditModeProviderWrapper from "./data/EditModeProviderWrapper";
 import { BookProvider } from "./data/BookContext";
 import { AgreeProvider } from "./shareds/Agree";

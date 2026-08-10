@@ -1,10 +1,11 @@
 import Field from "@/app/shareds/Field";
 import Frag from "@/app/shareds/Frag";
 import { LoadingComponent } from "@/app/shareds/LoadingComponent";
-import Navbar from "@/app/shareds/navbar";
+import Navbar from "@/app/shareds/Navbar";
 import { Breadcrumb } from "@/app/shareds/Breadcrumb";
 import Link from "next/link";
 import { useBookComponent } from "./BookComponent";
+import { useRouter } from "next/navigation";
 
 export default function BookTemplate({
   book,
@@ -19,6 +20,8 @@ export default function BookTemplate({
   dropdownsState,
   bookStore,
 }: ReturnType<typeof useBookComponent>) {  
+  const route =useRouter();
+
   // caricamento
   if (!isPageLoaded) return <LoadingComponent/>
 
@@ -46,7 +49,7 @@ export default function BookTemplate({
                 <h2 className="hidden">{book.title}</h2>
                 <div>
                   <Field id={"title"} 
-                          hide_label={!isEditMode}
+                          hide_label
                           label={"Titolo"} 
                           input_class={`p-2 text-center rounded text-3xl font-bold ${isEditMode ?'border' :''}`}
                           asterisk
@@ -60,7 +63,7 @@ export default function BookTemplate({
                 </div>
                 <div>
                   <Field id={"author"} 
-                          hide_label={!isEditMode}
+                          hide_label
                           label={"Autore"} 
                           input_class={`p-2 text-center rounded ${isEditMode ?'border' :'text-gray-300'}`}
                           asterisk
@@ -74,7 +77,7 @@ export default function BookTemplate({
                 </div>
                 <div>
                   <Field id={"description"} 
-                          hide_label={!isEditMode}
+                          hide_label
                           label={"Descrizione"} 
                           input_class={`p-2 text-center rounded ${isEditMode ?'border' :'text-gray-300'}`}
                           asterisk
@@ -105,17 +108,17 @@ export default function BookTemplate({
                 {book.parts?.map((part, part_i) => (
                   <div className="" key={part.title + part_i}>
 
-                    {/* titolo parte */}
+                    {/* TITOLO PARTE */}
                     {!!part.sections?.length && (
                       <Frag if={isEditMode}>
                         <Frag.Else>
-                          <h3 className="p-2 italic">{part.title}</h3>
+                          <h3 className="py-2 px-5 font-bold">{part.title}</h3>
                         </Frag.Else>
 
                         <div>
                           <Field  id={part_i.toString()} 
                                   hide_label label={"Titolo della parte"} 
-                                  input_class="py-1 px-2 border"
+                                  input_class="py-2 px-5 border font-bold"
                                   type={"text"} 
                                   placeholder={"Modifica il titolo della parte"} 
                                   value={part.title} 
@@ -129,27 +132,15 @@ export default function BookTemplate({
 
                     {/* SEZIONI */}
                     <div>
-                      {part.sections?.map((section, section_i) => 
-                        <Frag if={isEditMode} key={section.title + section_i}>
-
-                          {/* VISUALIZZA SEZIONE */}
-                          <Frag.Else>
-                            <Link href={sectionFeat.writeHref(book.id!, part.title, section.title)}
-                                  className={`p-3 block bg-gray-800 active:bg-gray-700 transition-colors ${section_i ? "border-t border-gray-400" : ""}`}>
-                              <div className="flex items-center gap-2">
-                                <h4>{section.title}</h4>
-
-                                <i className="ms-auto bi bi-chevron-right text-gray-400"></i>
-                              </div>
-                            </Link>
-                          </Frag.Else>
+                      {part.sections?.map((section, section_i, section_array) => 
+                        <div key={section.title + section_i}>
 
                           {/* MODIFICA SEZIONE */}
-                          <div className="my-1 border rounded">
-                            <div className="grid grid-cols-[auto_1fr_auto]">
+                          <div className={`border-b border-gray-600 bg-gray-800`}>
+                            <div className="flex">
 
                               {/* DROPDOWN */}
-                              <div className="relative dropdown bg-gray-600">
+                              <Frag if={isEditMode} className="relative dropdown bg-gray-700">
                                 <button onClick={() => dropdownFeat.toggle(section.title)} 
                                         className="p-3 bg-gray-600 active:bg-gray-500 transition-colors">
                                   <i className="bi bi-three-dots"></i>
@@ -176,20 +167,28 @@ export default function BookTemplate({
                                     </Frag>
                                   </div>
                                 </Frag>
-                              </div>
+                              </Frag>
 
-                              <div>
+                              <Frag if={isEditMode} className={`py-2 px-1 flex-1 ${isEditMode ?"cursor-pointer" :""}`}>
                                 <Field  id={"section-" + section_i} 
                                         hide_label label={"Sezione " + (section_i + 1)} 
-                                        input_class="p-3 bg-gray-800"
+                                        input_class={`py-1 px-2 ${isEditMode ?'border rounded' : ''}`}
                                         type={"text"} 
                                         placeholder={"Nome della sezione"} 
                                         value={section.title} 
+                                        disabled={!isEditMode}
                                         error_message={errors[`section_title_${section.title}`]}
                                         onChange={(e) => sectionFeat.updateTitle(part_i, section_i, e.target.value)} 
                                 />
-                              </div>
-                              <Link className="p-3 bg-green-700 active:bg-green-600 flex items-center" 
+                                <Frag.Else>
+                                  <Link className={`py-1 flex items-center ${isEditMode ?"bg-green-700 active:bg-green-600" :""}`} 
+                                          href={sectionFeat.writeHref(book.id!, part.title, section.title)}>
+                                    {section.title}
+                                  </Link>
+                                </Frag.Else>
+                              </Frag>
+
+                              <Link className={`p-3 flex items-center ${isEditMode ?"bg-green-700 active:bg-green-600" :""}`} 
                                       href={sectionFeat.writeHref(book.id!, part.title, section.title)}>
                                 <i className="bi bi-chevron-right"></i>
                               </Link>
@@ -198,7 +197,7 @@ export default function BookTemplate({
 
                         
                           {/* Pulsante aggiunta sezione */}
-                          <Frag if={section_i === (book.parts?.[part_i]?.sections.length || 0) - 1}>
+                          <Frag if={isEditMode && (section_i === (section_array?.length || 0) - 1)}>
                             <button onClick={() => sectionFeat.create(part_i)}
                                     className="py-1 px-2 mx-auto my-3 block bg-gray-800 rounded text-sm active:bg-gray-900 transition-colors">
                               <i className="bi bi-arrow-down"></i>
@@ -206,7 +205,7 @@ export default function BookTemplate({
                             </button>
                           </Frag>
 
-                        </Frag>
+                        </div>
                       )}
                     </div>
                   </div>

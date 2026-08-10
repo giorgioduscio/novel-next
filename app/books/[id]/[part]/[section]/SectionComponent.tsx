@@ -106,7 +106,7 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
       if(!newBook) return toast.danger("Titolo non valido");
       const _part = part_title.replaceAll(" ", "-");
       const _title = trimmed.replaceAll(" ", "-");
-      router.push(`/book/${book_id}/${_part}/${_title}`);
+      router.push(`/books/${book_id}/${_part}/${_title}`);
     },
   }
   

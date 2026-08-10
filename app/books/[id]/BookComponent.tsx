@@ -128,7 +128,7 @@ export function useBookComponent({ id }: UseBookComponentProps) {
     writeHref(book_id: number, part: string, section: string) {
       part = part.replaceAll(" ", "-");
       section = section.replaceAll(" ", "-");
-      return `/book/${book_id}/${part}/${section}`;
+      return `/books/${book_id}/${part}/${section}`;
     },
 
     updateTitle(part_i: number, section_i: number, value: string) {

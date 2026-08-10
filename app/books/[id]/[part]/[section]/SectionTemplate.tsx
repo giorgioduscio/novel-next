@@ -2,7 +2,7 @@ import "./Section.sass";
 import Field from "@/app/shareds/Field";
 import Frag from "@/app/shareds/Frag";
 import { LoadingComponent } from "@/app/shareds/LoadingComponent";
-import Navbar from "@/app/shareds/navbar";
+import Navbar from "@/app/shareds/Navbar";
 import { Breadcrumb } from "@/app/shareds/Breadcrumb";
 import { useSectionComponent } from "./SectionComponent";
 import { useMemo } from "react";
@@ -25,7 +25,7 @@ export default function SectionTemplate({
 
   return (
     <main id="SectionComponent">
-      <Navbar back_btn={{ href: `/book/${book_id}` }} page_title={section_title} />
+      <Navbar back_btn={{ href: `/books/${book_id}` }} page_title={section_title} />
       <Breadcrumb />
 
       <section className="mx-auto container max-w-[400px]">
@@ -40,7 +40,7 @@ export default function SectionTemplate({
             <form onSubmit={sectionFeat.handleSubmit} className="p-3 py-10 text-center">
               <Field
                 input_class="text-3xl font-bold text-center"
-                hide_label={!isEditMode}
+                hide_label 
                 label="Titolo della sezione"
                 value={sectionFeat_title}
                 disabled={!isEditMode}

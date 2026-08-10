@@ -6,7 +6,7 @@ import Link from "next/link";
 import Frag from "../shareds/Frag";
 import Field from "../shareds/Field";
 import { LoadingComponent } from "../shareds/LoadingComponent";
-import Navbar from "../shareds/navbar";
+import Navbar from "../shareds/Navbar";
 import { useBooksComponent } from "./BooksComponent";
 import { Breadcrumb } from "../shareds/Breadcrumb";
 
@@ -106,7 +106,7 @@ export default function BooksTemplate({
                     <Frag if={isEditMode}>
                       {/* VISUALIZZA LIBRO */}
                       <Frag.Else>
-                        <Link href={`/book/${book.id}`} className="p-3 block">
+                        <Link href={`/books/${book.id}`} className="p-3 block">
                           <h4 className="text-center text-lg font-bold">
                             {book.title}
                           </h4>
@@ -173,7 +173,7 @@ export default function BooksTemplate({
                         </div>
                       </Frag.Else>
 
-                      <Link href={`/book/${book.id}`}
+                      <Link href={`/books/${book.id}`}
                             className="py-1 px-2 bg-green-800 active:bg-green-700 transition-colors block">
                         Vai al libro
                         <i className="bi bi-chevron-right ms-2"></i>
