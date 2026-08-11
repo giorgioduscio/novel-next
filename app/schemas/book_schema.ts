@@ -16,7 +16,7 @@ const allowed_styles = [
   "p-", "py-", "px-", "pt-", "pb-", "pl-", "pr-", 
   "text-", "border", "bg-", "outline", "shadow",
   "translate-", "rounded", "slash-",
-  "full-", "mini", "comix" // custom classes
+  "ex:", "full-", "mini", "comix" // custom classes
 ] as const;
 
 
@@ -32,13 +32,9 @@ function validateStyle(v:string){
 }
 
 export const paragraph_schema = v.object({
-  ex_style: v.optional(v.pipe(v.string(), 
-    v.check((v) => validateStyle(v), "ex_style: Solo stili ornamentali (m-, p-, text-, border-, bg-, outline-, shadow-, translate-)")
-  )),
   in_style: v.optional(v.pipe(v.string(), 
     v.check((v) => validateStyle(v), "in_style: Solo stili ornamentali (m-, p-, text-, border-, bg-, outline-, shadow-, translate-)")
   )),
-  pre_text: v.optional(v.string()),
   text: v.pipe(v.string(), v.minLength(3, "text: Il testo del paragrafo deve contenere almeno 3 caratteri")),
 });
 

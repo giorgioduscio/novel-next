@@ -110,12 +110,12 @@ export function useBookComponent({ id }: UseBookComponentProps) {
 
   // 4) SEZIONI
   const sectionFeat = {
-    create(part_i: number) {
+    create(part_i: number, section_i: number) {
       if (!book) throw new Error("Libro non trovato");
-      if (!book.parts || book.parts.length === 0) book.parts = [];
-
-      const newBook = { ...book, parts: [...(book.parts || [])] };
-      // aggiunge una sezione vuota alla parte selezionata
+      const newBook = structuredClone(book);
+      
+      // aggiunge una sezione vuota nella sezione selezionata
+      if (!newBook.parts || newBook.parts.length === 0) newBook.parts = [];
       newBook.parts[part_i].sections.push({
         title: "Sezione" + Date.now(),
       });

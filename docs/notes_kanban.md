@@ -4,6 +4,7 @@
 # Kanban - Novel Writer (Next.js)
 ## 📌 To Do
 * [5] fix: upload di due libri con lo stesso id
+* [5] fix: semplificare il processo nuovoStato -> validazione -> aggiornamento database -> feedback utente
 
 ## 🔄 In Progress (max 2-3)
 
@@ -34,4 +35,4 @@
 * implementare salvataggio cloud (firebase)
 * separazione template e logica
 * implementare bredcrumb per migliorare l'accessibilità
-* Fix: migliorare grafica
+* Fix: migliorare e snellire la grafica

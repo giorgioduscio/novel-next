@@ -5,8 +5,7 @@ import Navbar from "@/app/shareds/Navbar";
 import { Breadcrumb } from "@/app/shareds/Breadcrumb";
 import Link from "next/link";
 import { useBookComponent } from "./BookComponent";
-import { useRouter } from "next/navigation";
-import EditModeComponent from "@/app/shareds/EditmodeComponent";
+import EditModeComponent from "@/app/shareds/EditModeComponent";
 
 export default function BookTemplate({
   book,
@@ -29,24 +28,25 @@ export default function BookTemplate({
     <>
       {/* MAIN */}
       <main id="book" onClick={dropdownFeat.autoClose}>
-        <Navbar back_btn={{ href:"/", label:"", icon:"bi-chevron-left" }} 
+        <Navbar back_btn={{ href:"/books", label:"", icon:"bi-chevron-left" }} 
                 page_title={book?.title || ""}/>
         <Breadcrumb />
 
-        {!book ? (
-          // LIBRO NON TROVATO
+        {/* LIBRO NON TROVATO */}
+        <Frag if={!book}>
           <div className="p-3 py-8 text-center text-red-500">
             <i className="bi bi-exclamation-triangle text-2xl"></i>
             <span>Libro non trovato</span>
           </div>
-
-        ) : (
-          // LIBRO TROVATO
+        </Frag>
+        
+        {/* LIBRO TROVATO */}
+        <Frag if={!!book}>
           <section className="pb-10 mx-auto container max-w-[400px]">
             {/* HEADER */}
             <div className="p-3 py-8 text-center">
               <div className="grid gap-1 overflow-x-hidden">
-                <h2 className="hidden">{book.title}</h2>
+                <h2 className="hidden">{book?.title}</h2>
                 <div>
                   <Field id={"title"} 
                           hide_label
@@ -56,7 +56,7 @@ export default function BookTemplate({
                           type={"text"} 
                           placeholder={"Titolo"} 
                           disabled={!isEditMode}
-                          value={book.title} 
+                          value={book?.title || ""} 
                           error_message={errors.title}
                           onChange={_e=> handleUpdateBook("title", _e.target.value)} 
                   />
@@ -70,7 +70,7 @@ export default function BookTemplate({
                           type={"text"} 
                           placeholder={"Autore"} 
                           disabled={!isEditMode}
-                          value={book.author} 
+                          value={book?.author || ""} 
                           error_message={errors.author}
                           onChange={_e=> handleUpdateBook("author", _e.target.value)} 
                   />
@@ -84,7 +84,7 @@ export default function BookTemplate({
                           type={"textarea"} 
                           placeholder={"Descrizione"} 
                           disabled={!isEditMode}
-                          value={book.description} 
+                          value={book?.description || ""} 
                           error_message={errors.description}
                           onChange={_e=> handleUpdateBook("description", _e.target.value)} 
                   />
@@ -95,7 +95,7 @@ export default function BookTemplate({
 
 
             {/* PARTI */}
-            <Frag if={!!book.parts?.length}>
+            <Frag if={!!book?.parts?.length}>
               <Frag.Else>
                 <div className="my-15 text-red-400 text-center">
                   <i className="bi bi-exclamation-triangle me-1"></i>
@@ -105,7 +105,7 @@ export default function BookTemplate({
               
               <div className="py-3">
                 <h2 className="p-2 text-2xl">Sezioni</h2>
-                {book.parts?.map((part, part_i) => (
+                {book?.parts?.map((part, part_i) => (
                   <div className="" key={part.title + part_i}>
 
                     {/* TITOLO PARTE */}
@@ -121,7 +121,7 @@ export default function BookTemplate({
                                   input_class="py-2 px-5 border font-bold"
                                   type={"text"} 
                                   placeholder={"Modifica il titolo della parte"} 
-                                  value={part.title} 
+                                  value={part.title || ""} 
                                   error_message={errors[`part_title_${part_i}`]}
                                   onChange={(e) => partFeat.updateTitle(part_i, e.target.value)}
                           />
@@ -140,15 +140,16 @@ export default function BookTemplate({
                             <div className="flex">
 
                               {/* DROPDOWN */}
-                              <Frag if={isEditMode} className="relative dropdown bg-gray-700">
+                              <Frag if={isEditMode} className="relative dropdown">
                                 <button onClick={() => dropdownFeat.toggle(section.title)} 
-                                        className="p-3 bg-gray-600 active:bg-gray-500 transition-colors">
+                                        className="py-3 px-2">
                                   <i className="bi bi-three-dots"></i>
                                 </button>
 
                                 <Frag if={!!dropdownsState[section.title]} 
                                       className="absolute start-0 right-0 z-10">
-                                  <div className="grid min-w-[100px] bg-gray-800 border rounded">
+                                  <div className="grid min-w-[200px] bg-gray-800 border rounded">
+
                                     <button className="p-1 bg-red-500 truncate" 
                                             onClick={() => sectionFeat.delete(part_i, section_i)}>
                                       <i className="bi bi-trash"></i> Rimuovi
@@ -165,6 +166,12 @@ export default function BookTemplate({
                                         <i className="bi bi-caret-down-fill"></i> Sposta giù
                                       </button>
                                     </Frag>
+                                    <button onClick={() => sectionFeat.create(part_i, section_i)}
+                                            className="p-1 bg-gray-800 active:bg-gray-900 transition-colors">
+                                      <i className="bi bi-arrow-down"></i>
+                                      <span>Aggiungi sezione</span>
+                                    </button>
+
                                   </div>
                                 </Frag>
                               </Frag>
@@ -182,28 +189,18 @@ export default function BookTemplate({
                                 />
                                 <Frag.Else>
                                   <Link className={`py-1 flex items-center ${isEditMode ?"bg-green-700 active:bg-green-600" :""}`} 
-                                          href={sectionFeat.writeHref(book.id!, part.title, section.title)}>
+                                          href={sectionFeat.writeHref(book?.id!, part.title, section.title)}>
                                     {section.title}
                                   </Link>
                                 </Frag.Else>
                               </Frag>
 
                               <Link className={`p-3 flex items-center ${isEditMode ?"bg-green-700 active:bg-green-600" :""}`} 
-                                      href={sectionFeat.writeHref(book.id!, part.title, section.title)}>
+                                      href={sectionFeat.writeHref(book?.id!, part.title, section.title)}>
                                 <i className="bi bi-chevron-right"></i>
                               </Link>
                             </div>
                           </div>
-
-                        
-                          {/* Pulsante aggiunta sezione */}
-                          <Frag if={isEditMode && (section_i === (section_array?.length || 0) - 1)}>
-                            <button onClick={() => sectionFeat.create(part_i)}
-                                    className="py-1 px-2 mx-auto my-3 block bg-gray-800 rounded text-sm active:bg-gray-900 transition-colors">
-                              <i className="bi bi-arrow-down"></i>
-                              <span>Aggiungi sezione</span>
-                            </button>
-                          </Frag>
 
                         </div>
                       )}
@@ -228,7 +225,7 @@ export default function BookTemplate({
             <h4 className="p-2 text-xl text-gray-400">Azioni</h4>
             <div className="flex flex-col">
               {Object.values(bookStore.download).map((action, i) => (
-                <button key={i}  onClick={() => action.execute(book.id!)}
+                <button key={i}  onClick={() => action.execute(book?.id!)}
                         className="py-2 px-3 bg-gray-800 active:bg-gray-700 transition-colors" >
                   <div className="flex justify-between items-center">
                     <span>{action.label}</span>
@@ -239,7 +236,7 @@ export default function BookTemplate({
             </div>
 
           </section>
-        )}
+        </Frag>
 
         <EditModeComponent page={page} />
       </main>

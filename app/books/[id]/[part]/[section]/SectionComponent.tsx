@@ -112,6 +112,9 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
   
 
   // 4) PARAGRAFI
+  const [_bottomInput, _setBottomInput] = useState({
+    value:"", index:-1, isVisible:false,
+  });
   const paragraphFeat = {
     handleCreate(index?: number |'top') {
       if (!book) return console.error("Libro non disponibile");
@@ -122,9 +125,7 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
       if (!sec) return;
   
       const newParagraph: Paragraph = {
-        ex_style: "",
         in_style: "",
-        pre_text: "",
         text: "",
       };
 
@@ -146,7 +147,59 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
       setBook(updated);
       toast.success("Paragrafo aggiunto");
     },
+
+    // recupera le classi che cominciano per 'ex:'
+    getExternalStyle(paragraph: Paragraph) {
+      // divide le classi
+      const classes = paragraph.in_style?.split(" ") || [];
+      // recupera solo quelle che cominciano per 'ex:'
+      const filtered = classes.filter(cls => cls.startsWith("ex:"));
+      return filtered.join(" ") .replaceAll("ex:", "");
+    },
+
   
+    handleChange(index: number, key: keyof Paragraph, value: string) {
+      if (!book) return;
+  
+      const updated = structuredClone(book);
+      const sec = sectionFeat.getSection(updated);
+  
+      if (!sec?.paragraphs || !sec.paragraphs[index]) {
+        console.error("Paragrafo non trovato");
+        return;
+      }
+  
+      sec.paragraphs[index][key] = value || "";
+  
+      setBook(updated);
+      BookHook.updateBook(book_id, updated, false);
+    },
+
+    bottomInput: useMemo (()=> _bottomInput, [_bottomInput]),
+    setBottomInput(paragraph_i:number | null){
+      if(!page.isEditMode) return;
+      
+      // RESET
+      if (paragraph_i === null){
+        _setBottomInput({
+          isVisible: false,
+          value: "", 
+          index: -1,
+        });
+        return;
+      }
+      // cerca paragrafo
+      const target = sectionFeat.bookSection?.paragraphs?.[paragraph_i];
+      if (!target) return console.error("Paragrafo non trovato");
+      
+      _setBottomInput({ 
+        isVisible: true,
+        value: target.in_style || "",
+        index: paragraph_i,
+      });
+    },
+
+
     async handleRemove(index: number, paragraph: Paragraph) {
       if (paragraph.text.length && !(await agree.danger(
           `Rimuovere il paragrafo "${paragraph.text}"?`,"Rimuovi"))
@@ -170,24 +223,7 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
       
       setBook(updated);
       toast.success("Paragrafo rimosso");
-    },
-  
-    handleChange(index: number, key: keyof Paragraph, value: string) {
-      if (!book) return;
-  
-      const updated = structuredClone(book);
-      const sec = sectionFeat.getSection(updated);
-  
-      if (!sec?.paragraphs || !sec.paragraphs[index]) {
-        console.error("Paragrafo non trovato");
-        return;
-      }
-  
-      sec.paragraphs[index][key] = value || "";
-  
-      setBook(updated);
-      BookHook.updateBook(book_id, updated, false);
-    },
+    },  
   }
 
   // 4) aggiunge dinamicamente glierrori dei paragrafi non validi

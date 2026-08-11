@@ -1,12 +1,12 @@
 #!/bin/sh
-echo "1) START... (http://127.0.0.1:3000)"
+echo "1) START"
 docker compose up -d
 
-echo "2) BUILDING..."
+echo "2) BUILDING"
 docker compose exec novel-next-app sh -c "rm -rf .next/* && npm run build"
 
-echo "3) SHELL..."
+echo "3) SHELL (localhost:3000)"
 docker compose exec novel-next-app sh
 
-echo "4) STOP..."
+echo "4) STOP"
 docker compose stop

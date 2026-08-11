@@ -9,7 +9,7 @@ import { LoadingComponent } from "../shareds/LoadingComponent";
 import Navbar from "../shareds/Navbar";
 import { useBooksComponent } from "./BooksComponent";
 import { Breadcrumb } from "../shareds/Breadcrumb";
-import EditModeComponent from "../shareds/EditmodeComponent";
+import EditModeComponent from "../shareds/EditModeComponent";
 
 // Tipo per le props del componente BooksTemplate basato sull'hook useBooksComponent
 type BooksTemplateProps = ReturnType<typeof useBooksComponent>;
