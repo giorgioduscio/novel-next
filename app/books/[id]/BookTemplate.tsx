@@ -6,25 +6,25 @@ import { Breadcrumb } from "@/app/shareds/Breadcrumb";
 import Link from "next/link";
 import { useBookComponent } from "./BookComponent";
 import { useRouter } from "next/navigation";
+import EditModeComponent from "@/app/shareds/EditmodeComponent";
 
 export default function BookTemplate({
   book,
-  isEditMode,
+  page,
   errors,
   handleUpdateBook,
   partFeat,
   sectionFeat,
   sortFeat,
   dropdownFeat,
-  isPageLoaded,
   dropdownsState,
   bookStore,
 }: ReturnType<typeof useBookComponent>) {  
-  const route =useRouter();
 
   // caricamento
-  if (!isPageLoaded) return <LoadingComponent/>
+  if (!page.isPageLoaded) return <LoadingComponent/>
 
+  const {isEditMode} =page;
   return (
     <>
       {/* MAIN */}
@@ -240,6 +240,8 @@ export default function BookTemplate({
 
           </section>
         )}
+
+        <EditModeComponent page={page} />
       </main>
     </>
   );

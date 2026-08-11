@@ -2,13 +2,13 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { safeParse, value } from "valibot";
-import { book_schema, Book, Paragraph, Section, paragraph_schema, section_schema } from "@/app/schemas/book_schema";
-import { useBooks } from "@/app/data/BookContext";
-import { useEditMode } from "@/app/data/EditModeContext";
+import { safeParse } from "valibot";
+import { Book, Paragraph, Section, paragraph_schema, section_schema } from "@/app/schemas/book_schema";
+import useCommonPagesHook from "@/app/data/useCommonPagesHook";
 import { useAgreeWrapper } from "@/app/shareds/Agree";
 import { toast } from "@/app/tools/feedbacksUI";
 import SectionTemplate from "./SectionTemplate";
+import useBookHook from "@/app/data/useBookHook";
 
 
 export default function SectionComponent(props: UseSectionComponentProps) {
@@ -27,16 +27,16 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
   
   // 1) DATI PRINCIPALI
   const router = useRouter();
-  const bookContext = useBooks();
+  const BookHook = useBookHook();
   const agree = useAgreeWrapper();
-  const { isEditMode, isPageLoaded } = useEditMode();
+  const page = useCommonPagesHook();
   const [book, setBook] = useState<Book | undefined>(undefined);
   
   useEffect(() => {
     if (isNaN(book_id)) return;
-    const foundBook = bookContext.getBookById(book_id);
+    const foundBook = BookHook.getBookById(book_id);
     setBook(foundBook);
-  }, [book_id, bookContext.getBookById]);
+  }, [book_id, BookHook.getBookById]);
 
   
   // 2) SEZIONE
@@ -100,7 +100,7 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
   
       sec.title = trimmed;  
       setBook(updated);
-      const newBook = bookContext.updateBook(book_id, updated, false);
+      const newBook = BookHook.updateBook(book_id, updated, false);
   
       // redirect alla nuova URL della sezione
       if(!newBook) return toast.danger("Titolo non valido");
@@ -166,7 +166,7 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
       if (!sec.paragraphs) sec.paragraphs = [];
       sec.paragraphs.splice(index, 1);
       
-      bookContext.updateBook(book_id, updated);
+      BookHook.updateBook(book_id, updated);
       
       setBook(updated);
       toast.success("Paragrafo rimosso");
@@ -186,13 +186,13 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
       sec.paragraphs[index][key] = value || "";
   
       setBook(updated);
-      bookContext.updateBook(book_id, updated, false);
+      BookHook.updateBook(book_id, updated, false);
     },
   }
 
   // 4) aggiunge dinamicamente glierrori dei paragrafi non validi
   const errors = useMemo(()=>{
-    if(!isEditMode) return {};
+    if(!page.isEditMode) return {};
 
     // 1) validazione paragrafi
     let result: Record<string, string> = {};
@@ -222,8 +222,7 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
     errors,
     
     // contesto
-    isEditMode,
-    isPageLoaded,
+    page,
     
     // informazioni sezione
     book_id,

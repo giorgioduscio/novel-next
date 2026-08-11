@@ -9,6 +9,7 @@ import { LoadingComponent } from "../shareds/LoadingComponent";
 import Navbar from "../shareds/Navbar";
 import { useBooksComponent } from "./BooksComponent";
 import { Breadcrumb } from "../shareds/Breadcrumb";
+import EditModeComponent from "../shareds/EditmodeComponent";
 
 // Tipo per le props del componente BooksTemplate basato sull'hook useBooksComponent
 type BooksTemplateProps = ReturnType<typeof useBooksComponent>;
@@ -17,17 +18,17 @@ type BooksTemplateProps = ReturnType<typeof useBooksComponent>;
 export default function BooksTemplate({
   books,
   errors,
-  isEditMode,
-  isPageLoaded,
-  BookContext,
+  page,
+  BookHook,
   bookFeat,
   uploadFeat,
 }: BooksTemplateProps) {
   // Mostra il componente di caricamento se la pagina non è pronta o è in corso il caricamento
-  if (!isPageLoaded || BookContext.loading) {
+  if (!page.isPageLoaded || BookHook.loading) {
     return <LoadingComponent />;
   }
 
+  const {isEditMode} = page;
   return (
     <main id="BooksTemplate">
       <Navbar page_title="Gestione Libri" />
@@ -161,12 +162,12 @@ export default function BooksTemplate({
                     <Frag if={isEditMode}>
                       <Frag.Else>
                         <div className="grid grid-cols-2 justify-between items-center">
-                          <button onClick={() => BookContext.download.json.execute(book.id)}
+                          <button onClick={() => BookHook.download.json.execute(book.id)}
                                   className="p-1 bg-green-800 active:bg-green-700 transition-colors truncate">
                             Json <i className="bi bi-download"></i>
                           </button>
 
-                          <button onClick={() => BookContext.download.md.execute(book.id)}
+                          <button onClick={() => BookHook.download.md.execute(book.id)}
                                   className="p-1 bg-blue-800 active:bg-blue-700 transition-colors truncate">
                             Markdown <i className="bi bi-markdown"></i>
                           </button>
@@ -188,6 +189,8 @@ export default function BooksTemplate({
           
         </div>
       </section>
+
+      <EditModeComponent page={page} />
     </main>
   );
 }

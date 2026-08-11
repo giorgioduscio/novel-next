@@ -3,11 +3,11 @@
 import React, { useEffect, useState } from "react";
 import { safeParse } from "valibot";
 import { book_schema, type Book } from "../../schemas/book_schema";
-import { useBooks } from "../../data/BookContext";
-import { useEditMode } from "@/app/data/EditModeContext";
 import { toast } from "@/app/tools/feedbacksUI";
 import { useAgreeWrapper } from "@/app/shareds/Agree";
 import BookTemplate from "./BookTemplate";
+import useBookHook from "@/app/data/useBookHook";
+import useCommonPagesHook from "@/app/data/useCommonPagesHook";
 
 export default function BookComponent(props: UseBookComponentProps) {
   const hookData = useBookComponent(props);
@@ -20,8 +20,8 @@ interface UseBookComponentProps {
 
 export function useBookComponent({ id }: UseBookComponentProps) {
   const [book, setBook] = useState<Book | undefined>(undefined);
-  const { isEditMode, isPageLoaded } = useEditMode();
-  const bookStore = useBooks();
+  const page = useCommonPagesHook();
+  const bookStore = useBookHook();
   const agree = useAgreeWrapper();
 
   useEffect(() => {
@@ -285,8 +285,7 @@ export function useBookComponent({ id }: UseBookComponentProps) {
   return {
     book,
     setBook,
-    isEditMode,
-    isPageLoaded,
+    page,
     errors,
     setErrors,
     handleUpdateBook,

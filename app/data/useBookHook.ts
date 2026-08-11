@@ -1,35 +1,13 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { Book, book_schema } from "../schemas/book_schema";
 import * as v from "valibot";
-import { ui_upload, debounce, ui_download } from "../tools/feedbacksUI";
-
-interface Load { label: string; icon: string; execute: (id: number) => void };
-interface UploadLoad { label: string; icon: string; execute: () => void; }
+import { ui_upload, ui_download, debounce } from "../tools/feedbacksUI";
 
 const FIREBASE_BASE_URL = "https://books-3e4c3-default-rtdb.europe-west1.firebasedatabase.app/books";
 
-const BookContext = createContext<{
-  createBook: (book: Omit<Book, "id">) => Book | null;
-  addBook: (book: Book) => Book | null;
-  readAll: () => Book[];
-  getBookById: (id: number) => Book | undefined;
-  updateBook: (id: number, updatedBook: Partial<Book>, validation?: boolean) => Book | null;
-  deleteBook: (id: number) => void;
-  download: {
-    json: Load;
-    txt: Load;
-    md: Load;
-  };
-  upload: {
-    json: UploadLoad;
-    markdown: UploadLoad;
-  };
-  loading: boolean;
-} | undefined>(undefined);
-
-export function BookProvider({ children }: { children: React.ReactNode }) {
+export default function useBookHook() {
   const [books, setBooks] = useState<Book[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -271,30 +249,15 @@ export function BookProvider({ children }: { children: React.ReactNode }) {
     },
   };
 
-  return (
-    <BookContext.Provider
-      value={{
-        createBook,
-        readAll,
-        getBookById,
-        updateBook,
-        deleteBook,
-        addBook,
-        download: downloadMethods,
-        upload: uploadMethods,
-        loading,
-      }}
-    >
-      {children}
-    </BookContext.Provider>
-  );
+  return {
+    createBook,
+    readAll,
+    getBookById,
+    updateBook,
+    deleteBook,
+    addBook,
+    download: downloadMethods,
+    upload: uploadMethods,
+    loading,
+  };
 }
-
-export function useBooks() {
-  const context = useContext(BookContext);
-  if (context === undefined) {
-    throw new Error("useBooks must be used within a BookProvider");
-  }
-  return context;
-}
-

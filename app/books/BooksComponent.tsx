@@ -2,12 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { Book, book_schema } from "../schemas/book_schema";
-import { useBooks } from "@/app/data/BookContext";
-import { useEditMode } from "@/app/data/EditModeContext";
 import { useAgreeWrapper } from "@/app/shareds/Agree";
 import { ui_upload, toast } from "../tools/feedbacksUI";
 import { safeParse } from "valibot";
 import BooksTemplate from "./BooksTemplate";
+import useBookHook from "../data/useBookHook";
+import useCommonPagesHook from "../data/useCommonPagesHook";
 
 export default function BooksComponent() {
   const hookData = useBooksComponent();
@@ -16,8 +16,8 @@ export default function BooksComponent() {
 
 
 export function useBooksComponent() {
-  const BookContext = useBooks();
-  const { isEditMode, isPageLoaded } = useEditMode();
+  const BookHook = useBookHook();
+  const page = useCommonPagesHook();
   const agree = useAgreeWrapper();
   const [books, setbooks] = useState<Book[]>([]);
 
@@ -26,19 +26,19 @@ export function useBooksComponent() {
 
   // 2) LIBRI
   useEffect(() => {
-    setbooks(BookContext.readAll());
-  }, [BookContext]);
+    setbooks(BookHook.readAll());
+  }, [BookHook]);
 
   const bookFeat = {
     // Crea un nuovo libro con valori predefiniti
     create() {
-      BookContext.createBook({
+      BookHook.createBook({
         title: "Book_" + Date.now(),
         description: "Descrizione_" + Date.now(),
         author: "Autore_" + Date.now(),
       });
 
-      setbooks(BookContext.readAll());
+      setbooks(BookHook.readAll());
       toast.success("Libro creato");
     },
 
@@ -82,16 +82,16 @@ export function useBooksComponent() {
       });
 
       // Aggiorna il libro nel contesto
-      BookContext.updateBook(book.id, newBook);
-      setbooks(BookContext.readAll());
+      BookHook.updateBook(book.id, newBook);
+      setbooks(BookHook.readAll());
     },
 
     // Elimina un libro dopo conferma
     async delete(id: number) {
       if (!(await agree.danger("Rimuovere il libro?", "Rimuovi"))) return;
 
-      BookContext.deleteBook(id);
-      setbooks(BookContext.readAll());
+      BookHook.deleteBook(id);
+      setbooks(BookHook.readAll());
       toast.success("Libro rimosso");
     },
   };
@@ -114,8 +114,8 @@ export function useBooksComponent() {
             );
           }
 
-          BookContext.addBook(validateBook.output);
-          setbooks(BookContext.readAll());
+          BookHook.addBook(validateBook.output);
+          setbooks(BookHook.readAll());
           toast.success("Libro caricato da JSON");
         } catch (err) {
           console.error("Errore upload JSON:", err);
@@ -211,8 +211,8 @@ export function useBooksComponent() {
             });
           }
 
-          BookContext.createBook(book);
-          setbooks(BookContext.readAll());
+          BookHook.createBook(book);
+          setbooks(BookHook.readAll());
           toast.success("Libro caricato da Markdown");
         } catch (err) {
           console.error("Errore upload Markdown:", err);
@@ -225,9 +225,8 @@ export function useBooksComponent() {
   return {
     books,
     errors,
-    isEditMode,
-    isPageLoaded,
-    BookContext,
+    page,
+    BookHook,
     bookFeat,
     uploadFeat,
   };

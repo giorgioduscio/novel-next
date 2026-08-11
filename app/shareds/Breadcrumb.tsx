@@ -1,19 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { useBooks } from "../data/BookContext";
-
-
-interface BreadcrumbItem {
-  label: string;
-  href: string;
-  isCurrent: boolean;
-}
+import { usePathname } from "next/navigation";
+import useBookHook from "../data/useBookHook";
 
 export function Breadcrumb() {
   const pathname = usePathname();
-  const bookStore = useBooks();
+  const bookStore = useBookHook();
 
   // converte l'url nel breadcrumb
   function buildRoutes() {

@@ -3,17 +3,15 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
-import { useEditMode } from '../data/EditModeContext';
 
 interface NavbarProps {
-  page_title?: string;
+  page_title: string;
   back_btn?: { icon?:string, label?:string, href:string };
 }
 
 export default function Navbar({ page_title, back_btn }: NavbarProps) {
   const [title, setTitle] = useState('');
   const pathname = usePathname();
-  const { isEditMode, toggleEditMode } = useEditMode();
   
 
   useEffect(()=>{
@@ -35,17 +33,8 @@ export default function Navbar({ page_title, back_btn }: NavbarProps) {
             )}
 
             {title && (
-              <h1 className="p-3 text-bold truncate">{title}</h1>
+              <h1 className="p-3 text-bold truncate">{title || 'NovelNext'}</h1>
             )}
-
-            <button onClick={toggleEditMode} className="m-2 ms-auto py-1 px-2 bg-green-700 rounded-full">
-              {isEditMode ?<>
-                  <i className="bi bi-eye"></i>
-              </>:<>
-                  <i className="bi bi-pencil"></i>
-              </>
-              }
-            </button>
 
           </div>
         </div>

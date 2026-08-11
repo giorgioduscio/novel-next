@@ -6,13 +6,13 @@ import Navbar from "@/app/shareds/Navbar";
 import { Breadcrumb } from "@/app/shareds/Breadcrumb";
 import { useSectionComponent } from "./SectionComponent";
 import { useMemo } from "react";
+import EditModeComponent from "@/app/shareds/EditmodeComponent";
 
 
 type SectionTemplateProps = ReturnType<typeof useSectionComponent>;
 
 export default function SectionTemplate({
-  book_id,  section_title,  isPageLoaded,
-  isEditMode,  sectionFeat_title,
+  book_id,  section_title,  page,  sectionFeat_title,
   errors,  sectionFeat,  paragraphFeat,
 }: SectionTemplateProps) {
 
@@ -21,8 +21,9 @@ export default function SectionTemplate({
   , [sectionFeat.bookSection]);
   
 
-  if (!isPageLoaded) return <LoadingComponent />;
+  if (!page.isPageLoaded) return <LoadingComponent />;
 
+  const {isEditMode} = page;
   return (
     <main id="SectionComponent">
       <Navbar back_btn={{ href: `/books/${book_id}` }} page_title={section_title} />
@@ -191,6 +192,8 @@ export default function SectionTemplate({
           </>
         )}
       </section>
+
+      <EditModeComponent page={page}/>
     </main>
   );
 }
