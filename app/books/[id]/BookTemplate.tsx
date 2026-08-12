@@ -12,12 +12,12 @@ export default function BookTemplate({
   page,
   errors,
   handleUpdateBook,
-  partFeat,
-  sectionFeat,
-  sortFeat,
-  dropdownFeat,
+  PART,
+  SECTION,
+  SORT,
+  DROPDOWN,
   dropdownsState,
-  bookStore,
+  BookHook,
 }: ReturnType<typeof useBookComponent>) {  
 
   // caricamento
@@ -27,7 +27,7 @@ export default function BookTemplate({
   return (
     <>
       {/* MAIN */}
-      <main id="book" onClick={dropdownFeat.autoClose}>
+      <main id="book" onClick={DROPDOWN.autoClose}>
         <Navbar back_btn={{ href:"/books", label:"", icon:"bi-chevron-left" }} 
                 page_title={book?.title || ""}/>
         <Breadcrumb />
@@ -123,7 +123,7 @@ export default function BookTemplate({
                                   placeholder={"Modifica il titolo della parte"} 
                                   value={part.title || ""} 
                                   error_message={errors[`part_title_${part_i}`]}
-                                  onChange={(e) => partFeat.updateTitle(part_i, e.target.value)}
+                                  onChange={(e) => PART.updateTitle(part_i, e.target.value)}
                           />
                         </div>
                       </Frag>
@@ -141,34 +141,34 @@ export default function BookTemplate({
 
                               {/* DROPDOWN */}
                               <Frag if={isEditMode} className="relative dropdown">
-                                <button onClick={() => dropdownFeat.toggle(section.title)} 
+                                <button onClick={() => DROPDOWN.toggle(section.title)} 
                                         className="py-3 px-2">
                                   <i className="bi bi-three-dots"></i>
                                 </button>
 
                                 <Frag if={!!dropdownsState[section.title]} 
-                                      className="absolute start-0 right-0 z-10">
-                                  <div className="grid min-w-[200px] bg-gray-800 border rounded">
+                                      className="absolute start-10 right-0 z-10">
+                                  <div className="grid w-max bg-gray-800 border rounded overflow-hidden">
 
-                                    <button className="p-1 bg-red-500 truncate" 
-                                            onClick={() => sectionFeat.delete(part_i, section_i)}>
-                                      <i className="bi bi-trash"></i> Rimuovi
+                                    <button className="py-1 px-2 bg-red-500 truncate text-left" 
+                                            onClick={() => SECTION.delete(part_i, section_i)}>
+                                      <i className="inline-block w-[20px] bi bi-trash"></i> Rimuovi
                                     </button>
-                                    <Frag if={!sortFeat.isFirstOfBook(part_i, section_i)}>
-                                      <button className="p-1 bg-gray-600 truncate" 
-                                              onClick={() => sortFeat.pushOrder("up", part_i, section_i)}>
-                                        <i className="bi bi-caret-up-fill"></i> Sposta su
+                                    <Frag if={!SORT.isFirstOfBook(part_i, section_i)}>
+                                      <button className="py-1 px-2 bg-gray-600 truncate text-left" 
+                                              onClick={() => SORT.pushOrder("up", part_i, section_i)}>
+                                        <i className="inline-block w-[20px] bi bi-caret-up-fill"></i> Sposta su
                                       </button>
                                     </Frag>
-                                    <Frag if={!sortFeat.isLastOfBook(part_i, section_i)}>
-                                      <button className="p-1 bg-gray-600 truncate" 
-                                              onClick={() => sortFeat.pushOrder("down", part_i, section_i)}>
-                                        <i className="bi bi-caret-down-fill"></i> Sposta giù
+                                    <Frag if={!SORT.isLastOfBook(part_i, section_i)}>
+                                      <button className="py-1 px-2 bg-gray-600 truncate text-left" 
+                                              onClick={() => SORT.pushOrder("down", part_i, section_i)}>
+                                        <i className="inline-block w-[20px] bi bi-caret-down-fill"></i> Sposta giù
                                       </button>
                                     </Frag>
-                                    <button onClick={() => sectionFeat.create(part_i, section_i)}
-                                            className="p-1 bg-gray-800 active:bg-gray-900 transition-colors">
-                                      <i className="bi bi-arrow-down"></i>
+                                    <button className="py-1 px-2 bg-gray-800 text-left" 
+                                            onClick={() => SECTION.create(part_i, section_i)}>
+                                      <i className="inline-block w-[20px] bi bi-arrow-down"></i>
                                       <span>Aggiungi sezione</span>
                                     </button>
 
@@ -185,18 +185,18 @@ export default function BookTemplate({
                                         value={section.title} 
                                         disabled={!isEditMode}
                                         error_message={errors[`section_title_${section.title}`]}
-                                        onChange={(e) => sectionFeat.updateTitle(part_i, section_i, e.target.value)} 
+                                        onChange={(e) => SECTION.updateTitle(part_i, section_i, e.target.value)} 
                                 />
                                 <Frag.Else>
-                                  <Link className={`py-1 flex items-center ${isEditMode ?"bg-green-700 active:bg-green-600" :""}`} 
-                                          href={sectionFeat.writeHref(book?.id!, part.title, section.title)}>
+                                  <Link className={`py-1 flex items-center ${isEditMode ?"bg-green-700" :""}`} 
+                                          href={SECTION.writeHref(book?.id!, part.title, section.title)}>
                                     {section.title}
                                   </Link>
                                 </Frag.Else>
                               </Frag>
 
-                              <Link className={`p-3 flex items-center ${isEditMode ?"bg-green-700 active:bg-green-600" :""}`} 
-                                      href={sectionFeat.writeHref(book?.id!, part.title, section.title)}>
+                              <Link className={`p-3 flex items-center ${isEditMode ?"bg-green-700" :""}`} 
+                                      href={SECTION.writeHref(book?.id!, part.title, section.title)}>
                                 <i className="bi bi-chevron-right"></i>
                               </Link>
                             </div>
@@ -212,8 +212,8 @@ export default function BookTemplate({
 
             {/* pulsante aggiunta */}
             <Frag if={isEditMode}>
-              <button onClick={() => partFeat.create()}
-                      className="py-2 px-3 mx-auto my-3 block bg-green-600 rounded active:bg-green-700 transition-colors">
+              <button onClick={() => PART.create()}
+                      className="py-2 px-3 mx-auto my-3 block bg-green-600 rounded">
                 <i className="bi bi-plus-lg"></i>
                 <span>Aggiungi parte</span>
               </button>
@@ -224,9 +224,9 @@ export default function BookTemplate({
             <div className="my-10 border border-gray-500"></div>
             <h4 className="p-2 text-xl text-gray-400">Azioni</h4>
             <div className="flex flex-col">
-              {Object.values(bookStore.download).map((action, i) => (
+              {Object.values(BookHook.download).filter(a => typeof a === 'object').map((action, i) => (
                 <button key={i}  onClick={() => action.execute(book?.id!)}
-                        className="py-2 px-3 bg-gray-800 active:bg-gray-700 transition-colors" >
+                        className="py-2 px-3 bg-gray-800" >
                   <div className="flex justify-between items-center">
                     <span>{action.label}</span>
                     <i className={`bi ${action.icon}`}></i>

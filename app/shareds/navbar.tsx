@@ -26,7 +26,7 @@ export default function Navbar({ page_title, back_btn }: NavbarProps) {
 
             {/* se esiste almeno l'href */}
             {(back_btn && back_btn.href) &&(
-              <Link href={back_btn.href} className="p-3 active:bg-gray-700 truncate">
+              <Link href={back_btn.href} className="p-3 truncate">
                 <i className={`${back_btn.icon || 'bi-chevron-left'} bi me-1`}></i>
                 <span>{back_btn.label ||''}</span>
               </Link>

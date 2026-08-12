@@ -24,13 +24,13 @@ function AddParagraphButton({ handleCreate }: AddProps) {
 
 type SectionTemplateProps = ReturnType<typeof useSectionComponent>;
 export default function SectionTemplate({
-  book_id,  section_title,  page,  sectionFeat_title,
-  errors,  sectionFeat,  paragraphFeat,
+  book_id,  section_title,  page,  SECTION_title,
+  errors,  SECTION,  PARAG,
 }: SectionTemplateProps) {
 
   const showParagraphs = useMemo(() => 
-    !!sectionFeat.bookSection?.paragraphs?.length
-  , [sectionFeat.bookSection]);
+    !!SECTION.bookSection?.paragraphs?.length
+  , [SECTION.bookSection]);
   
 
   if (!page.isPageLoaded) return <LoadingComponent />;
@@ -43,7 +43,7 @@ export default function SectionTemplate({
 
       <section className="mx-auto container max-w-[400px]">
         {/* SEZIONE NON TROVATA */}
-        <Frag if={!sectionFeat.bookSection}>
+        <Frag if={!SECTION.bookSection}>
           <div className="py-10 text-center text-red-500">
             <i className="me-1 bi bi-exclamation-triangle"></i>
             Sezione non trovata
@@ -51,18 +51,18 @@ export default function SectionTemplate({
         </Frag>
 
         {/* SEZIONE TROVATA */}
-        <Frag if={!!sectionFeat.bookSection}>
+        <Frag if={!!SECTION.bookSection}>
 
           {/* TITOLO SEZIONE */}
-          <form onSubmit={sectionFeat.handleSubmit} className="p-3 py-10 text-center">
+          <form onSubmit={SECTION.handleSubmit} className="p-3 py-10 text-center">
             <Field
               input_class="text-3xl font-bold text-center"
               hide_label 
               label="Titolo della sezione"
-              value={sectionFeat_title}
+              value={SECTION_title}
               disabled={!isEditMode}
               asterisk
-              onChange={(_e) =>sectionFeat.handleChange(_e.target.value)}
+              onChange={(_e) =>SECTION.handleChange(_e.target.value)}
               error_message={errors["section>title"]}
               id={"title"}
               type={"text"}
@@ -83,7 +83,7 @@ export default function SectionTemplate({
               </div>
 
               <Frag if={!!isEditMode} className="flex justify-center">
-                <button onClick={() =>paragraphFeat.handleCreate()}
+                <button onClick={() =>PARAG.handleCreate()}
                         className="py-2 px-3 border rounded bg-blue-500/30 text-blue-300">
                   <i className="bi bi-plus-lg"></i>
                   Aggiungi paragrafo
@@ -91,18 +91,18 @@ export default function SectionTemplate({
               </Frag>
             </Frag.Else>
 
-            {sectionFeat.bookSection?.paragraphs?.map(
+            {SECTION.bookSection?.paragraphs?.map(
               (p, paragraph_i) => (
                 <div key={paragraph_i} className="relative">
                   
                   {/* PULSANTE INSERIMENTO */}
                   <Frag if={isEditMode && paragraph_i === 0} 
                         className="absolute top-0 start-0 z-1 w-full -translate-y-1">
-                    <AddParagraphButton handleCreate={() => paragraphFeat.handleCreate("top")} />
+                    <AddParagraphButton handleCreate={() => PARAG.handleCreate("top")} />
                   </Frag>
 
                   {/* PARAGRAFO */}
-                  <div className={`py-3 ${paragraphFeat.getExternalStyle(p)}`}>
+                  <div className={`py-3 ${PARAG.getExternalStyle(p)}`}>
                     <div className={`p-1 ${p.in_style || ""}`}>
 
                       {/* TESTO */}
@@ -117,9 +117,9 @@ export default function SectionTemplate({
                           asterisk
                           type="textarea"
                           id={"text>" + paragraph_i}
-                          onChange={(_e) => paragraphFeat.handleChange(paragraph_i,"text",_e.target.value)}
+                          onChange={(_e) => PARAG.handleChange(paragraph_i,"text",_e.target.value)}
                           error_message={errors[`${paragraph_i}>text`]}
-                          onClick={() => paragraphFeat.setBottomInput(paragraph_i)}
+                          onClick={() => PARAG.setBottomInput(paragraph_i)}
                         />
                       </div>
 
@@ -127,8 +127,8 @@ export default function SectionTemplate({
                       <Frag if={isEditMode} className="pr-1 pt-3 absolute top-0 end-0">
                         <button
                           type="button"
-                          onClick={() =>paragraphFeat.handleRemove(paragraph_i,p)}
-                          className="px-2 py-1 bg-red-600 text-white rounded-full">
+                          onClick={() =>PARAG.handleRemove(paragraph_i,p)}
+                          className="px-2 py-1 bg-red-700 text-white border rounded-full">
                           <i className="bi bi-trash"></i>
                         </button>
                       </Frag>
@@ -140,7 +140,7 @@ export default function SectionTemplate({
                   {/* PULSANTE INSERIMENTO */}
                   <Frag if={isEditMode} 
                         className="absolute bottom-0 start-0 z-1 w-full translate-y-1">
-                    <AddParagraphButton handleCreate={() => paragraphFeat.handleCreate(paragraph_i)} />
+                    <AddParagraphButton handleCreate={() => PARAG.handleCreate(paragraph_i)} />
                   </Frag>
 
                 </div>
@@ -151,28 +151,37 @@ export default function SectionTemplate({
         </Frag>
 
         {/* INPUT STYLE */}
-        <Frag if={!!(isEditMode && paragraphFeat.bottomInput.isVisible)}>
+        <Frag if={!!(isEditMode && PARAG.bottomInput.isVisible)}>
           <div className="fixed bottom-0 left-0 z-2 w-full">
-            <div className="p-2 flex gap-2 items-center bg-gray-900">
-              <i className="bi bi-palette"></i>
+            <div className="p-2 flex gap-2 items-end bg-gray-900 relative">
+
+              <div className="absolute bottom-15 right-2 z-1">
+                {/* pusante chiusura */}
+                <button className="px-2 py-1 bg-red-700 border rounded-full text-xl" 
+                        onClick={() => PARAG.setBottomInput(null)}
+                        role="button">
+                  <i className="bi bi-x-lg"></i>
+                </button>
+              </div>
+              
+              <i className="py-2 bi bi-palette"></i>
               <div className="flex-1">
                 <Field
                   type="textarea"
                   input_class="px-3 py-2 max-h-[100px]"
                   placeholder="Stile Tailwind"
-                  value={paragraphFeat.bottomInput.value}
+                  value={PARAG.bottomInput.value}
                   disabled={!isEditMode}
                   hide_label
-                  label="Stile Tailwind"
+                  label="Aggiungi classi Tailwind"
                   asterisk
                   id="style"
-                  onChange={(_e) =>paragraphFeat.handleChange(paragraphFeat.bottomInput.index, "in_style", _e.target.value)}
-                  error_message={errors[`${paragraphFeat.bottomInput.index}>style`]}
+                  onChange={(_e) =>PARAG.handleChange(PARAG.bottomInput.index, "in_style", _e.target.value)}
+                  error_message={errors[`${PARAG.bottomInput.index}>style`]}
                 />
               </div>
-              <button className="px-2 py-1 bg-red-600 text-white rounded" 
-                      onClick={() => paragraphFeat.setBottomInput(null)}>
-                <i className="bi bi-x-lg"></i>
+              <button className="py-2 px-3 bg-green-700 text-white rounded-full" role="button">
+                <i className="bi bi-send"></i>
               </button>
             </div>
           </div>
@@ -180,7 +189,7 @@ export default function SectionTemplate({
         {/* INPUT STYLE */}
       </section>
 
-      <Frag if={!(isEditMode && paragraphFeat.bottomInput.isVisible)}>
+      <Frag if={!(isEditMode && PARAG.bottomInput.isVisible)}>
         <EditModeComponent page={page}/>
       </Frag>
     </main>

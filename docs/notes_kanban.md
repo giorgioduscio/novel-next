@@ -4,7 +4,6 @@
 
 # Kanban - Novel Writer (Next.js)
 ## 📌 To Do
-* [2] fix: semplificare il processo nuovoStato -> validazione -> aggiornamento database -> feedback utente
 
 ## 🔄 In Progress (max 2-3)
 
@@ -37,3 +36,4 @@
 * implementare bredcrumb per migliorare l'accessibilità
 * Fix: migliorare e snellire la grafica
 * fix: se il libro che si cerca di caricare ha lo stesso id di uno già esistente -> esegue BookHook.createBook() del nuovoLibro
+* fix: implementare processo: aggiornamento stato -> validazione -> aggiornamento database -> feedback utente

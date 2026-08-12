@@ -40,12 +40,12 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
 
   
   // 2) SEZIONE
-  const [sectionFeat_title, sectionFeat_setTitle] = useState(section_title);
+  const [SECTION_title, SECTION_setTitle] = useState(section_title);
 
   // sicronizza con l'url
-  useEffect(()=>{ sectionFeat_setTitle(section_title) }, [section_title]);
+  useEffect(()=>{ SECTION_setTitle(section_title) }, [section_title]);
 
-  const sectionFeat ={
+  const SECTION ={
     // restituisce la sezione corrente in base al libro
     getSection(bookObj: Book) :Section | undefined {
       return bookObj.parts
@@ -64,7 +64,7 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
 
       result = (
         foundPart?.sections.find(
-          (s) => s.title.toLowerCase() === sectionFeat_title.toLowerCase()
+          (s) => s.title.toLowerCase() === SECTION_title.toLowerCase()
         ) ??
         foundPart?.sections.find(
           (s) => s.title.toLowerCase() === section_title.toLowerCase()
@@ -74,36 +74,37 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
       if(!result.paragraphs) result.paragraphs = [];
       
       return result;
-    }, [book, part_title, section_title, sectionFeat_title]),
+    }, [book, part_title, section_title, SECTION_title]),
 
     // cambia il titolo della sezione
     handleChange(value: string) {      
-      if (!book) return console.error("Libro non disponibile");
-      
-      sectionFeat_setTitle(value);
+      SECTION_setTitle(value);
     },
    
     // esegue cambio di rotta
     handleSubmit(e: React.FormEvent) {
       e.preventDefault();
-  
-      const trimmed = sectionFeat_title.trim();
+      // stato
+      const trimmed = SECTION_title.trim();
       if (!book || !trimmed || trimmed === section_title) {
         throw new Error("Titolo non modificato");
       }
   
       const updated = structuredClone(book);
-      const sec = sectionFeat.getSection(updated);
+      const sec = SECTION.getSection(updated);
       if (!sec) {
         throw new Error("Sezione non trovata");
       }
   
       sec.title = trimmed;  
       setBook(updated);
+      // api
       const newBook = BookHook.updateBook(book_id, updated, false);
+      // feedback
+      if(!newBook) return toast.danger("Titolo non valido");
+      toast.success("Titolo aggiornato");
   
       // redirect alla nuova URL della sezione
-      if(!newBook) return toast.danger("Titolo non valido");
       const _part = part_title.replaceAll(" ", "-");
       const _title = trimmed.replaceAll(" ", "-");
       router.push(`/books/${book_id}/${_part}/${_title}`);
@@ -115,20 +116,16 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
   const [_bottomInput, _setBottomInput] = useState({
     value:"", index:-1, isVisible:false,
   });
-  const paragraphFeat = {
+  const PARAG = {
+    // crea nuovo paragrafo senza salvarlo
     handleCreate(index?: number |'top') {
       if (!book) return console.error("Libro non disponibile");
         
       const updated = structuredClone(book);
-      const sec = sectionFeat.getSection(updated);
+      const sec = SECTION.getSection(updated);
+      if (!sec) return console.error("Sezione non trovata");
   
-      if (!sec) return;
-  
-      const newParagraph: Paragraph = {
-        in_style: "",
-        text: "",
-      };
-
+      const newParagraph: Paragraph = { in_style: "", text: "" };
       if (!sec.paragraphs) sec.paragraphs = [];
 
       // stringa TOP -> aggiungi in cima
@@ -144,7 +141,9 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
         sec.paragraphs.splice(index + 1, 0, newParagraph);
       }
   
+      // aggiorna lo stato
       setBook(updated);
+      // feedback
       toast.success("Paragrafo aggiunto");
     },
 
@@ -157,24 +156,28 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
       return filtered.join(" ") .replaceAll("ex:", "");
     },
 
-  
+    // modifica un paragrafo
     handleChange(index: number, key: keyof Paragraph, value: string) {
-      if (!book) return;
+      if (!book) return console.error("Libro non disponibile");
   
       const updated = structuredClone(book);
-      const sec = sectionFeat.getSection(updated);
-  
+      const sec = SECTION.getSection(updated);
       if (!sec?.paragraphs || !sec.paragraphs[index]) {
         console.error("Paragrafo non trovato");
         return;
       }
   
+      // stato locale
       sec.paragraphs[index][key] = value || "";
-  
       setBook(updated);
-      BookHook.updateBook(book_id, updated, false);
+      // salva su db
+      const res = BookHook.updateBook(book_id, updated, false);
+      // feedback
+      if (!res) console.error("Errore nel salvataggio");
+      toast.success("Paragrafo modificato");
     },
 
+    // form in basso
     bottomInput: useMemo (()=> _bottomInput, [_bottomInput]),
     setBottomInput(paragraph_i:number | null){
       if(!page.isEditMode) return;
@@ -189,7 +192,7 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
         return;
       }
       // cerca paragrafo
-      const target = sectionFeat.bookSection?.paragraphs?.[paragraph_i];
+      const target = SECTION.bookSection?.paragraphs?.[paragraph_i];
       if (!target) return console.error("Paragrafo non trovato");
       
       _setBottomInput({ 
@@ -206,22 +209,24 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
       ) return;
   
       if (!book) {
-        throw new Error("Book not found");
+        throw new Error("Libro non disponibile");
       }
   
       const updated = structuredClone(book);
-      const sec = sectionFeat.getSection(updated);
+      const sec = SECTION.getSection(updated);
 
       if (!sec) {
-        throw new Error("Section not found");
+        throw new Error("Sezione non trovata");
       }
-
+      // stato locale
       if (!sec.paragraphs) sec.paragraphs = [];
       sec.paragraphs.splice(index, 1);
-      
-      BookHook.updateBook(book_id, updated);
-      
       setBook(updated);
+      
+      // salva su db
+      const res = BookHook.updateBook(book_id, updated);
+      // feedback
+      if (!res) return toast.danger("Errore nel salvataggio");
       toast.success("Paragrafo rimosso");
     },  
   }
@@ -232,7 +237,7 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
 
     // 1) validazione paragrafi
     let result: Record<string, string> = {};
-    sectionFeat.bookSection?.paragraphs?.forEach((p, index)=>{
+    SECTION.bookSection?.paragraphs?.forEach((p, index)=>{
       const validatedParagraph = safeParse(paragraph_schema, p);
       if (!validatedParagraph.success) 
         // inserire un campo d'errore
@@ -242,7 +247,7 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
         }) 
     })
     // 2) sezione
-    const validatedSection = safeParse(section_schema, sectionFeat.bookSection);   
+    const validatedSection = safeParse(section_schema, SECTION.bookSection);   
     if (!validatedSection.success) {
       validatedSection.issues.forEach((valibotMessage)=>{
         const [key, message] =valibotMessage.message.split(": ");
@@ -253,23 +258,15 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
   }, [book])
 
   return {
-    // stato
     book,
     errors,
-    
-    // contesto
     page,
-    
-    // informazioni sezione
     book_id,
     section_title,
-    
-    // titolo
-    sectionFeat_title,
-    sectionFeat,
-
-    // paragrafi
-    paragraphFeat,
+    SECTION_title,
+    SECTION,
+    PARAG,
   };
 }
+
 

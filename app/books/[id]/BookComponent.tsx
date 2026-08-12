@@ -21,15 +21,15 @@ interface UseBookComponentProps {
 export function useBookComponent({ id }: UseBookComponentProps) {
   const [book, setBook] = useState<Book | undefined>(undefined);
   const page = useCommonPagesHook();
-  const bookStore = useBookHook();
+  const BookHook = useBookHook();
   const agree = useAgreeWrapper();
 
   useEffect(() => {
     if (!isNaN(id)) {
-      const bookFromStore = bookStore.getBookById(id);
+      const bookFromStore = BookHook.getBookById(id);
       setBook(bookFromStore ? structuredClone(bookFromStore) : undefined);
     }
-  }, [id, bookStore.getBookById]);
+  }, [id, BookHook.getBookById]);
 
 
   // 1) ERRORI
@@ -65,19 +65,21 @@ export function useBookComponent({ id }: UseBookComponentProps) {
     // validazione
     const validatedBook = toggleErrors(key, newBook);
     if (!validatedBook) return;
-
+    // stato
     setBook(validatedBook);
-    bookStore.updateBook(id, validatedBook);
+    // api
+    BookHook.updateBook(id, validatedBook);
+    // feedback
+    toast.success("Libro aggiornato");
   }
 
   // 3) PARTI
-  const partFeat = {
+  const PART = {
     // aggiunge una parte vuota
     create() {
       if (!book) throw new Error("Libro non trovato");
 
-      const newBook = { ...book, parts: [...(book.parts || [])] };
-      if (!newBook.parts) newBook.parts = [];
+      const newBook = structuredClone({ ...book, parts: [...(book.parts || [])] });
 
       newBook.parts.push({
         title: "Parte" + Date.now(),
@@ -88,28 +90,39 @@ export function useBookComponent({ id }: UseBookComponentProps) {
         ],
       });
 
-      const updatedBook = bookStore.updateBook(id, newBook);
-      if (updatedBook) setBook(updatedBook);
+      // api
+      const updatedBook = BookHook.updateBook(id, newBook);
+      if (!updatedBook) {
+        toast.danger("Errore nell'aggiunta della parte");
+        return;
+      }
+      // stato
+      setBook(updatedBook);
+      // feedback
       toast.success("Parte aggiunta");
     },
 
     // modifica il titolo della parte
     updateTitle(index: number, value: string) {
       if (!book) throw new Error("Libro non trovato");
-      const newBook = { ...book, parts: [...(book.parts || [])] };
+      const newBook = structuredClone({ ...book, parts: [...(book.parts || [])] });
       (newBook.parts as any)[index].title = value;
-
+      // stato
+      setBook(newBook);
+      // validazione
       const errorKey = `part_title_${index}`;
       const validatedBook = toggleErrors(errorKey, newBook);
-      if (!validatedBook) return;
-
-      const updatedBook = bookStore.updateBook(id, validatedBook);
-      if (updatedBook) setBook(updatedBook);
+      if (!validatedBook) return toast.danger("Titolo parte non valido");
+      // api
+      const updatedBook = BookHook.updateBook(id, validatedBook);
+      if (!updatedBook) return toast.danger("Errore nell'aggiornamento della parte");
+      // feedback
+      toast.success("Titolo parte aggiornato");
     },
   };
 
   // 4) SEZIONI
-  const sectionFeat = {
+  const SECTION = {
     create(part_i: number, section_i: number) {
       if (!book) throw new Error("Libro non trovato");
       const newBook = structuredClone(book);
@@ -119,12 +132,17 @@ export function useBookComponent({ id }: UseBookComponentProps) {
       newBook.parts[part_i].sections.push({
         title: "Sezione" + Date.now(),
       });
-      
-      const updatedBook = bookStore.updateBook(id, newBook);
-      if (updatedBook) setBook(updatedBook);
+
+      // stato
+      setBook(newBook);
+      // api
+      const updatedBook = BookHook.updateBook(id, newBook);
+      if (!updatedBook) return toast.danger("Errore nell'aggiunta della sezione");
+      // feedback
       toast.success("Sezione aggiunta");
     },
 
+    // sostituisce gli spazo vuoti con trattini
     writeHref(book_id: number, part: string, section: string) {
       part = part.replaceAll(" ", "-");
       section = section.replaceAll(" ", "-");
@@ -132,46 +150,46 @@ export function useBookComponent({ id }: UseBookComponentProps) {
     },
 
     updateTitle(part_i: number, section_i: number, value: string) {
+      // stato
       if (!book) throw new Error("Libro non trovato");
-      const newBook = { ...book, parts: [...(book.parts || [])] };
+      const newBook = structuredClone({ ...book, parts: [...(book.parts || [])] });
       (newBook.parts as any)[part_i].sections[section_i].title = value;
-
+      setBook(newBook);
+      // validazione
       const errorKey = `section_title_${value}`;
       const validatedBook = toggleErrors(errorKey, newBook);
       if (!validatedBook) return;
-
-      const updatedBook = bookStore.updateBook(id, validatedBook);
-      if (updatedBook) setBook(updatedBook);
+      // api
+      const updatedBook = BookHook.updateBook(id, validatedBook);
+      if (!updatedBook) return toast.danger("Errore nell'aggiornamento della sezione");
+      // feedback
+      toast.success("Titolo sezione aggiornato");
     },
 
     async delete(part_i: number, section_i: number) {
-      if (
-        !(await agree.danger(
-          "Sei sicuro di voler eliminare questa sezione?",
-          "Rimuovi"
-        ))
-      )
-        return;
+      if (!(await agree.danger("Sei sicuro di voler eliminare questa sezione?", "Rimuovi"))) return;
       if (!book || !book.parts || !book.parts[part_i])
         return console.error("Libro non esistente o parte non trovata");
 
-      const newBook = { ...book, parts: [...(book.parts || [])] };
-      // Rimuovi la sezione dall'array
+      // stato
+      const newBook = structuredClone({ ...book, parts: [...(book.parts || [])] });
       newBook.parts[part_i].sections.splice(section_i, 1);
-
       // se la parte è rimasta senza sezioni, rimuovila
       if (newBook.parts[part_i].sections.length === 0) {
         newBook.parts.splice(part_i, 1);
       }
+      setBook(newBook);
 
-      const updatedBook = bookStore.updateBook(id, newBook);
-      if (updatedBook) setBook(updatedBook);
+      // api
+      const updatedBook = BookHook.updateBook(id, newBook);
+      // feedback
+      if (!updatedBook) return toast.danger("Errore nell'eliminazione della sezione");
       toast.success("Sezione rimossa");
     },
   };
 
   // 5) ORDINAMENTO
-  const sortFeat = {
+  const SORT = {
     // controlla se la sezione è la prima del libro
     isFirstOfBook(part_i: number, section_i: number) {
       if (!book) throw new Error("Libro non trovato");
@@ -239,7 +257,7 @@ export function useBookComponent({ id }: UseBookComponentProps) {
           newBook.parts[part_i].sections[section_i - 1] = targetSection;
         }
 
-        // spostamento verso il basso
+      // spostamento verso il basso
       } else {
         // se è l'ultima sezione, la sposta in cima alla parte successiva
         if (isHemSectionOfPart) {
@@ -259,15 +277,19 @@ export function useBookComponent({ id }: UseBookComponentProps) {
       // rimuove tutte le parti del libro senza sezioni
       newBook.parts = newBook.parts.filter((part) => part.sections.length > 0);
 
-      const updatedBook = bookStore.updateBook(id, newBook);
-      if (updatedBook) setBook(updatedBook);
-      toast.success("Sezione spostata");
+      // stato
+      setBook(newBook);
+      // api
+      const updatedBook = BookHook.updateBook(id, newBook);
+      // feedback
+      if (!updatedBook) return toast.danger("Errore nello spostamento della sezione");
+      toast.success("Sezione spostata");  
     },
   };
 
   // 6) DROPDOWN
   const [dropdownsState, setDropdownsState] = useState<Record<string, boolean>>({});
-  const dropdownFeat = {
+  const DROPDOWN = {
     toggle(title: string) {
       setDropdownsState((prev) => ({
         [title]: !prev[title],
@@ -289,11 +311,11 @@ export function useBookComponent({ id }: UseBookComponentProps) {
     errors,
     setErrors,
     handleUpdateBook,
-    partFeat,
-    sectionFeat,
-    sortFeat,
-    dropdownFeat,
+    PART,
+    SECTION,
+    SORT,
+    DROPDOWN,
     dropdownsState,
-    bookStore,
+    BookHook,
   };
 }

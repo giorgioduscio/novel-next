@@ -22,84 +22,89 @@ export function useBooksComponent() {
 
   // 1) ERRORI
   const [errors, setErrors] = useState<Record<string, string>>({});
+  
+  function toggleErrors(key: string, newBook: Book) {
+    const validated = safeParse(book_schema, newBook);
+    const newKey = `${newBook.id}>${key}`;
+
+    if (!validated.success) {
+      // Gestisce gli errori di validazione
+      const message = validated.issues?.[0]?.message;
+
+      setErrors((prev) => ({
+        ...prev,
+        [newKey]: message?.split(": ")[1] || "Errore di validazione",
+      }));
+
+      return toast.danger("Errore di validazione");
+    }
+
+    // Rimuove l'errore se la validazione ha successo
+    setErrors((prev) => {
+      const newErrors = { ...prev };
+      delete newErrors[newKey];
+      return newErrors;
+    });
+  }
 
   // 2) LIBRI
   useEffect(() => {
     setbooks(BookHook.readAll());
-    books.forEach((b) => {
-      console.log(b.title, b.id);
-    });
   }, [BookHook]);
 
-  const bookFeat = {
+  const BOOKS = {
     // Crea un nuovo libro con valori predefiniti
     create() {
+      // aggiornamento database
       BookHook.createBook({
         title: "Book_" + Date.now(),
         description: "Descrizione_" + Date.now(),
         author: "Autore_" + Date.now(),
       });
 
+      // nuovo stato
       setbooks(BookHook.readAll());
+
+      // feedback utente
       toast.success("Libro creato");
     },
 
     // Aggiorna un libro esistente
-    update(
-      index: number,
-      key: string,
-      e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-    ) {
+    update(index: number, key: string, e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
+      // validazione
       const book = books[index];
-
       if (!book) throw new Error("Libro non valido");
 
       // Crea una copia del libro con il campo aggiornato
-      const newBook = {
-        ...book,
-        [key]: e.currentTarget.value,
-      };
+      const newBook = structuredClone({ ...book, [key]: e.currentTarget.value });
 
       // Valida il libro aggiornato
-      const validated = safeParse(book_schema, newBook);
-      const newKey = `${book.id}>${key}`;
-
-      if (!validated.success) {
-        // Gestisce gli errori di validazione
-        const message = validated.issues?.[0]?.message;
-
-        setErrors((prev) => ({
-          ...prev,
-          [newKey]: message,
-        }));
-
-        return;
-      }
-
-      // Rimuove l'errore se la validazione ha successo
-      setErrors((prev) => {
-        const newErrors = { ...prev };
-        delete newErrors[newKey];
-        return newErrors;
-      });
+      toggleErrors(key, newBook);
 
       // Aggiorna il libro nel contesto
-      BookHook.updateBook(book.id, newBook);
+      const result = BookHook.updateBook(book.id, newBook);
+      if(!result) return toast.danger("Errore nell'aggiornamento del libro");
+
+      // feedback utente
       setbooks(BookHook.readAll());
+      toast.success("Libro aggiornato");
     },
 
     // Elimina un libro dopo conferma
     async delete(id: number) {
       if (!(await agree.danger("Rimuovere il libro?", "Rimuovi"))) return;
-
-      BookHook.deleteBook(id);
+      // aggiorna lo stato
       setbooks(BookHook.readAll());
+      // elimina il libro
+      const res = BookHook.deleteBook(id);
+      if (!res) return toast.danger("Errore nell'eliminazione del libro");
+      // feedback utente
       toast.success("Libro rimosso");
     },
   };
 
   // 3) UPLOAD
-  const uploadFeat = {
+  const UPLOAD = {
     json: {
       label: "JSON",
 
@@ -239,7 +244,7 @@ export function useBooksComponent() {
     errors,
     page,
     BookHook,
-    bookFeat,
-    uploadFeat,
+    BOOKS,
+    UPLOAD,
   };
 }
