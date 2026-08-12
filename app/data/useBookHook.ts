@@ -92,6 +92,7 @@ export default function useBookHook() {
     }
   }
 
+
   // Aggiunge un libro alla lista e lo salva su Firebase
   function addBook(book: Book) {
     const validatedBook = validateBook(book);
@@ -118,6 +119,7 @@ export default function useBookHook() {
     const newBook: Book = { ...book, id: newId, parts: book.parts || [] };
     return addBook(newBook);
   }
+  
 
   // Restituisce tutti i libri
   const readAll = useCallback((): Book[] => {

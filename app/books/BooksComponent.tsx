@@ -14,7 +14,6 @@ export default function BooksComponent() {
   return <BooksTemplate {...hookData} />;
 }
 
-
 export function useBooksComponent() {
   const BookHook = useBookHook();
   const page = useCommonPagesHook();
@@ -27,6 +26,9 @@ export function useBooksComponent() {
   // 2) LIBRI
   useEffect(() => {
     setbooks(BookHook.readAll());
+    books.forEach((b) => {
+      console.log(b.title, b.id);
+    });
   }, [BookHook]);
 
   const bookFeat = {
@@ -114,7 +116,17 @@ export function useBooksComponent() {
             );
           }
 
-          BookHook.addBook(validateBook.output);
+          const newBook = validateBook.output;
+          const existingBook = books.find((book) => book.id === newBook.id);
+
+          if (existingBook) {
+            // Se esiste già un libro con lo stesso id, crea un nuovo libro
+            BookHook.createBook(newBook);
+          } else {
+            // Altrimenti, aggiungi il libro direttamente
+            BookHook.addBook(newBook);
+          }
+
           setbooks(BookHook.readAll());
           toast.success("Libro caricato da JSON");
         } catch (err) {
