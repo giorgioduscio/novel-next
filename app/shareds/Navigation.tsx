@@ -4,12 +4,12 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 
-interface NavbarProps {
+interface NavigationProps {
   page_title: string;
   back_btn?: { icon?:string, label?:string, href:string };
 }
 
-export default function Navbar({ page_title, back_btn }: NavbarProps) {
+export default function Navigation({ page_title, back_btn }: NavigationProps) {
   const [title, setTitle] = useState('');
   const pathname = usePathname();
   
@@ -19,14 +19,14 @@ export default function Navbar({ page_title, back_btn }: NavbarProps) {
   }, [pathname, page_title]);
   
   return (
-    <div className="sticky top-0 z-50">
-      <nav className="w-full bg-gray-800">
-        <div className="mx-auto container max-w-[400px]">
+    <nav className="sticky top-0 z-50">
+      <div className="w-full bg-gray-800">
+        <div className="mx-auto container max-w-[800px]">
           <div className="flex items-center">
 
             {/* se esiste almeno l'href */}
             {(back_btn && back_btn.href) &&(
-              <Link href={back_btn.href} className="p-3 truncate">
+              <Link href={back_btn.href} className="p-3 bg-gray-800 truncate">
                 <i className={`${back_btn.icon || 'bi-chevron-left'} bi me-1`}></i>
                 <span>{back_btn.label ||''}</span>
               </Link>
@@ -38,7 +38,7 @@ export default function Navbar({ page_title, back_btn }: NavbarProps) {
 
           </div>
         </div>
-      </nav>
-    </div>
+      </div>
+    </nav>
   );
 }

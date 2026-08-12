@@ -1,14 +1,14 @@
 import Link from "next/link";
-import Navbar from "./shareds/Navbar";
+import Navigation from "./shareds/Navigation";
 
 export default function Home() {
   return (
     <main id="Home">
-      <Navbar page_title="Home" />
+      <Navigation page_title="Home" />
 
-      <section className="mx-auto container max-w-[400px] min-h-screen flex flex-col">
+      <section className="mx-auto container min-h-screen max-w-[800px] shadow-xl md:border-x md:border-x-gray-800">
         {/* Hero Section */}
-        <div className="flex-1 flex flex-col items-center justify-center px-4 py-16">
+        <div className="flex flex-col items-center justify-center px-4 py-16">
           <div className="max-w-3xl text-center">
             <h1 className="text-5xl md:text-7xl font-bold mb-6 text-yellow-400" style={{ fontFamily: 'var(--font-bubblegum)' }}>
               Novel <code>Next</code>
@@ -21,7 +21,7 @@ export default function Home() {
             </p>
             <Link 
               href="/books"
-              className="inline-block bg-yellow-400 text-gray-900 font-bold text-xl px-8 py-4 rounded-lg hover:bg-yellow-300 transition-all transform hover:scale-105 slash-x"
+              className="inline-block bg-yellow-400 text-gray-900 font-bold text-xl px-8 py-4 rounded-lg transition-all transform hover:scale-105 slash-x"
               style={{ fontFamily: 'var(--font-comicNeue)' }}
             >
               <i className="bi bi-book me-2"></i>
@@ -32,7 +32,7 @@ export default function Home() {
 
         {/* Tech Stack Section */}
         <section className="bg-gray-800 py-12 px-4">
-          <div className="max-w-4xl mx-auto">
+          <div className="w-max mx-auto">
             <h2 className="text-3xl font-bold mb-8 text-center text-yellow-400" style={{ fontFamily: 'var(--font-bubblegum)' }}>
               🛠️ Tecnologie utilizzate
             </h2>

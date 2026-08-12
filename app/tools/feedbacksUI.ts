@@ -300,7 +300,7 @@ function executeAgree(message: string,
 
             <div class="modal-content text-bg-dark border-0 shadow-lg">
               <div class="modal-header border-0 pb-0">
-                <button type="button" class="btn btn-dark ms-auto" data-bs-dismiss="modal" aria-label="Close">
+                <button type="button" class="btn-dark ms-auto" data-bs-dismiss="modal" aria-label="Close">
                   <i class="bi bi-x-lg"></i>
                 </button>
               </div>
@@ -308,8 +308,8 @@ function executeAgree(message: string,
                 <p class="mb-0 fs-5 fw-medium">${message}</p>
               </div>
               <div class="modal-footer border-0 justify-content-between pb-4 pt-0">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
-                <button type="button" class="btn btn-${colorePulsante}" id="${modalId}-ok">${messaggioPulsante}</button>
+                <button type="button" class="btn-secondary" data-bs-dismiss="modal">Annulla</button>
+                <button type="button" class="btn-${colorePulsante}" id="${modalId}-ok">${messaggioPulsante}</button>
               </div>
             </div>
 

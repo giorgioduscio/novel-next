@@ -8,7 +8,7 @@ export default function EditModeComponent({page}: EditModeComponentProps) {
   const {isEditMode, toggleEditMode} = page;
   
   return (
-    <section id="EditModeComponent" className="mx-auto container max-w-[400px]">
+    <section id="EditModeComponent" className="mx-auto container max-w-[800px]">
       <div className="m-3 fixed end-0 bottom-0 z-5">
         <button onClick={toggleEditMode}
           title={isEditMode ? "Modalità editing" : "Modalità lettura"}

@@ -6,10 +6,10 @@ import Link from "next/link";
 import Frag from "../shareds/Frag";
 import Field from "../shareds/Field";
 import { LoadingComponent } from "../shareds/LoadingComponent";
-import Navbar from "../shareds/Navbar";
 import { useBooksComponent } from "./BooksComponent";
 import { Breadcrumb } from "../shareds/Breadcrumb";
 import EditModeComponent from "../shareds/EditModeComponent";
+import Navigation from "../shareds/Navigation";
 
 // Componente template per la visualizzazione e gestione dei libri
 export default function BooksTemplate({
@@ -28,27 +28,29 @@ export default function BooksTemplate({
   const {isEditMode} = page;
   return (
     <main id="BooksTemplate">
-      <Navbar page_title="Gestione Libri" />
+      <Navigation page_title="Gestione Libri" />
       <Breadcrumb />
 
       {/* Sezione principale per la gestione dei libri */}
-      <section className="p-2 mx-auto container max-w-[400px]">
+      <section className="p-2 mx-auto container min-h-screen max-w-[800px] shadow-xl md:border-x md:border-x-gray-800">
         <div className="text-center">
 
 
           {/* UPLOAD */}
           <div className="flex justify-center items-center gap-2">
-            <div className="truncate">Upload:</div>
+            <div className="md:hidden truncate">Upload:</div>
 
             <button onClick={UPLOAD.json.execute}
                     className="py-2 px-3 text-sm rounded bg-green-800">
               <i className="me-2 bi bi-upload"></i>
+              <span className="me-1 hidden md:inline">Upload</span>
               <span>{UPLOAD.json.label}</span>
             </button>
 
             <button onClick={UPLOAD.markdown.execute}
                     className="py-2 px-3 text-sm rounded bg-blue-800">
               <i className="me-2 bi bi-upload"></i>
+              <span className="me-1 hidden md:inline">Upload</span>
               <span>{UPLOAD.markdown.label}</span>
             </button>
           </div>
@@ -85,9 +87,7 @@ export default function BooksTemplate({
             {/* LISTA LIBRI */}
             <ol className="flex flex-wrap gap-2 items-start">
               {books.map((book, book_i) => (
-                <li key={book.id + book.title}
-                    className="flex-1 min-w-[150px] rounded overflow-hidden border border-gray-400 shadow-lg"
-                >
+                <li key={book.id + book.title} className="min-w-[150px] rounded overflow-hidden border border-gray-400 shadow-lg">
                   <div className="text-center relative">
                     {/* ELIMINA LIBRO */}
                     <div className="absolute top-0 right-0 z-1 w-fit">
@@ -104,7 +104,7 @@ export default function BooksTemplate({
                     <Frag if={isEditMode}>
                       {/* VISUALIZZA LIBRO */}
                       <Frag.Else>
-                        <Link href={`/books/${book.id}`} className="btn p-3 bg-gray-600 block">
+                        <Link href={`/books/${book.id}`} className="p-3 bg-gray-600 block">
                           <h4 className="text-center text-lg font-bold">
                             {book.title}
                           </h4>
@@ -172,7 +172,7 @@ export default function BooksTemplate({
                       </Frag.Else>
 
                       <Link href={`/books/${book.id}`}
-                            className="btn py-1 px-2 bg-green-800 block">
+                            className="py-1 px-2 bg-green-800 block">
                         Vai al libro
                         <i className="bi bi-chevron-right ms-2"></i>
                       </Link>

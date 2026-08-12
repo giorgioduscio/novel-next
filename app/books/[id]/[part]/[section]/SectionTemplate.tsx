@@ -2,11 +2,11 @@ import "./Section.sass";
 import Field from "@/app/shareds/Field";
 import Frag from "@/app/shareds/Frag";
 import { LoadingComponent } from "@/app/shareds/LoadingComponent";
-import Navbar from "@/app/shareds/Navbar";
 import { Breadcrumb } from "@/app/shareds/Breadcrumb";
 import { useSectionComponent } from "./SectionComponent";
-import React, { useMemo } from "react";
+import { useMemo } from "react";
 import EditModeComponent from "@/app/shareds/EditModeComponent";
+import Navigation from "@/app/shareds/Navigation";
 
 interface AddProps { handleCreate: Function }
 function AddParagraphButton({ handleCreate }: AddProps) {
@@ -38,7 +38,7 @@ export default function SectionTemplate({
   const {isEditMode} = page;
   return (
     <main id="SectionComponent">
-      <Navbar back_btn={{ href: `/books/${book_id}` }} page_title={section_title} />
+      <Navigation back_btn={{ href: `/books/${book_id}` }} page_title={section_title} />
       <Breadcrumb />
 
       <section className="mx-auto container max-w-[400px]">

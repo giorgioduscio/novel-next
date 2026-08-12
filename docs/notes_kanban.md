@@ -4,6 +4,7 @@
 
 # Kanban - Novel Writer (Next.js)
 ## 📌 To Do
+* [1] Sistema di autenticazione minimale
 
 ## 🔄 In Progress (max 2-3)
 
@@ -14,7 +15,6 @@
 *(vuoto)*
 
 ## Iceblock
-* metodo login
 * controllo sicurezza
 
 ## ✅ Done
@@ -37,3 +37,4 @@
 * Fix: migliorare e snellire la grafica
 * fix: se il libro che si cerca di caricare ha lo stesso id di uno già esistente -> esegue BookHook.createBook() del nuovoLibro
 * fix: implementare processo: aggiornamento stato -> validazione -> aggiornamento database -> feedback utente
+* Responsive design per pc
