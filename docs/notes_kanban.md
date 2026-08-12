@@ -1,10 +1,11 @@
 # Note
-(vuoto)
+
+* git reset head~1; git add .; git commit -m "deploy"; git push -f
 
 # Kanban - Novel Writer (Next.js)
 ## 📌 To Do
-* [5] fix: upload di due libri con lo stesso id
-* [5] fix: semplificare il processo nuovoStato -> validazione -> aggiornamento database -> feedback utente
+* [1] fix: conflitto tra due libri con lo stesso id -> cambia id del secondo
+* [2] fix: semplificare il processo nuovoStato -> validazione -> aggiornamento database -> feedback utente
 
 ## 🔄 In Progress (max 2-3)
 
