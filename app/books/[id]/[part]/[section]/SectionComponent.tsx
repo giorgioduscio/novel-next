@@ -147,15 +147,6 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
       toast.success("Paragrafo aggiunto");
     },
 
-    // recupera le classi che cominciano per 'ex:'
-    getExternalStyle(paragraph: Paragraph) {
-      // divide le classi
-      const classes = paragraph.in_style?.split(" ") || [];
-      // recupera solo quelle che cominciano per 'ex:'
-      const filtered = classes.filter(cls => cls.startsWith("ex:"));
-      return filtered.join(" ") .replaceAll("ex:", "");
-    },
-
     // modifica un paragrafo
     handleChange(index: number, key: keyof Paragraph, value: string) {
       if (!book) return console.error("Libro non disponibile");
@@ -175,6 +166,17 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
       // feedback
       if (!res) console.error("Errore nel salvataggio");
       toast.success("Paragrafo modificato");
+    },
+
+    // recupera le classi che cominciano per 'ex:'
+    getExternalStyle(paragraph: Paragraph) {
+      // divide le classi
+      const classes = paragraph.in_style
+        ?.replace(/\n/g, " ")
+        .split(" ") || [];
+      // recupera solo quelle che cominciano per 'ex:'
+      const filtered = classes.filter(cls => cls.startsWith("ex:"));
+      return filtered.join(" ") .replaceAll("ex:", "");
     },
 
     // form in basso

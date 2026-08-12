@@ -153,7 +153,7 @@ export default function SectionTemplate({
         {/* INPUT STYLE */}
         <Frag if={!!(isEditMode && PARAG.bottomInput.isVisible)}>
           <div className="fixed bottom-0 left-0 z-2 w-full">
-            <div className="p-2 flex gap-2 items-end bg-gray-900 relative">
+            <div className="mx-auto max-w-[400px] p-2 flex gap-2 items-end bg-gray-900 relative">
 
               <div className="absolute bottom-15 right-2 z-1">
                 {/* pusante chiusura */}
