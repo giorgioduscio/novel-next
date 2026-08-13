@@ -43,7 +43,7 @@ export default function SectionTemplate({
       <Navigation back_btn={{ href: `/books/${book_id}` }} page_title={section_title} />
       <Breadcrumb />
 
-      <section className="mx-auto container max-w-[400px]">
+      <section className="min-h-screen mx-auto container max-w-[400px]">
         {/* SEZIONE NON TROVATA */}
         <Frag if={!SECTION.bookSection}>
           <div className="py-10 text-center text-red-500">
@@ -154,31 +154,32 @@ export default function SectionTemplate({
           </Frag>
           {/* WRAPPER PARAGRAFI */}
         </Frag>
+      </section>
 
         {/* INPUT STYLE */}
-        <EditModeComponent page={page}/>
-
+        <EditModeComponent page={page} />
         <Frag if={!!(isEditMode && PARAG.bottomInput.isVisible)}>
-          <div className="fixed bottom-0 left-0 z-2 w-full">
+          <div className="sticky bottom-0 left-0 z-2 w-full">
             <div className="ps-2 pb-2 mx-auto max-w-[400px] flex gap-2 items-end relative">
 
               <div className="absolute bottom-15 right-4 z-1">
                 {/* pusante chiusura */}
                 <button className="px-2 py-1 bg-red-700 outline rounded-full text-xl" 
                         onClick={() => PARAG.setBottomInput(null)}
+                        aria-label="Chiudi stile"
                         role="button">
                   <i className="bi bi-x-lg"></i>
                 </button>
               </div>
               
-              <div className="ps-2 flex-1 flex gap-1 bg-white text-black outline-2 rounded">
-                <i className="py-2 bi bi-palette"></i>
+              <div className="ps-2 flex-1 flex gap-1 items-center bg-white text-black outline-2 rounded">
+                <i className="bi bi-palette"></i>
                 <div className="flex-1">
                   <Field
                     type="textarea"
                     input_class="p-2 max-h-[100px]"
                     placeholder="Classe Tailwind"
-                    value={PARAG.bottomInput.value.toLowerCase()}
+                    value={SECTION.bookSection?.paragraphs?.[PARAG.bottomInput.index]?.in_style?.toLowerCase() || ""}
                     disabled={!isEditMode}
                     hide_label
                     label="Aggiungi classe Tailwind"
@@ -195,7 +196,6 @@ export default function SectionTemplate({
           </div>
         </Frag>
         {/* INPUT STYLE */}
-      </section>
     </main>
   );
 }

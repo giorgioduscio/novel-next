@@ -114,7 +114,7 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
 
   // 4) PARAGRAFI
   const [_bottomInput, _setBottomInput] = useState({
-    value:"", index:-1, isVisible:false,
+    index:-1, isVisible:false,
   });
   const PARAG = {
     // crea nuovo paragrafo senza salvarlo
@@ -262,7 +262,6 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
       if (paragraph_i === null){
         _setBottomInput({
           isVisible: false,
-          value: "", 
           index: -1,
         });
         return;
@@ -273,7 +272,6 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
       
       _setBottomInput({ 
         isVisible: true,
-        value: target.in_style || "",
         index: paragraph_i,
       });
     },
