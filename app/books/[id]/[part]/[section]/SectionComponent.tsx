@@ -6,7 +6,7 @@ import { safeParse } from "valibot";
 import { Book, Paragraph, Section, paragraph_schema, section_schema } from "@/app/schemas/book_schema";
 import useCommonPagesHook from "@/app/data/useCommonPagesHook";
 import { useAgreeWrapper } from "@/app/shareds/Agree";
-import { toast } from "@/app/tools/feedbacksUI";
+import { debounce, toast } from "@/app/tools/feedbacksUI";
 import SectionTemplate from "./SectionTemplate";
 import useBookHook from "@/app/data/useBookHook";
 
@@ -132,12 +132,12 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
       if(index ==="top") {
         sec.paragraphs.unshift(newParagraph);
 
+      // Nessun indice -> aggiungi in fondo
       } else if (index === undefined) {
-        // Nessun indice -> aggiungi in fondo
         sec.paragraphs.push(newParagraph);
 
+      // Inserisce dopo l'indice
       } else {
-        // Inserisce dopo l'indice
         sec.paragraphs.splice(index + 1, 0, newParagraph);
       }
   
@@ -148,32 +148,106 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
     },
 
     // modifica un paragrafo
-    handleChange(index: number, key: keyof Paragraph, value: string) {
+    handleChange(e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) {
+      // 1) dati e controlli
       if (!book) return console.error("Libro non disponibile");
-  
+      e.preventDefault();
+      const {value, id} = e.currentTarget;
+      const [_index, key] = id.split(">") as [string, keyof Paragraph];
+      const index = parseInt(_index)
+      if(isNaN(index) || !key) return console.error("Parametri non validi");
+
+      // 2) recupera posizione paragrafo
       const updated = structuredClone(book);
       const sec = SECTION.getSection(updated);
       if (!sec?.paragraphs || !sec.paragraphs[index]) {
         console.error("Paragrafo non trovato");
         return;
       }
-  
-      // stato locale
-      sec.paragraphs[index][key] = value || "";
-      setBook(updated);
-      // salva su db
+      
+      // 3) stato locale
+      const [defaultValue, styleValue] = value.replaceAll("\n", "").trim().split(",,");
+      const newValue = (key==="in_style") ?defaultValue.toLowerCase() :defaultValue;
+
+      sec.paragraphs[index][key] = newValue;
+      if(styleValue && styleValue.length && key==="text") {
+        sec.paragraphs[index].in_style = styleValue.toLowerCase();
+      }
+
+      setBook(updated); // fix: il valore della textarea prende ',,'
+      // 4) salva su db
       const res = BookHook.updateBook(book_id, updated, false);
       // feedback
       if (!res) console.error("Errore nel salvataggio");
       toast.success("Paragrafo modificato");
     },
 
+    // gestisce alcune gesture speciali (es. Enter, Tab)
+    handleKey(e: React.KeyboardEvent<HTMLTextAreaElement>){
+      
+      // 1) dati
+      if (!book) return console.error("Libro non disponibile");
+      const {value, id} = e.target as HTMLTextAreaElement;
+      const [_index, key] = id.split(">") as [string, keyof Paragraph];
+      const index = parseInt(_index);
+      if(isNaN(index) || !key) return console.error("Parametri non validi");
+      const section = SECTION.getSection(book);
+      if(!section) return console.error("Sezione non trovata");
+
+      // helper per cambiare il focus
+      function _changeFocus(direction: "up" | "down") {
+        const selector = `${index + (direction === "up" ? -1 : 1)}>${key}`;
+        setTimeout(() => {
+          const el = document.getElementById(selector);
+          if(!el) return console.error("Elemento non trovato");
+          el.focus();
+        }, 10);
+      }
+
+      switch (e.key) {
+        // 2) Invio -> crea nuovo paragrafo
+        case "Enter":
+          // TESTO
+          if(key === "text"){     
+            e.preventDefault()        
+            PARAG.handleCreate(index); // crea paragrafo
+            _changeFocus("down");
+          // STILE
+          } else if(key==="in_style"){            
+            e.preventDefault();
+            (e.target as HTMLTextAreaElement).blur(); //fix: non effettua il blur
+          }
+        break;
+      
+        // 3) Backspace -> elimina paragrafo corrente
+        case "Backspace":
+          if(key === "text" && value === "") {
+            const targetParag = section?.paragraphs?.[index];
+            if(!targetParag) return console.error("Paragrafo non trovato");
+            PARAG.handleRemove(index, targetParag, true);
+            // focus sul paragrafo precedente
+            _changeFocus("up");
+          }
+        break;
+        // 4) freccia in alto -> focus sul paragrafo precedente
+        case "ArrowUp":
+          if(key === "text") {
+            _changeFocus("up");
+          }
+        break;
+        // 5) freccia in basso -> focus sul paragrafo successivo
+        case "ArrowDown":
+          if(key === "text") {
+            _changeFocus("down");
+          }
+        break;
+      }
+    },
+
     // recupera le classi che cominciano per 'ex:'
     getExternalStyle(paragraph: Paragraph) {
       // divide le classi
-      const classes = paragraph.in_style
-        ?.replace(/\n/g, " ")
-        .split(" ") || [];
+      const classes = paragraph.in_style?.split(" ") || [];
       // recupera solo quelle che cominciano per 'ex:'
       const filtered = classes.filter(cls => cls.startsWith("ex:"));
       return filtered.join(" ") .replaceAll("ex:", "");
@@ -205,8 +279,8 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
     },
 
 
-    async handleRemove(index: number, paragraph: Paragraph) {
-      if (paragraph.text.length && !(await agree.danger(
+    async handleRemove(index: number, paragraph: Paragraph, skipCpnfirm = false) {
+      if (paragraph.text.length && !skipCpnfirm && !(await agree.danger(
           `Rimuovere il paragrafo "${paragraph.text}"?`,"Rimuovi"))
       ) return;
   

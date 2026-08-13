@@ -8,18 +8,20 @@ import { useMemo } from "react";
 import EditModeComponent from "@/app/shareds/EditModeComponent";
 import Navigation from "@/app/shareds/Navigation";
 
-interface AddProps { handleCreate: Function }
-function AddParagraphButton({ handleCreate }: AddProps) {
-  return <div className="pe-3 flex gap-2 items-center">
-    <button
-      onClick={() => handleCreate()}
-      className="block px-1 rounded-full bg-blue-900 text-blue-300 border"
-      aria-label="Aggiungi paragrafo"
-    >
-      <i className="bi bi-plus-lg"></i>
-    </button>
-    <div className="flex-1 border-y border-dashed border-blue-300"></div>
-  </div>
+interface AddProps { handleCreate: Function; if: boolean; className?: string }
+function AddParagraphButton({ if: show, handleCreate, className = "" }: AddProps) {
+  return <Frag if={show} className={`absolute start-0 w-full ${className}`}>
+    <div className="pe-3 flex gap-2 items-center">
+      <button
+        onClick={() => handleCreate()}
+        className="absolute start-0 -top-3 z-1 block px-1 rounded-full bg-blue-900 text-blue-300 border"
+        aria-label="Aggiungi paragrafo"
+      >
+        <i className="bi bi-plus-lg"></i>
+      </button>
+      <div className="absolute w-full pointer-events-none border-y border-dashed border-blue-300"></div>
+    </div>
+  </Frag>
 }
 
 type SectionTemplateProps = ReturnType<typeof useSectionComponent>;
@@ -74,7 +76,7 @@ export default function SectionTemplate({
 
 
           {/* WRAPPER PARAGRAFI */}
-          <Frag if={showParagraphs} className="pb-30">
+          <Frag if={showParagraphs} className="pb-10">
             {/* nessun paragrafo */}
             <Frag.Else>
               <div className="py-10 text-center">
@@ -96,10 +98,11 @@ export default function SectionTemplate({
                 <div key={paragraph_i} className="relative">
                   
                   {/* PULSANTE INSERIMENTO */}
-                  <Frag if={isEditMode && paragraph_i === 0} 
-                        className="absolute top-0 start-0 z-1 w-full -translate-y-1">
-                    <AddParagraphButton handleCreate={() => PARAG.handleCreate("top")} />
-                  </Frag>
+                  <AddParagraphButton 
+                    if={isEditMode && paragraph_i === 0} 
+                    className="top-0 -translate-y-1"
+                    handleCreate={() => PARAG.handleCreate("top")} 
+                  />
 
                   {/* PARAGRAFO */}
                   <div className={`py-3 ${PARAG.getExternalStyle(p)}`}>
@@ -108,7 +111,7 @@ export default function SectionTemplate({
                       {/* TESTO */}
                       <div className="flex-1">
                         <Field
-                          input_class="p-1 text-center"
+                          input_class={`p-1 text-center ${isEditMode && PARAG.bottomInput.index===paragraph_i ? 'outline-3 outline-gray-500 outline-dashed' : ''}`}
                           placeholder="Testo del paragrafo"
                           value={p.text}
                           disabled={!isEditMode}
@@ -116,32 +119,34 @@ export default function SectionTemplate({
                           label="Testo del paragrafo"
                           asterisk
                           type="textarea"
-                          id={"text>" + paragraph_i}
-                          onChange={(_e) => PARAG.handleChange(paragraph_i,"text",_e.target.value)}
+                          id={paragraph_i+">text"}
+                          onChange={(_e) => PARAG.handleChange(_e)}
+                          onKeyDown={(_e:any) => PARAG.handleKey(_e)}
                           error_message={errors[`${paragraph_i}>text`]}
-                          onClick={() => PARAG.setBottomInput(paragraph_i)}
+                          onFocus={() => PARAG.setBottomInput(paragraph_i)}
                         />
                       </div>
-
-                      {/* RIMUOVI PARAGRAFO */}
-                      <Frag if={isEditMode} className="pr-1 pt-3 absolute top-0 end-0">
-                        <button
-                          type="button"
-                          onClick={() =>PARAG.handleRemove(paragraph_i,p)}
-                          className="px-2 py-1 bg-red-700 text-white border rounded-full">
-                          <i className="bi bi-trash"></i>
-                        </button>
-                      </Frag>
 
                     </div>
                   </div>
                   {/* PARAGRAFO */}
 
-                  {/* PULSANTE INSERIMENTO */}
-                  <Frag if={isEditMode} 
-                        className="absolute bottom-0 start-0 z-1 w-full translate-y-1">
-                    <AddParagraphButton handleCreate={() => PARAG.handleCreate(paragraph_i)} />
+                  {/* RIMUOVI PARAGRAFO */}
+                  <Frag if={isEditMode} className="pr-1 pt-3 absolute top-0 end-0 z-1">
+                    <button
+                      type="button"
+                      onClick={() =>PARAG.handleRemove(paragraph_i,p)}
+                      className="px-2 py-1 bg-red-700 text-white outline rounded-full">
+                      <i className="bi bi-trash"></i>
+                    </button>
                   </Frag>
+
+                  {/* PULSANTE INSERIMENTO */}
+                  <AddParagraphButton 
+                    if={isEditMode} 
+                    className="bottom-0"
+                    handleCreate={() => PARAG.handleCreate(paragraph_i)} 
+                  />
 
                 </div>
               )
@@ -151,47 +156,46 @@ export default function SectionTemplate({
         </Frag>
 
         {/* INPUT STYLE */}
+        <EditModeComponent page={page}/>
+
         <Frag if={!!(isEditMode && PARAG.bottomInput.isVisible)}>
           <div className="fixed bottom-0 left-0 z-2 w-full">
-            <div className="mx-auto max-w-[400px] p-2 flex gap-2 items-end bg-gray-900 relative">
+            <div className="ps-2 pb-2 mx-auto max-w-[400px] flex gap-2 items-end relative">
 
-              <div className="absolute bottom-15 right-2 z-1">
+              <div className="absolute bottom-15 right-4 z-1">
                 {/* pusante chiusura */}
-                <button className="px-2 py-1 bg-red-700 border rounded-full text-xl" 
+                <button className="px-2 py-1 bg-red-700 outline rounded-full text-xl" 
                         onClick={() => PARAG.setBottomInput(null)}
                         role="button">
                   <i className="bi bi-x-lg"></i>
                 </button>
               </div>
               
-              <i className="py-2 bi bi-palette"></i>
-              <div className="flex-1">
-                <Field
-                  type="textarea"
-                  input_class="px-3 py-2 max-h-[100px]"
-                  placeholder="Stile Tailwind"
-                  value={PARAG.bottomInput.value}
-                  disabled={!isEditMode}
-                  hide_label
-                  label="Aggiungi classi Tailwind"
-                  asterisk
-                  id="style"
-                  onChange={(_e) =>PARAG.handleChange(PARAG.bottomInput.index, "in_style", _e.target.value)}
-                  error_message={errors[`${PARAG.bottomInput.index}>style`]}
-                />
+              <div className="ps-2 flex-1 flex gap-1 bg-white text-black outline-2 rounded">
+                <i className="py-2 bi bi-palette"></i>
+                <div className="flex-1">
+                  <Field
+                    type="textarea"
+                    input_class="p-2 max-h-[100px]"
+                    placeholder="Classe Tailwind"
+                    value={PARAG.bottomInput.value.toLowerCase()}
+                    disabled={!isEditMode}
+                    hide_label
+                    label="Aggiungi classe Tailwind"
+                    asterisk
+                    id={`${PARAG.bottomInput.index}>in_style`}
+                    onChange={(_e) =>PARAG.handleChange(_e)}
+                    onKeyDown={(_e:any) =>PARAG.handleKey(_e)}
+                    error_message={errors[`${PARAG.bottomInput.index}>in_style`]}
+                  />
+                </div>
               </div>
-              <button className="py-2 px-3 bg-green-700 text-white rounded-full" role="button">
-                <i className="bi bi-send"></i>
-              </button>
+              <i className="px-7"></i>
             </div>
           </div>
         </Frag>
         {/* INPUT STYLE */}
       </section>
-
-      <Frag if={!(isEditMode && PARAG.bottomInput.isVisible)}>
-        <EditModeComponent page={page}/>
-      </Frag>
     </main>
   );
 }

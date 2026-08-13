@@ -16,7 +16,9 @@ const allowed_styles = [
   "p-", "py-", "px-", "pt-", "pb-", "pl-", "pr-", 
   "text-", "border", "bg-", "outline", "shadow",
   "translate-", "rounded", "slash-",
-  "ex:", "full-", "mini", "comix" // custom classes
+  // custom classes
+  "ex:", "full",  
+  "v", "vignetta", "f", "fumetto", "s", "spazio"
 ] as const;
 
 

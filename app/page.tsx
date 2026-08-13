@@ -21,7 +21,7 @@ export default function Home() {
             </p>
             <Link 
               href="/books"
-              className="inline-block bg-yellow-400 text-gray-900 font-bold text-xl px-8 py-4 rounded-lg transition-all transform hover:scale-105 slash-x"
+              className="inline-block bg-yellow-400 text-gray-900 font-bold text-xl px-8 py-4 transition-all transform hover:scale-105 slash-x"
               style={{ fontFamily: 'var(--font-comicNeue)' }}
             >
               <i className="bi bi-book me-2"></i>
@@ -47,7 +47,7 @@ export default function Home() {
               ].map((tech, index) => (
                 <div 
                   key={index}
-                  className="bg-gray-700 p-6 rounded-lg text-center hover:bg-gray-600 transition-colors slash-y"
+                  className="bg-gray-700 p-6 text-center hover:bg-gray-600 transition-colors slash-y"
                 >
                   <i className={`bi ${tech.icon} text-3xl text-yellow-400 mb-3`}></i>
                   <p className="font-semibold text-lg" style={{ fontFamily: 'var(--font-comicNeue)' }}>

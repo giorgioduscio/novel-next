@@ -1,10 +1,4 @@
 #SectionComponent
-    input:not([disabled]), textarea:not([disabled])
-        box-shadow: 0 0 10px blue !important
-
-        &:focus
-            outline: 1px solid blue
-
     input, textarea
         display: block
         width: 100%
@@ -14,31 +8,31 @@
             box-shadow: 0 0 10px red !important
 
     // stili standard
-    .mini
+    .v, .vignetta
         margin: 0 2rem
         color: black
         background: white
         border: 0.2rem solid black
-    .mini-right
+    .vd, .vignetta-destra
         margin-left: 4rem
         color: black
         background: white
         border: 0.2rem solid black
-    .mini-left
+    .vs, .vignetta-sinistra
         margin-right: 4rem
         color: black
         background: white
         border: 0.2rem solid black
                 
     // fumetto
-    .comix-right
+    .fd, .fumetto-destra
         width: fit-content
         max-width: 100%
         margin-left: auto
         border-width: 0.1rem 
         border-radius: 1.5rem
         border-top-right-radius: 0
-    .comix-left
+    .fs, .fumetto-sinistra
         width: fit-content
         max-width: 100%
         margin-right: auto
@@ -46,9 +40,9 @@
         border-radius: 1.5rem
         border-top-left-radius: 0
 
-    .full-main
+    .full
         margin: 0 0.5rem
-        padding-bottom: 2rem
+        padding-bottom: 1rem
         color: black
         background: white
         border: 0.2rem solid black
@@ -59,3 +53,6 @@
         background: white
         border: 0.2rem solid black
         transform: translateY(-2rem)
+    
+    div:has(.spazio-schermo)
+        padding-bottom: 40vh

@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import "./globals.sass";
 import "bootstrap-icons/font/bootstrap-icons.css";
-import Footer from "./shareds/Footer";
 import { AgreeProvider } from "./shareds/Agree";
 import { bubblegum, comicNeue } from "./styles/fonts";
+import BottomFooter from "./shareds/BottomFooter";
 
 
 export const metadata: Metadata = {
@@ -28,7 +28,7 @@ export default function RootLayout({
           </div>
         </AgreeProvider>
 
-        <Footer />
+        <BottomFooter />
       </body>
     </html>
   );

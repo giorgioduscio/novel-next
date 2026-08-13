@@ -1,5 +1,5 @@
 
-export default function Footer() {
+export default function BottomFooter() {
   return (
     <footer className="bg-gray-800">
       <div className="max-w-7xl mx-auto p-4">
