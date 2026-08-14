@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
+import useCommonPagesHook from '../data/useCommonPagesHook';
 
 interface NavigationProps {
   page_title: string;
@@ -12,6 +13,7 @@ interface NavigationProps {
 export default function Navigation({ page_title, back_btn }: NavigationProps) {
   const [title, setTitle] = useState('');
   const pathname = usePathname();
+  const page = useCommonPagesHook()
   
 
   useEffect(()=>{
@@ -33,8 +35,13 @@ export default function Navigation({ page_title, back_btn }: NavigationProps) {
             )}
 
             {title && (
-              <h1 className="py-3 px-1 text-bold truncate">{title || 'NovelNext'}</h1>
+              <h1 className="py-3 px-1 text-bold truncate flex-1">{title || 'NovelNext'}</h1>
             )}
+
+            <div className='me-start px-1 grid text-gray-400'>
+              <small>X: {page.screenWidth}</small>
+              <small>Y: {page.screenHeight}</small>
+            </div>
 
           </div>
         </div>

@@ -42,44 +42,7 @@ export default function SectionTemplate({
     <main id="SectionComponent">
       <Navigation back_btn={{ href: `/books/${book_id}` }} page_title={section_title} />
 
-      {/* INPUT STYLE */}
       <Breadcrumb />
-      <Frag if={!!(isEditMode && PARAG.styleInput.isVisible)}>
-        <div className="fixed top-12 left-0 z-2 w-full">
-          <div className="px-2 mx-auto max-w-[400px]">
-
-            <div className="grid grid-cols-[auto_1fr_auto] items-start bg-white text-black outline-2 rounded">
-              <label htmlFor={`${PARAG.styleInput.index}>in_style`} 
-                    className="px-1 py-2 bi bi-palette"></label>
-              <div className="">
-                <Field
-                  type="textarea"
-                  input_class="px-1 py-2 max-h-[100px]"
-                  placeholder="Classe Tailwind"
-                  value={SECTION.bookSection?.paragraphs?.[PARAG.styleInput.index]?.in_style?.toLowerCase() || ""}
-                  disabled={!isEditMode}
-                  hide_label
-                  label="Aggiungi classe Tailwind"
-                  asterisk
-                  id={`${PARAG.styleInput.index}>in_style`}
-                  onChange={(_e) =>PARAG.handleChange(_e)}
-                  onKeyDown={(_e:any) =>PARAG.handleKey(_e)}
-                  error_message={errors[`${PARAG.styleInput.index}>in_style`]}
-                />
-              </div>
-              {/* pusante chiusura */}
-              <button className="p-2 bg-gray-400 rounded" 
-                      onClick={() => PARAG.setStyleInput(null)}
-                      aria-label="Chiudi stile"
-                      role="button">
-                <i className="bi bi-eye-slash-fill"></i>
-              </button>
-            </div>
-            
-          </div>
-        </div>
-      </Frag>
-      {/* INPUT STYLE */}
 
       <section className="min-h-screen mx-auto container max-w-[400px]">
         {/* SEZIONE NON TROVATA */}
@@ -147,9 +110,9 @@ export default function SectionTemplate({
                     <div className={`p-1 ${p.in_style || ""}`}>
 
                       {/* TESTO */}
-                      <div className="flex-1">
+                      <div className={`${isEditMode && PARAG.styleInput.index===paragraph_i ? 'outline-3 outline-dashed outline-black' : ''}`}>
                         <Field
-                          input_class={`p-1 text-center ${isEditMode && PARAG.styleInput.index===paragraph_i ? 'outline-3 outline-gray-500 outline-dashed' : ''}`}
+                          input_class={`p-1 text-center ${isEditMode && PARAG.styleInput.index===paragraph_i ? 'outline-3 outline-white' : ''}`}
                           placeholder="Testo del paragrafo"
                           value={p.text}
                           disabled={!isEditMode}
@@ -177,6 +140,30 @@ export default function SectionTemplate({
                       className="px-2 py-1 bg-red-700 text-white outline rounded-full">
                       <i className="bi bi-trash"></i>
                     </button>
+                  </Frag>
+
+                  
+                  {/* STILE */}
+                  <Frag if={PARAG.styleInput.index===paragraph_i && isEditMode} 
+                        className="absolute z-2 w-full">
+                    <div className="px-5">
+                      <div className="grid grid-cols-[auto_1fr] gap-1 py-1 px-2 bg-white/90 text-black outline rounded">
+                        <label htmlFor={paragraph_i+">in_style"} className="bi bi-palette" title="Stile del paragrafo"></label>
+                        <Field
+                          input_class={`px-1`}
+                          placeholder="Stile del paragrafo"
+                          value={p.in_style || ""}
+                          disabled={!isEditMode}
+                          hide_label
+                          label="Stile del paragrafo"
+                          type="textarea"
+                          id={paragraph_i+">in_style"}
+                          onChange={(_e) => PARAG.handleChange(_e)}
+                          onKeyDown={(_e:any) => PARAG.handleKey(_e)}
+                          error_message={errors[`${paragraph_i}>in_style`]}
+                        />
+                      </div>
+                    </div>
                   </Frag>
 
                   {/* PULSANTE INSERIMENTO */}

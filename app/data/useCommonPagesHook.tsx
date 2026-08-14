@@ -26,6 +26,7 @@ export default function useCommonPagesHook() {
   const [isPageLoaded, setIsPageLoaded] = useState(false);
   // Larghezza schermo
   const [screenWidth, setScreenWidth] = useState(400);
+  const [screenHeight, setScreenHeight] = useState(400);
 
   useEffect(() => {
     if (typeof window == "undefined") return;
@@ -37,10 +38,14 @@ export default function useCommonPagesHook() {
 
     // Larghezza schermo
     const setWidth = () => setScreenWidth(window.innerWidth);
+    const setHeight = () => setScreenHeight(window.innerHeight);
     setWidth();
+    setHeight();
     window.addEventListener("resize", setWidth);
+    window.addEventListener("resize", setHeight);
     return () => {
       window.removeEventListener("resize", setWidth);
+      window.removeEventListener("resize", setHeight);
     };
   }, []);
 
@@ -50,5 +55,6 @@ export default function useCommonPagesHook() {
     setIsEditMode,
     isPageLoaded,
     screenWidth,
+    screenHeight,
   };
 }
