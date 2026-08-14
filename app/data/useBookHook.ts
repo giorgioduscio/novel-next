@@ -155,8 +155,8 @@ export default function useBookHook() {
       if (!validatedBook) return null;
   
       setBooks((prevBooks) => prevBooks.map((book) => (book.id === id ? validatedBook : book)));
-  
-      API.saveSingleBook(validatedBook);
+      
+      API.saveDebounced(validatedBook);
   
       return validatedBook;
     },

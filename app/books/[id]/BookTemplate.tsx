@@ -43,7 +43,7 @@ export default function BookTemplate({
           <section className="pb-10 mx-auto container max-w-[800px] shadow-lg">
             {/* HEADER */}
             <div className="p-3 py-8 text-center">
-              <div className="grid grid-cols-1 sm:grid-cols-[1fr_2fr] gap-1 items-end">
+              <div className="grid grid-cols-1 sm:grid-cols-[1fr_2fr] gap-1">
                 <div>
 
                   <h2 className="hidden">{book?.title}</h2>
@@ -51,9 +51,9 @@ export default function BookTemplate({
                     <Field id={"title"} 
                             hide_label
                             label={"Titolo"} 
-                            input_class={`p-2 text-center rounded text-3xl font-bold ${isEditMode ?'border' :''}`}
+                            input_class={`p-2 rounded text-2xl ${isEditMode ?'bg-white text-black outline' :''}`}
                             asterisk
-                            type={"text"} 
+                            type={"textarea"} 
                             placeholder={"Titolo"} 
                             disabled={!isEditMode}
                             value={book?.title || ""} 
@@ -61,11 +61,12 @@ export default function BookTemplate({
                             onChange={_e=> handleUpdateBook("title", _e.target.value)} 
                     />
                   </div>
+                  <div className="mx-3 border-y border-gray-500"></div>
                   <div>
                     <Field id={"author"} 
                             hide_label
                             label={"Autore"} 
-                            input_class={`p-2 text-center rounded ${isEditMode ?'border' :'text-gray-300'}`}
+                            input_class={`p-2 rounded italic ${isEditMode ?'bg-white text-black outline' :'text-gray-300'}`}
                             asterisk
                             type={"text"} 
                             placeholder={"Autore"} 
@@ -80,7 +81,7 @@ export default function BookTemplate({
                   <Field id={"description"} 
                           hide_label
                           label={"Descrizione"} 
-                          input_class={`p-2 text-center rounded ${isEditMode ?'border' :'text-gray-300'}`}
+                          input_class={`p-4 rounded ${isEditMode ?'bg-white text-black outline' :'text-gray-300'}`}
                           asterisk
                           type={"textarea"} 
                           placeholder={"Descrizione"} 

@@ -33,7 +33,7 @@ export default function Navigation({ page_title, back_btn }: NavigationProps) {
             )}
 
             {title && (
-              <h1 className="p-3 text-bold truncate">{title || 'NovelNext'}</h1>
+              <h1 className="py-3 px-1 text-bold truncate">{title || 'NovelNext'}</h1>
             )}
 
           </div>
