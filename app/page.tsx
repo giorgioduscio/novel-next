@@ -2,6 +2,15 @@ import Link from "next/link";
 import Navigation from "./shareds/Navigation";
 
 export default function Home() {
+  const tools =[
+    { name: 'Docker', icon: 'bi-box-seam' },
+    { name: 'Next.js', icon: 'bi-lightning' },
+    { name: 'TailwindCSS', icon: 'bi-palette' },
+    { name: 'TypeScript', icon: 'bi-code-slash' },
+    { name: 'Valibot', icon: 'bi-shield-check' },
+    { name: 'Bootstrap Icons', icon: 'bi-bootstrap' }
+  ];
+  
   return (
     <main id="Home">
       <Navigation page_title="Home" />
@@ -10,10 +19,10 @@ export default function Home() {
         {/* Hero Section */}
         <div className="flex flex-col items-center justify-center px-4 py-16">
           <div className="max-w-3xl text-center">
-            <h1 className="text-5xl md:text-7xl font-bold mb-6 text-yellow-400" style={{ fontFamily: 'var(--font-bubblegum)' }}>
+            <h1 className="text-5xl md:text-7xl font-bold mb-6 text-yellow-400">
               Novel <code>Next</code>
             </h1>
-            <p className="text-xl md:text-2xl mb-8 text-gray-200" style={{ fontFamily: 'var(--font-comicNeue)' }}>
+            <p className="text-xl md:text-2xl mb-8 text-gray-200">
               Crea e leggi novelle con un tocco fumettistico
             </p>
             <p className="text-lg mb-12 text-gray-300">
@@ -22,7 +31,6 @@ export default function Home() {
             <Link 
               href="/books"
               className="inline-block bg-yellow-400 text-gray-900 font-bold text-xl px-8 py-4 transition-all transform hover:scale-105 slash-x"
-              style={{ fontFamily: 'var(--font-comicNeue)' }}
             >
               <i className="bi bi-book me-2"></i>
               Inizia a leggere
@@ -32,27 +40,18 @@ export default function Home() {
 
         {/* Tech Stack Section */}
         <section className="bg-gray-800 py-12 px-4">
-          <div className="w-max mx-auto">
+          <div className="max-w-max mx-auto">
             <h2 className="text-3xl font-bold mb-8 text-center text-yellow-400" style={{ fontFamily: 'var(--font-bubblegum)' }}>
               🛠️ Tecnologie utilizzate
             </h2>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              {[
-                { name: 'Docker', icon: 'bi-box-seam' },
-                { name: 'Next.js', icon: 'bi-lightning' },
-                { name: 'TailwindCSS', icon: 'bi-palette' },
-                { name: 'TypeScript', icon: 'bi-code-slash' },
-                { name: 'Valibot', icon: 'bi-shield-check' },
-                { name: 'Bootstrap Icons', icon: 'bi-bootstrap' }
-              ].map((tech, index) => (
+            <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
+              {tools.map((tech, index) => (
                 <div 
                   key={index}
-                  className="bg-gray-700 p-6 text-center hover:bg-gray-600 transition-colors slash-y"
+                  className="p-2 py-6 bg-gray-700 text-center hover:bg-gray-600 transition-colors slash-y"
                 >
                   <i className={`bi ${tech.icon} text-3xl text-yellow-400 mb-3`}></i>
-                  <p className="font-semibold text-lg" style={{ fontFamily: 'var(--font-comicNeue)' }}>
-                    {tech.name}
-                  </p>
+                  <p className="font-semibold text-lg">{tech.name}</p>
                 </div>
               ))}
             </div>

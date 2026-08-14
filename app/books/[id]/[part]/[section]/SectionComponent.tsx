@@ -9,6 +9,7 @@ import { useAgreeWrapper } from "@/app/shareds/Agree";
 import { debounce, toast } from "@/app/tools/feedbacksUI";
 import SectionTemplate from "./SectionTemplate";
 import useBookHook from "@/app/data/useBookHook";
+import { keyboardFeatures } from "./keyboardFeatures";
 
 
 export default function SectionComponent(props: UseSectionComponentProps) {
@@ -113,19 +114,19 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
   
 
   // 4) PARAGRAFI
-  const [_bottomInput, _setBottomInput] = useState({
+  const [_styleInput, _setStyleInput] = useState({
     index:-1, isVisible:false,
   });
   const PARAG = {
     // crea nuovo paragrafo senza salvarlo
-    handleCreate(index?: number |'top') {
+    handleCreate(index?: number |'top', paragraphText="") {
       if (!book) return console.error("Libro non disponibile");
         
       const updated = structuredClone(book);
       const sec = SECTION.getSection(updated);
       if (!sec) return console.error("Sezione non trovata");
   
-      const newParagraph: Paragraph = { in_style: "", text: "" };
+      const newParagraph: Paragraph = { in_style: "", text: paragraphText };
       if (!sec.paragraphs) sec.paragraphs = [];
 
       // stringa TOP -> aggiungi in cima
@@ -143,6 +144,8 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
   
       // aggiorna lo stato
       setBook(updated);
+      // salvataggio condizionale
+      if(paragraphText) BookHook.updateBook(book_id, updated, false);
       // feedback
       toast.success("Paragrafo aggiunto");
     },
@@ -182,66 +185,10 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
       toast.success("Paragrafo modificato");
     },
 
-    // gestisce alcune gesture speciali (es. Enter, Tab)
+    // gestisce alcune funzionalità speciali (es. Enter, Tab)
     handleKey(e: React.KeyboardEvent<HTMLTextAreaElement>){
-      
-      // 1) dati
-      if (!book) return console.error("Libro non disponibile");
-      const {value, id} = e.target as HTMLTextAreaElement;
-      const [_index, key] = id.split(">") as [string, keyof Paragraph];
-      const index = parseInt(_index);
-      if(isNaN(index) || !key) return console.error("Parametri non validi");
-      const section = SECTION.getSection(book);
-      if(!section) return console.error("Sezione non trovata");
-
-      // helper per cambiare il focus
-      function _changeFocus(direction: "up" | "down") {
-        const selector = `${index + (direction === "up" ? -1 : 1)}>${key}`;
-        setTimeout(() => {
-          const el = document.getElementById(selector);
-          if(!el) return console.error("Elemento non trovato");
-          el.focus();
-        }, 10);
-      }
-
-      switch (e.key) {
-        // 2) Invio -> crea nuovo paragrafo
-        case "Enter":
-          // TESTO
-          if(key === "text"){     
-            e.preventDefault()        
-            PARAG.handleCreate(index); // crea paragrafo
-            _changeFocus("down");
-          // STILE
-          } else if(key==="in_style"){            
-            e.preventDefault();
-            (e.target as HTMLTextAreaElement).blur(); //fix: non effettua il blur
-          }
-        break;
-      
-        // 3) Backspace -> elimina paragrafo corrente
-        case "Backspace":
-          if(key === "text" && value === "") {
-            const targetParag = section?.paragraphs?.[index];
-            if(!targetParag) return console.error("Paragrafo non trovato");
-            PARAG.handleRemove(index, targetParag, true);
-            // focus sul paragrafo precedente
-            _changeFocus("up");
-          }
-        break;
-        // 4) freccia in alto -> focus sul paragrafo precedente
-        case "ArrowUp":
-          if(key === "text") {
-            _changeFocus("up");
-          }
-        break;
-        // 5) freccia in basso -> focus sul paragrafo successivo
-        case "ArrowDown":
-          if(key === "text") {
-            _changeFocus("down");
-          }
-        break;
-      }
+      if(!book) return console.error("libro non disponibile");
+      return keyboardFeatures(book_id, e, book, setBook, SECTION, PARAG, BookHook)
     },
 
     // recupera le classi che cominciano per 'ex:'
@@ -253,14 +200,14 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
       return filtered.join(" ") .replaceAll("ex:", "");
     },
 
-    // form in basso
-    bottomInput: useMemo (()=> _bottomInput, [_bottomInput]),
-    setBottomInput(paragraph_i:number | null){
+    // input di stile
+    styleInput: useMemo (()=> _styleInput, [_styleInput]),
+    setStyleInput(paragraph_i:number | null){
       if(!page.isEditMode) return;
       
       // RESET
       if (paragraph_i === null){
-        _setBottomInput({
+        _setStyleInput({
           isVisible: false,
           index: -1,
         });
@@ -270,7 +217,7 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
       const target = SECTION.bookSection?.paragraphs?.[paragraph_i];
       if (!target) return console.error("Paragrafo non trovato");
       
-      _setBottomInput({ 
+      _setStyleInput({ 
         isVisible: true,
         index: paragraph_i,
       });

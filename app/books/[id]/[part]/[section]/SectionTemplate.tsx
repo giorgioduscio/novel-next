@@ -41,7 +41,45 @@ export default function SectionTemplate({
   return (
     <main id="SectionComponent">
       <Navigation back_btn={{ href: `/books/${book_id}` }} page_title={section_title} />
+
+      {/* INPUT STYLE */}
       <Breadcrumb />
+      <Frag if={!!(isEditMode && PARAG.styleInput.isVisible)}>
+        <div className="fixed top-12 left-0 z-2 w-full">
+          <div className="px-2 mx-auto max-w-[400px]">
+
+            <div className="grid grid-cols-[auto_1fr_auto] items-start bg-white text-black outline-2 rounded">
+              <label htmlFor={`${PARAG.styleInput.index}>in_style`} 
+                    className="px-1 py-2 bi bi-palette"></label>
+              <div className="">
+                <Field
+                  type="textarea"
+                  input_class="px-1 py-2 max-h-[100px]"
+                  placeholder="Classe Tailwind"
+                  value={SECTION.bookSection?.paragraphs?.[PARAG.styleInput.index]?.in_style?.toLowerCase() || ""}
+                  disabled={!isEditMode}
+                  hide_label
+                  label="Aggiungi classe Tailwind"
+                  asterisk
+                  id={`${PARAG.styleInput.index}>in_style`}
+                  onChange={(_e) =>PARAG.handleChange(_e)}
+                  onKeyDown={(_e:any) =>PARAG.handleKey(_e)}
+                  error_message={errors[`${PARAG.styleInput.index}>in_style`]}
+                />
+              </div>
+              {/* pusante chiusura */}
+              <button className="p-2 bg-gray-400 rounded" 
+                      onClick={() => PARAG.setStyleInput(null)}
+                      aria-label="Chiudi stile"
+                      role="button">
+                <i className="bi bi-eye-slash-fill"></i>
+              </button>
+            </div>
+            
+          </div>
+        </div>
+      </Frag>
+      {/* INPUT STYLE */}
 
       <section className="min-h-screen mx-auto container max-w-[400px]">
         {/* SEZIONE NON TROVATA */}
@@ -111,7 +149,7 @@ export default function SectionTemplate({
                       {/* TESTO */}
                       <div className="flex-1">
                         <Field
-                          input_class={`p-1 text-center ${isEditMode && PARAG.bottomInput.index===paragraph_i ? 'outline-3 outline-gray-500 outline-dashed' : ''}`}
+                          input_class={`p-1 text-center ${isEditMode && PARAG.styleInput.index===paragraph_i ? 'outline-3 outline-gray-500 outline-dashed' : ''}`}
                           placeholder="Testo del paragrafo"
                           value={p.text}
                           disabled={!isEditMode}
@@ -123,7 +161,7 @@ export default function SectionTemplate({
                           onChange={(_e) => PARAG.handleChange(_e)}
                           onKeyDown={(_e:any) => PARAG.handleKey(_e)}
                           error_message={errors[`${paragraph_i}>text`]}
-                          onFocus={() => PARAG.setBottomInput(paragraph_i)}
+                          onFocus={() => PARAG.setStyleInput(paragraph_i)}
                         />
                       </div>
 
@@ -155,47 +193,7 @@ export default function SectionTemplate({
           {/* WRAPPER PARAGRAFI */}
         </Frag>
       </section>
-
-        {/* INPUT STYLE */}
-        <EditModeComponent page={page} />
-        <Frag if={!!(isEditMode && PARAG.bottomInput.isVisible)}>
-          <div className="sticky bottom-0 left-0 z-2 w-full">
-            <div className="ps-2 pb-2 mx-auto max-w-[400px] flex gap-2 items-end relative">
-
-              <div className="absolute bottom-15 right-4 z-1">
-                {/* pusante chiusura */}
-                <button className="px-2 py-1 bg-red-700 outline rounded-full text-xl" 
-                        onClick={() => PARAG.setBottomInput(null)}
-                        aria-label="Chiudi stile"
-                        role="button">
-                  <i className="bi bi-x-lg"></i>
-                </button>
-              </div>
-              
-              <div className="ps-2 flex-1 flex gap-1 items-center bg-white text-black outline-2 rounded">
-                <i className="bi bi-palette"></i>
-                <div className="flex-1">
-                  <Field
-                    type="textarea"
-                    input_class="p-2 max-h-[100px]"
-                    placeholder="Classe Tailwind"
-                    value={SECTION.bookSection?.paragraphs?.[PARAG.bottomInput.index]?.in_style?.toLowerCase() || ""}
-                    disabled={!isEditMode}
-                    hide_label
-                    label="Aggiungi classe Tailwind"
-                    asterisk
-                    id={`${PARAG.bottomInput.index}>in_style`}
-                    onChange={(_e) =>PARAG.handleChange(_e)}
-                    onKeyDown={(_e:any) =>PARAG.handleKey(_e)}
-                    error_message={errors[`${PARAG.bottomInput.index}>in_style`]}
-                  />
-                </div>
-              </div>
-              <i className="px-7"></i>
-            </div>
-          </div>
-        </Frag>
-        {/* INPUT STYLE */}
+      <EditModeComponent page={page} />
     </main>
   );
 }

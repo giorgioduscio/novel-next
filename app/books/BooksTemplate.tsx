@@ -85,7 +85,7 @@ export default function BooksTemplate({
             </Frag.Else>
 
             {/* LISTA LIBRI */}
-            <ol className="flex flex-wrap gap-2 items-start">
+            <ol className="flex flex-wrap gap-2 items-start justify-around">
               {books.map((book, book_i) => (
                 <li key={book.id + book.title} className="min-w-[150px] rounded overflow-hidden border border-gray-400 shadow-lg">
                   <div className="text-center relative">

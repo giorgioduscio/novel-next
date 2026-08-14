@@ -37,7 +37,7 @@ export const paragraph_schema = v.object({
   in_style: v.optional(v.pipe(v.string(), 
     v.check((v) => validateStyle(v), "in_style: Solo stili ornamentali (m-, p-, text-, border-, bg-, outline-, shadow-, translate-)")
   )),
-  text: v.pipe(v.string(), v.minLength(3, "text: Il testo del paragrafo deve contenere almeno 3 caratteri")),
+  text: v.string(),
 });
 
 export const section_schema = v.object({
