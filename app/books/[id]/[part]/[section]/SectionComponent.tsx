@@ -115,7 +115,7 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
 
   // 4) PARAGRAFI
   const [_styleInput, _setStyleInput] = useState({
-    index:-1, isVisible:false,
+    index:-1, isVisible:false, 
   });
   const PARAG = {
     // crea nuovo paragrafo senza salvarlo
@@ -202,25 +202,29 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
 
     // input di stile
     styleInput: useMemo (()=> _styleInput, [_styleInput]),
-    setStyleInput(paragraph_i:number | null){
+    setStyleInput(paragraph_i?:number){
       if(!page.isEditMode) return;
       
+      console.log('paragraph_i', paragraph_i);
+      
       // RESET
-      if (paragraph_i === null){
-        _setStyleInput({
+      if (paragraph_i === undefined){
+        _setStyleInput(prev=> ({ 
+          ...prev,
           isVisible: false,
           index: -1,
-        });
+        }));
         return;
       }
       // cerca paragrafo
       const target = SECTION.bookSection?.paragraphs?.[paragraph_i];
       if (!target) return console.error("Paragrafo non trovato");
       
-      _setStyleInput({ 
+      _setStyleInput(prev=> ({ 
+        ...prev, 
         isVisible: true,
         index: paragraph_i,
-      });
+      }));
     },
 
 

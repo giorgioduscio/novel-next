@@ -18,75 +18,90 @@ interface FieldProps {
   [key: string]: any;
 }
 
-export default function Field({
-  label, type, placeholder, value, onChange,
-  hide_label, input_class, inline, disabled,
-  rows, id, error_message, asterisk, message, 
-  autoComplete ="off",
-  ...rest
-}: FieldProps) {
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const [localValue, setLocalValue] = useState(value);
 
-  // Sincronizza il valore locale quando cambia il valore prop
+const useEvents = ({ value, onChange }: Partial<FieldProps>) => {
+
+  // Sincronizza localValue con value
   useEffect(() => {
-    setLocalValue(value);
+    setLocalValue(value || false);
   }, [value]);
+  
 
-  const _events = {
     // Gestisce il cambiamento del valore locale
-    handleLocalChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
+  function handleLocalChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>){
       setLocalValue(e.target.value);
-    },
-
-    // Gestisce il blur (perdita di focus)
-    handleBlur(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
-      const hasChanged = localValue !== value;
-
-      if (!hasChanged) return;
-      onChange?.(e);
-    },
-
-    // Gestisce la pressione di Enter (solo per input non textarea)
-    handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
-      if (e.key === "Enter") {
-        const hasChanged = localValue !== value;       
-
-        if (!hasChanged) return;
-        onChange?.(e as any);
-      }
-    },
   };
 
-  // Adatta automaticamente l'altezza della textarea al contenuto.
-  // Viene richiamata quando cambia il testo oppure quando cambia la larghezza
+    // Gestisce il blur (perdita di focus)
+  function handleBlur (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>){
+    const hasChanged = localValue !== value;
+    if (!hasChanged) return;
+    onChange?.(e);
+  };
+
+    // Gestisce la pressione di Enter (solo per input non textarea)
+  function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key === "Enter") {
+      const hasChanged = localValue !== value;
+      if (!hasChanged) return;
+      onChange?.(e as any);
+    }
+  };
+
+  const [localValue, setLocalValue] = useState(value || false);
+  return { localValue, setLocalValue, handleLocalChange, handleBlur, handleKeyDown };
+};
+
+
+// Custom Hook per gestire l'adattamento mobile
+const useMobile = ({ type }: Partial<FieldProps>) => {
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const inputRefInternal = useRef<HTMLInputElement | null>(null);
+
+  useEffect(() => {
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+  
+
+    // Gestisce il resize della finestra in base alla presenza della tastiera
+  function handleResize() {
+    const keyboardHeight = window.innerHeight - document.documentElement.clientHeight;
+    document.body.style.paddingBottom = `${keyboardHeight}px`;
+  }
+
+  // Scrolla la pagina per visualizzare l'elemento
+  function handleFocus() {
+    const element = type === 'textarea' ? textareaRef.current : inputRefInternal.current;
+    element?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+  }
+
+  return { textareaRef, inputRefInternal, handleFocus, handleResize };
+};
+
+
+// Custom Hook per gestire il ridimensionamento della textarea
+function useResize({ rows, localValue }: Partial<FieldProps>) {
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
   const applyResize = useCallback(() => {
     const textarea = textareaRef.current;
     if (!textarea) return;
 
-    // Ripristina l'altezza naturale per permettere il ricalcolo corretto
-    // anche quando il contenuto viene ridotto.
+    // Ripristina l'altezza naturale
     textarea.style.height = "auto";
-
-    // Imposta l'altezza necessaria a visualizzare tutto il contenuto
-    // senza scrollbar verticale.
+    // Imposta l'altezza necessaria
     textarea.style.height = `${textarea.scrollHeight}px`;
   }, []);
 
-  // Ricalcola l'altezza ogni volta che cambia il valore della textarea.
-  // Se rows è definito, l'autosize viene disabilitato.
   useLayoutEffect(() => {
     if (rows) return;
-
     applyResize();
-  }, [localValue, rows, applyResize]);
+  }, [localValue, rows]);
 
-  // Osserva eventuali variazioni di dimensione della textarea.
-  // Se cambia la larghezza (es. layout responsive), viene ricalcolata
-  // l'altezza perché il testo potrebbe andare a capo diversamente.
+  // Ricalcola l'altezza quando la dimensione della textarea cambia
   useEffect(() => {
     if (rows) return;
-
     const textarea = textareaRef.current;
     if (!textarea) return;
 
@@ -95,9 +110,36 @@ export default function Field({
     });
 
     observer.observe(textarea);
-
     return () => observer.disconnect();
-  }, [rows, applyResize]);
+  }, [rows]);
+
+  return { textareaRef };
+};
+
+
+export default function Field({
+  label,
+  type,
+  placeholder,
+  value,
+  onChange,
+  hide_label,
+  input_class,
+  inline,
+  disabled,
+  rows,
+  id,
+  error_message,
+  asterisk,
+  message,
+  autoComplete = "off",
+  ...rest
+}: FieldProps) {
+  // Custom Hooks
+  const EVENTS = useEvents({ value, onChange });
+  const MOBILE = useMobile({ type });
+  const RESIZE = useResize({ rows, localValue: EVENTS.localValue });
+
 
   const errorId = `${id}-error`;
 
@@ -120,11 +162,11 @@ export default function Field({
       {/* TEXTAREA */}
       {type === "textarea" ? (
         <textarea
-          ref={textareaRef}
+          ref={RESIZE.textareaRef}
           id={id}
           name={id}
           placeholder={placeholder}
-          value={localValue as string}
+          value={EVENTS.localValue as string}
           disabled={disabled}
           rows={rows || 1}
           required={asterisk}
@@ -136,8 +178,9 @@ export default function Field({
             resize: rows ? "vertical" : "none",
             overflow: rows ? "auto" : "hidden",
           }}
-          onChange={_events.handleLocalChange}
-          onBlur={_events.handleBlur}
+          onChange={EVENTS.handleLocalChange}
+          onBlur={EVENTS.handleBlur}
+          onFocus={MOBILE.handleFocus}
           {...rest}
         />
 
@@ -161,9 +204,10 @@ export default function Field({
       /* DEFAULT */
       ) : (
         <input
+          ref={MOBILE.inputRefInternal}
           type={type}
           placeholder={placeholder}
-          value={localValue as string}
+          value={EVENTS.localValue as string}
           id={id}
           name={id}
           disabled={disabled}
@@ -172,9 +216,10 @@ export default function Field({
           aria-invalid={!!error_message}
           aria-describedby={error_message ? errorId : undefined}
           className={`block w-full ${input_class} ${error_message ? "border border-red-500" : ""}`}
-          onChange={_events.handleLocalChange}
-          onBlur={_events.handleBlur}
-          onKeyDown={_events.handleKeyDown}
+          onChange={EVENTS.handleLocalChange}
+          onBlur={EVENTS.handleBlur}
+          onKeyDown={EVENTS.handleKeyDown}
+          onFocus={MOBILE.handleFocus}
           autoComplete={autoComplete}
           {...rest}
         />

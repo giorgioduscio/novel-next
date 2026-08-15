@@ -1,3 +1,5 @@
+"use client";
+
 import Field from "@/app/shareds/Field";
 import Frag from "@/app/shareds/Frag";
 import { LoadingComponent } from "@/app/shareds/LoadingComponent";
@@ -40,7 +42,7 @@ export default function BookTemplate({
         
         {/* LIBRO TROVATO */}
         <Frag if={!!book}>
-          <section className="pb-10 mx-auto container max-w-[800px] shadow-lg">
+          <section className="pb-10 mx-auto container max-w-[800px]">
             {/* HEADER */}
             <div className="p-3 py-8 text-center">
               <div className="grid grid-cols-1 sm:grid-cols-[1fr_2fr] gap-1">
@@ -116,7 +118,7 @@ export default function BookTemplate({
                         <h3 className="hidden">{part.title}</h3>
                         <Field  id={part_i.toString()} 
                                 hide_label label={"Titolo della parte"} 
-                                input_class={`py-2 px-5 font-bold ${isEditMode ? "border" : ""}`}
+                                input_class={`py-2 px-5 font-bold ${isEditMode ? "bg-white text-black outline rounded" : ""}`}
                                 type={"text"} 
                                 disabled={!isEditMode}
                                 placeholder={"Modifica il titolo della parte"} 
@@ -178,7 +180,7 @@ export default function BookTemplate({
                                   <div className={`py-2 px-1 flex-1`}>
                                     <Field  id={"section-" + section_i} 
                                             hide_label label={"Sezione " + (section_i + 1)} 
-                                            input_class={`py-1 px-2 ${isEditMode ?'border rounded' : ''}`}
+                                            input_class={`py-1 px-2 ${isEditMode ?'bg-white text-black outline rounded' : ''}`}
                                             type={"text"} 
                                             placeholder={"Nome della sezione"} 
                                             value={section.title} 

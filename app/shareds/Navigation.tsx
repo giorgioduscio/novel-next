@@ -21,7 +21,7 @@ export default function Navigation({ page_title, back_btn }: NavigationProps) {
   }, [pathname, page_title]);
   
   return (
-    <nav className="sticky top-0 z-50">
+    <nav id="Navigation" className="sticky top-0 z-100">
       <div className="w-full bg-gray-800">
         <div className="mx-auto container max-w-[800px]">
           <div className="flex items-center">
