@@ -38,9 +38,9 @@ export default function Navigation({ page_title, back_btn }: NavigationProps) {
               <h1 className="py-3 px-1 text-bold truncate flex-1">{title || 'NovelNext'}</h1>
             )}
 
-            <div className='me-start px-1 grid text-gray-400'>
-              <small>X: {page.screenWidth}</small>
-              <small>Y: {page.screenHeight}</small>
+            <div className='me-start px-1 grid grid-cols-[auto_1fr] text-gray-500 text-xs'>
+              <i>X:</i> <b>{page.screenWidth}</b>
+              <i>Y:</i> <b>{page.screenHeight}</b>
             </div>
 
           </div>

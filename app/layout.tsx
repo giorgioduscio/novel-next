@@ -19,6 +19,7 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  
   return (
     <html lang="en" className={`${comicNeue.variable} ${bubblegum .variable}`}>
       <head>
@@ -27,7 +28,7 @@ export default function RootLayout({
       <body className="flex flex-col min-h-screen">
         <AgreeProvider>
           <div id="app" className="flex-1">
-            <div>{children}</div>
+            {children}
           </div>
         </AgreeProvider>
 

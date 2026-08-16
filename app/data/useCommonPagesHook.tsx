@@ -38,7 +38,7 @@ export default function useCommonPagesHook() {
 
     // Larghezza schermo
     const setWidth = () => setScreenWidth(window.innerWidth);
-    const setHeight = () => setScreenHeight(window.innerHeight);
+    const setHeight = () => setScreenHeight(Math.floor(window.visualViewport?.height || window.innerHeight));
     setWidth();
     setHeight();
     window.addEventListener("resize", setWidth);
