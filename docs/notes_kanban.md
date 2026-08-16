@@ -2,6 +2,11 @@
 
 * git reset head~1; git add .; git commit -m "deploy"; git push -f
 
+### Connettersi al network
+* ipconfig
+* npm run dev -- --hostname 0.0.0.0 --port 3000
+* http://[IP]:3000 # sull'altro dispositivo della rete
+
 # Kanban - Novel Writer (Next.js)
 ## 📌 To Do
 * [1] Sistema di autenticazione minimale
