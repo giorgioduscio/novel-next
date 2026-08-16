@@ -10,6 +10,7 @@ import { debounce, toast } from "@/app/tools/feedbacksUI";
 import SectionTemplate from "./SectionTemplate";
 import useBookHook from "@/app/data/useBookHook";
 import { keyboardFeatures } from "./keyboardFeatures";
+import { useBracket, useDot } from "@/app/tools/customStates";
 
 
 export default function SectionComponent(props: UseSectionComponentProps) {
@@ -114,7 +115,7 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
   
 
   // 4) PARAGRAFI
-  const [_styleInput, _setStyleInput] = useState({
+  const styleInputState = useBracket({
     index:-1, isVisible:false, 
   });
   const PARAG = {
@@ -201,15 +202,13 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
     },
 
     // input di stile
-    styleInput: useMemo (()=> _styleInput, [_styleInput]),
+    styleInput: styleInputState(),
     setStyleInput(paragraph_i?:number){
       if(!page.isEditMode) return;
-      
-      console.log('paragraph_i', paragraph_i);
-      
+            
       // RESET
       if (paragraph_i === undefined){
-        _setStyleInput(prev=> ({ 
+        styleInputState(prev=> ({ 
           ...prev,
           isVisible: false,
           index: -1,
@@ -220,7 +219,7 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
       const target = SECTION.bookSection?.paragraphs?.[paragraph_i];
       if (!target) return console.error("Paragrafo non trovato");
       
-      _setStyleInput(prev=> ({ 
+      styleInputState(prev=> ({ 
         ...prev, 
         isVisible: true,
         index: paragraph_i,

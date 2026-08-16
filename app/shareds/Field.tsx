@@ -57,17 +57,25 @@ const useEvents = ({ value, onChange }: Partial<FieldProps>) => {
 const useMobile = ({ type }: Partial<FieldProps>) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const inputRefInternal = useRef<HTMLInputElement | null>(null);
+  const lastKeyboardHeight = useRef(0);
 
   useEffect(() => {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
-  
+
 
     // Gestisce il resize della finestra in base alla presenza della tastiera
   function handleResize() {
     const keyboardHeight = window.innerHeight - document.documentElement.clientHeight;
-    document.body.style.paddingBottom = `${keyboardHeight}px`;
+
+    // Applica solo se la differenza è significativa (evita flickering)
+    if (Math.abs(keyboardHeight - lastKeyboardHeight.current) > 10) {
+      requestAnimationFrame(() => {
+        document.body.style.paddingBottom = `${keyboardHeight}px`;
+        lastKeyboardHeight.current = keyboardHeight;
+      });
+    }
   }
 
   // Scrolla la pagina per visualizzare l'elemento

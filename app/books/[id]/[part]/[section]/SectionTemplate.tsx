@@ -152,31 +152,31 @@ export default function SectionTemplate({
       </Frag>
       {/* STILE PARAGRAFO */}
       <Frag if={PARAG.styleInput.isVisible && isEditMode}>
-        <div className="p-2 sticky bottom-0 z-2">
-          <div className="flex gap-1 items-end">
-            <EditModeComponent buttonOnly page={page} />
+        <div className="p-2 sticky bottom-0 z-2 mx-auto max-w-[400px]">
+          <div className="grid grid-cols-[1fr_auto] items-end">
 
-            <div className="bg-white text-black outline rounded flex-1">
-              <div className="px-1 grid grid-cols-[auto_1fr] gap-1 items-center">
-                <label htmlFor={PARAG.styleInput.index + ">in_style"} 
-                        className="px-1 bi bi-palette" 
-                        title="Stile del paragrafo"></label>
-                <div>
-                  <Field
-                    input_class={`py-2`}
-                    placeholder="Stile del paragrafo"
-                    value={SECTION.bookSection?.paragraphs?.[PARAG.styleInput.index]?.in_style || ""}
-                    disabled={!isEditMode}
-                    hide_label
-                    label="Stile del paragrafo"
-                    type="textarea"
-                    id={PARAG.styleInput.index + ">in_style"}
-                    onChange={(_e) => PARAG.handleChange(_e)}
-                    onKeyDown={(_e: any) => PARAG.handleKey(_e)}
-                    error_message={errors[`${PARAG.styleInput.index}>in_style`]}
-                  />
-                </div>
-              </div>
+            <div className="grid gap-1 grid-cols-[1fr_auto] items-end bg-white text-black outline rounded">
+              <label htmlFor={PARAG.styleInput.index + ">in_style"} 
+                      className="pl-1 bi bi-palette" 
+                      title="Stile del paragrafo"></label>
+
+              <Field
+                input_class={`px-1`}
+                placeholder="Stile del paragrafo"
+                value={SECTION.bookSection?.paragraphs?.[PARAG.styleInput.index]?.in_style || ""}
+                disabled={!isEditMode}
+                hide_label
+                label="Stile del paragrafo"
+                type="textarea"
+                id={PARAG.styleInput.index + ">in_style"}
+                onChange={(_e) => PARAG.handleChange(_e)}
+                onKeyDown={(_e: any) => PARAG.handleKey(_e)}
+                error_message={errors[`${PARAG.styleInput.index}>in_style`]}
+              />
+            </div>
+
+            <div className="ml-2">
+              <EditModeComponent buttonOnly page={page} />
             </div>
           </div>
         </div>
