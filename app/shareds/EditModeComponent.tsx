@@ -17,8 +17,10 @@ export default function EditModeComponent({page, onClick, buttonOnly}: EditModeC
   if(buttonOnly) return <ButtonOnly onClick={handleClick} page={page} />;
 
   return (
-    <div className="pr-2 pb-2 ml-auto sticky bottom-0 z-5 w-fit">
-      <ButtonOnly onClick={handleClick} page={page} />
+    <div className="pr-2 pb-2 mx-auto max-w-[400px] sticky bottom-0 z-5">
+      <div className="flex justify-end">
+        <ButtonOnly onClick={handleClick} page={page} />
+      </div>
     </div>
   );
 }

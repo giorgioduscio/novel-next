@@ -25,7 +25,7 @@ export default function RootLayout({
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
       </head>
-      <body className="flex flex-col min-h-screen">
+      <body className="flex flex-col">
         <AgreeProvider>
           <div id="app" className="flex-1">
             {children}
