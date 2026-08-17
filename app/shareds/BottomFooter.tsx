@@ -1,6 +1,6 @@
 export default function BottomFooter() {
   return (
-    <footer className="bg-gray-800">
+    <footer className="bg-indigo-900">
       <div className="mx-auto p-4 max-w-[400px]">
         <div className="flex gap-2 justify-center items-center flex-wrap text-white text-center">
           

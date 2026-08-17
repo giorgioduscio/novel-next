@@ -191,11 +191,8 @@ export function keyboardFeatures(
     ],
   ] as const;
   
-  for(let [condiction, action] of FEATURES){
-    if(condiction){
-      action();
-      break;
-    }
-  }
-
+  // ESECUZIONE
+  const match = FEATURES.find(feature=> feature[0]);
+  if(!match) return;
+  match[1]();    
 }

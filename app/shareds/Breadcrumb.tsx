@@ -47,7 +47,7 @@ export function Breadcrumb() {
   const routes = buildRoutes();
 
   return (
-    <nav aria-label="Breadcrumb" className="p-2 bg-gray-900 text-sm">
+    <nav aria-label="Breadcrumb" className="p-2 bg-indigo-900 text-sm">
       <ol className="mx-auto container max-w-[800px] flex items-center flex-wrap gap-2 text-gray-400">
         {routes.map((route, index) => (
           <li key={index}>

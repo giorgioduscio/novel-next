@@ -59,7 +59,7 @@ export default function SectionTemplate({
           {/* TITOLO SEZIONE */}
           <form onSubmit={SECTION.handleSubmit} className="p-3 py-10 text-center">
             <Field
-              input_class="text-3xl font-bold text-center"
+              input_class="text-3xl font-bold text-center text-orange-500"
               hide_label
               label="Titolo della sezione"
               value={SECTION_title}
@@ -130,12 +130,12 @@ export default function SectionTemplate({
                             <label htmlFor={paragraph_i + ">in_style"} className="bi bi-palette"></label>
                             <div>
                               <Field
-                                input_class={`p-1 `}
-                                placeholder="Testo del paragrafo"
-                                value={p.in_style ?? ''}
+                                input_class="p-1"
+                                placeholder="Stile tailwind del paragrafo"
+                                value={p.in_style || ''}
                                 disabled={!isEditMode}
                                 hide_label
-                                label="Testo del paragrafo"
+                                label="Stile tailwind del paragrafo"
                                 asterisk
                                 type="textarea"
                                 id={paragraph_i + ">in_style"}

@@ -23,7 +23,7 @@ const useEvents = ({ value, onChange }: Partial<FieldProps>) => {
 
   // Sincronizza localValue con value
   useEffect(() => {
-    setLocalValue(value || false);
+    setLocalValue(value !== undefined && value !== null ? value : "");
   }, [value]);
   
 
@@ -48,7 +48,7 @@ const useEvents = ({ value, onChange }: Partial<FieldProps>) => {
     }
   };
 
-  const [localValue, setLocalValue] = useState(value || false);
+  const [localValue, setLocalValue] = useState(value !== undefined && value !== null ? value : "");
   return { localValue, setLocalValue, handleLocalChange, handleBlur, handleKeyDown };
 };
 
@@ -254,7 +254,7 @@ export default function Field({
           id={errorId}
           role="alert"
           aria-live="polite"
-          className="block w-full px-2 bg-gray-600 text-xs text-left"
+          className="block w-full px-2 bg-indigo-600 text-xs text-left"
         >
           {message}
         </div>

@@ -38,10 +38,10 @@ export default function BooksTemplate({
         {/* HEAD */}
         <div className="mx-auto max-w-[400px]">
           <div className="my-3 flex gap-2 justify-between items-center">
-            <h1 className="text-2xl font-bold truncate">Gestione Libri</h1>
+            <h1 className="text-2xl font-bold truncate text-orange-500">Gestione Libri</h1>
 
             <Frag if={!isEditMode && books.length >0} 
-                  className="py-1 px-2 rounded outline rounded-full italic">
+                  className="py-1 px-2 rounded outline rounded-full text-xs text-gray-300">
               Libri: {books.length}
             </Frag>
             {/* NUOVO LIBRO */}
@@ -106,7 +106,7 @@ export default function BooksTemplate({
                   {/* Visualizzazione o modifica dei dettagli del libro */}
                   <Link href={isEditMode ?'' :`/books/${book.id}`}
                         aria-disabled={!isEditMode}
-                        className="block p-2 bg-gray-600">
+                        className="block p-2 bg-indigo-600">
                     {/* MODIFICA LIBRO */}
                     <Field id="title"
                             hide_label

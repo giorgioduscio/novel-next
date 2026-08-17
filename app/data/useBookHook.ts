@@ -106,12 +106,12 @@ export default function useBookHook() {
     addBook(book: Book) {
       const validatedBook = this.validateBook(book);
       if (!validatedBook) return null;
-  
+
       if (books.some((b) => b.id === validatedBook.id)) {
         console.error("Un libro con questo ID esiste già");
         return null;
       }
-  
+
       const updatedBooks = [...books, validatedBook];
       setBooks(updatedBooks);
       API.saveSingleBook(validatedBook);
@@ -149,15 +149,15 @@ export default function useBookHook() {
         console.error("Libro non trovato");
         return null;
       }
-  
+
       const merged = { ...stored, ...updatedBook };
-      const validatedBook = validation ? this.validateBook(merged) : (merged as Book);
+      const validatedBook = validation ? this.validateBook(merged as Book) : (merged as Book);
       if (!validatedBook) return null;
-  
+
       setBooks((prevBooks) => prevBooks.map((book) => (book.id === id ? validatedBook : book)));
-      
+
       API.saveDebounced(validatedBook);
-  
+
       return validatedBook;
     },
   

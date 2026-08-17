@@ -126,8 +126,8 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
       const updated = structuredClone(book);
       const sec = SECTION.getSection(updated);
       if (!sec) return console.error("Sezione non trovata");
-  
-      const newParagraph: Paragraph = { in_style: "", text: paragraphText };
+
+      const newParagraph: Paragraph = { in_style: "", text: paragraphText || "" };
       if (!sec.paragraphs) sec.paragraphs = [];
 
       // stringa TOP -> aggiungi in cima

@@ -29,7 +29,7 @@ function ButtonOnly({onClick, page}: EditModeComponentProps) {
   return <button
       onClick={onClick}
       title={page.isEditMode ? "Modalità editing" : "Modalità lettura"}
-      className={`py-2 px-3 border rounded-full shadow-lg ${page.isEditMode ? "bg-gray-100 text-black" : "bg-gray-800"}`}
+      className={`py-2 px-3 rounded-full shadow-lg ${page.isEditMode ? "bg-indigo-100 text-black border" : "bg-orange-500/60"}`}
     >
       <i className={`text-xl bi ${page.isEditMode ? "bi-pencil" : "bi-eye"}`}></i>
     </button>
