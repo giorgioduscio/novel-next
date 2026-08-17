@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  turbopack: {},
   // Turbopack is disabled via --webpack flag in dev script
   webpack: (config) => {
     if (!process.env.VERCEL) {
