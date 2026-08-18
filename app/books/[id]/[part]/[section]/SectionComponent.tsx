@@ -272,6 +272,25 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
       return keyboardFeatures(book_id, e, book, setBook, SECTION, PARAG, BookHook)
     },
 
+    // imposta il colore appropriato del testo
+    parseStyle(paragraph:Paragraph) :string{
+      // sfondo bianco
+      if(paragraph.in_style?.includes("bg-white")){
+        return paragraph.in_style + " text-black";
+      }
+
+      const backgroundPattern = /bg-[a-zA-Z]+-[0-9]+/; 
+      const match = paragraph.in_style?.match(backgroundPattern);
+      // non si specifica lo sfondo
+      if(!match){
+        return paragraph.in_style || "";
+      }
+      const gradiant = parseInt(match[0].split('-')[2] || "0");
+      const textColor = gradiant <= 400 ?" text-black" :" text-white";
+      
+      return paragraph.in_style + textColor;
+    },
+
     // recupera le classi che cominciano per 'ex:'
     getExternalStyle(paragraph: Paragraph) {
       // divide le classi

@@ -12,7 +12,6 @@
 * [1] Sistema di autenticazione minimale
 * [2] undo e redo
 * [2] stili ripetuti
-* [2] colore testo automatico
 
 ## 🔄 In Progress (max 2-3)
 
@@ -47,3 +46,4 @@
 * fix: implementare processo: aggiornamento stato -> validazione -> aggiornamento database -> feedback utente
 * Responsive design per pc
 * funzionalità copia e incolla nell'editor della sezione
+* colore testo automatico in base allo sfondo

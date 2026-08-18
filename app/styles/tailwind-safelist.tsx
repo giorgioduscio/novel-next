@@ -74,6 +74,18 @@ const tailwindFlatClasses = [
   "bg-red-800/5", "bg-red-800/10", "bg-red-800/20", "bg-red-800/30", "bg-red-800/40", "bg-red-800/50", "bg-red-800/60", "bg-red-800/70", "bg-red-800/80", "bg-red-800/90",
   "bg-red-900/5", "bg-red-900/10", "bg-red-900/20", "bg-red-900/30", "bg-red-900/40", "bg-red-900/50", "bg-red-900/60", "bg-red-900/70", "bg-red-900/80", "bg-red-900/90",
   
+  "bg-gray-50", "bg-gray-100", "bg-gray-200", "bg-gray-300", "bg-gray-400", "bg-gray-500", "bg-gray-600", "bg-gray-700", "bg-gray-800", "bg-gray-900",
+  "bg-gray-50/5", "bg-gray-50/10", "bg-gray-50/20", "bg-gray-50/30", "bg-gray-50/40", "bg-gray-50/50", "bg-gray-50/60", "bg-gray-50/70", "bg-gray-50/80", "bg-gray-50/90",
+  "bg-gray-100/5", "bg-gray-100/10", "bg-gray-100/20", "bg-gray-100/30", "bg-gray-100/40", "bg-gray-100/50", "bg-gray-100/60", "bg-gray-100/70", "bg-gray-100/80", "bg-gray-100/90",
+  "bg-gray-200/5", "bg-gray-200/10", "bg-gray-200/20", "bg-gray-200/30", "bg-gray-200/40", "bg-gray-200/50", "bg-gray-200/60", "bg-gray-200/70", "bg-gray-200/80", "bg-gray-200/90",
+  "bg-gray-300/5", "bg-gray-300/10", "bg-gray-300/20", "bg-gray-300/30", "bg-gray-300/40", "bg-gray-300/50", "bg-gray-300/60", "bg-gray-300/70", "bg-gray-300/80", "bg-gray-300/90",
+  "bg-gray-400/5", "bg-gray-400/10", "bg-gray-400/20", "bg-gray-400/30", "bg-gray-400/40", "bg-gray-400/50", "bg-gray-400/60", "bg-gray-400/70", "bg-gray-400/80", "bg-gray-400/90",
+  "bg-gray-500/5", "bg-gray-500/10", "bg-gray-500/20", "bg-gray-500/30", "bg-gray-500/40", "bg-gray-500/50", "bg-gray-500/60", "bg-gray-500/70", "bg-gray-500/80", "bg-gray-500/90",
+  "bg-gray-600/5", "bg-gray-600/10", "bg-gray-600/20", "bg-gray-600/30", "bg-gray-600/40", "bg-gray-600/50", "bg-gray-600/60", "bg-gray-600/70", "bg-gray-600/80", "bg-gray-600/90",
+  "bg-gray-700/5", "bg-gray-700/10", "bg-gray-700/20", "bg-gray-700/30", "bg-gray-700/40", "bg-gray-700/50", "bg-gray-700/60", "bg-gray-700/70", "bg-gray-700/80", "bg-gray-700/90",
+  "bg-gray-800/5", "bg-gray-800/10", "bg-gray-800/20", "bg-gray-800/30", "bg-gray-800/40", "bg-gray-800/50", "bg-gray-800/60", "bg-gray-800/70", "bg-gray-800/80", "bg-gray-800/90",
+  "bg-gray-900/5", "bg-gray-900/10", "bg-gray-900/20", "bg-gray-900/30", "bg-gray-900/40", "bg-gray-900/50", "bg-gray-900/60", "bg-gray-900/70", "bg-gray-900/80", "bg-gray-900/90",
+
   "bg-yellow-50", "bg-yellow-100", "bg-yellow-200", "bg-yellow-300", "bg-yellow-400", "bg-yellow-500", "bg-yellow-600", "bg-yellow-700", "bg-yellow-800", "bg-yellow-900",
   "bg-yellow-50/5", "bg-yellow-50/10", "bg-yellow-50/20", "bg-yellow-50/30", "bg-yellow-50/40", "bg-yellow-50/50", "bg-yellow-50/60", "bg-yellow-50/70", "bg-yellow-50/80", "bg-yellow-50/90",
   "bg-yellow-100/5", "bg-yellow-100/10", "bg-yellow-100/20", "bg-yellow-100/30", "bg-yellow-100/40", "bg-yellow-100/50", "bg-yellow-100/60", "bg-yellow-100/70", "bg-yellow-100/80", "bg-yellow-100/90",

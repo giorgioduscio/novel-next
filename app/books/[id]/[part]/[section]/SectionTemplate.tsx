@@ -119,7 +119,7 @@ export default function SectionTemplate({
 
                   {/* PARAGRAFO */}
                   <div className={`py-3 ${PARAG.getExternalStyle(p)}`}>
-                    <div className={`p-1 ${p.in_style || ""}`}>
+                    <div className={`p-1 ${PARAG.parseStyle(p) || ""}`}>
                       <div className={isEditMode && PARAG.styleInput.index === paragraph_i ? 'outline-3 outline-dashed outline-black' : ''}>
                         <Field
                           input_class={`p-1 text-center ${isEditMode && PARAG.styleInput.index === paragraph_i ? 'outline-3 outline-white' : ''}`}
@@ -146,9 +146,11 @@ export default function SectionTemplate({
                               {/* ICONA PALETTE */}
                               {p.in_style 
                                 ?<button onClick={_=> PARAG.set(paragraph_i, {in_style:""})}
-                                        className="bi bi-x-lg px-1 bg-red-700 text-white rounded-lg"></button>
+                                        className="bi bi-x-lg px-1 bg-red-700 text-white rounded-lg"
+                                        aria-label="Resetta stile"></button>
                                 :<label htmlFor={paragraph_i + ">in_style"} 
-                                        className="bi bi-palette"></label>
+                                        className="bi bi-palette"
+                                        aria-label="Seleziona stile"></label>
                               }
                               {/* INPUT STILE */}
                               <div>
