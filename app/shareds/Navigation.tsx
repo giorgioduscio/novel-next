@@ -8,11 +8,12 @@ import useCommonPagesHook from '../data/useCommonPagesHook';
 interface NavigationProps {
   page_title: string;
   back_btn?: { icon?:string, label?:string, href:string };
+  children?: React.ReactNode;
 }
 
-export default function Navigation(props: NavigationProps, children?:React.ReactNode) {
+export default function Navigation(props: NavigationProps) {
   if(!props) return null;
-  const {page_title, back_btn} = props;
+  const {page_title, back_btn, children} = props;
   const [title, setTitle] = useState('');
   const pathname = usePathname();
   const page = useCommonPagesHook()
@@ -39,11 +40,6 @@ export default function Navigation(props: NavigationProps, children?:React.React
             {title && (
               <h1 className="p-2 text-bold text-orange-500 truncate flex-1">{title || 'NovelNext'}</h1>
             )}
-
-            <div className='me-start px-1 grid grid-cols-[auto_1fr] text-gray-500 text-xs'>
-              <i>X:</i> <b>{page.screenWidth}</b>
-              <i>Y:</i> <b>{page.screenHeight}</b>
-            </div>
 
             {children}
 

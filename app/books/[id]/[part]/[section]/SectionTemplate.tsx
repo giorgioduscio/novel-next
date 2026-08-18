@@ -26,6 +26,7 @@ function AddParagraphButton({ if: show, handleCreate, className = "" }: AddProps
   </Frag>
 }
 
+
 type SectionTemplateProps = ReturnType<typeof useSectionComponent>;
 export default function SectionTemplate({
   book_id,  section_title,  page,  SECTION_title,
@@ -40,8 +41,21 @@ export default function SectionTemplate({
 
   const {isEditMode} = page;
   return (
-    <main id="SectionComponent">
-      <Navigation back_btn={{ href: `/books/${book_id}` }} page_title={section_title} />
+    <main id="SectionComponent" onClick={PARAG.closeTemplateInputStyle}>
+      <Navigation back_btn={{ href: `/books/${book_id}` }} page_title={section_title}>
+        <button onClick={SECTION.copy} 
+                className="p-2 bg-blue-900 truncate">
+          <i className="bi bi-copy"></i> 
+          <span className="pl-2 hidden sm:inline">Copia</span>
+        </button>
+        <Frag if={isEditMode}>
+          <button onClick={SECTION.paste} 
+                  className="p-2 bg-green-900 truncate">
+            <i className="bi bi-clipboard"></i> 
+            <span className="pl-2 hidden sm:inline">Incolla</span>
+          </button>
+        </Frag>
+      </Navigation>
       <Breadcrumb />
 
       {/* Contenitore principale scrollabile */}
@@ -57,7 +71,7 @@ export default function SectionTemplate({
         {/* SEZIONE TROVATA */}
         <Frag if={!!SECTION.bookSection}>
           {/* TITOLO SEZIONE */}
-          <form onSubmit={SECTION.handleSubmit} className="p-3 py-10 text-center">
+          <form onSubmit={SECTION.handleSubmit} className="p-3 py-50 text-center">
             <Field
               input_class="text-3xl font-bold text-center text-orange-500"
               hide_label
@@ -70,6 +84,7 @@ export default function SectionTemplate({
               id={"title"}
               type={"text"}
               placeholder={"Titolo della sezione"}
+              onKeyDown={SECTION.titleKeyDown}
             />
             <div className="mt-5 border-y border-gray-500"></div>
           </form>
@@ -125,25 +140,34 @@ export default function SectionTemplate({
 
                       {/* STILE PARAGRAFO */}
                       <Frag if={isEditMode && PARAG.styleInput.index === paragraph_i} className="relative">
-                        <div className='absolute top-0 z-2 w-full'>
-                          <div className="p-1 grid gap-1 grid-cols-[auto_1fr] bg-white text-black outline rounded">
-                            <label htmlFor={paragraph_i + ">in_style"} className="bi bi-palette"></label>
-                            <div>
-                              <Field
-                                input_class="p-1"
-                                placeholder="Stile tailwind del paragrafo"
-                                value={p.in_style || ''}
-                                disabled={!isEditMode}
-                                hide_label
-                                label="Stile tailwind del paragrafo"
-                                asterisk
-                                type="textarea"
-                                id={paragraph_i + ">in_style"}
-                                onChange={(_e) => PARAG.handleChange(_e)}
-                                onKeyDown={(_e: any) => PARAG.handleKey(_e)}
-                                error_message={errors[`${paragraph_i}>in_style`]}
-                                onFocus={() => PARAG.setStyleInput(paragraph_i)}
-                              />
+                        <div className='absolute top-0 z-2 w-full' data-dropdown>
+                          <div className="bg-white text-black outline rounded">
+                            <div className="p-1 grid gap-1 grid-cols-[auto_1fr] items-center">
+                              {/* ICONA PALETTE */}
+                              {p.in_style 
+                                ?<button onClick={_=> PARAG.set(paragraph_i, {in_style:""})}
+                                        className="bi bi-x-lg px-1 bg-red-700 text-white rounded-lg"></button>
+                                :<label htmlFor={paragraph_i + ">in_style"} 
+                                        className="bi bi-palette"></label>
+                              }
+                              {/* INPUT STILE */}
+                              <div>
+                                <Field
+                                  input_class="p-1"
+                                  placeholder="Stile tailwind del paragrafo"
+                                  value={p.in_style || ''}
+                                  disabled={!isEditMode}
+                                  hide_label
+                                  label="Stile tailwind del paragrafo"
+                                  asterisk
+                                  type="textarea"
+                                  id={paragraph_i + ">in_style"}
+                                  onChange={(_e) => PARAG.handleChange(_e)}
+                                  onKeyDown={(_e: any) => PARAG.handleKey(_e)}
+                                  error_message={errors[`${paragraph_i}>in_style`]}
+                                  onFocus={() => PARAG.setStyleInput(paragraph_i)}
+                                />
+                              </div>
                             </div>
                           </div>
                         </div>

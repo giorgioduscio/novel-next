@@ -111,6 +111,71 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
       const _title = trimmed.replaceAll(" ", "-");
       router.push(`/books/${book_id}/${_part}/${_title}`);
     },
+
+    // premendo 'invio' o 'freccia giù' passa al primo paragrafo
+    titleKeyDown(e: React.KeyboardEvent) {
+      if (e.key === "Enter" || e.key==="ArrowDown") {
+        e.preventDefault();
+        const firstParagraph = document.getElementById("0>text");
+        if(firstParagraph) firstParagraph.focus();
+      }
+    },
+
+    // copia nel sistema la struttura del libro
+    async copy() {
+      const section = SECTION.bookSection;
+      if (!section) return console.error("Sezione non trovata");
+
+      try {
+        // Serializza la sezione in JSON
+        const serializedSection = JSON.stringify(section);
+        // Copia negli appunti di sistema
+        await navigator.clipboard.writeText(serializedSection);
+        toast.success("Sezione copiata negli appunti!");
+        
+      } catch (err) {
+        console.error("Errore nella copia:", err);
+      }
+    },
+
+    // incolla la struttura del libro dal sistema
+    async paste() {
+      try {
+        // 1. Crea una copia profonda del libro
+        const clone = structuredClone(book);
+        if (!clone) return console.error("Libro non trovato");
+
+        // 2. Ottieni la sezione da sostituire
+        const section = SECTION.getSection(clone);
+        if (!section) return console.error("Sezione non trovata");
+        if(section.paragraphs?.length && 
+          !(await agree.warning("Sei sicuro di voler sostituire i paragrafi precedenti?", "Incolla"))) return;
+
+        // 3. Leggi il testo dagli appunti e deserializza
+        const serializedSection = await navigator.clipboard.readText();
+        const newSection :Section = JSON.parse(serializedSection);
+        if(!newSection || !newSection.paragraphs) return console.error("Sezione non valida");
+
+        // 4. **SOSTITUISCI** la sezione nel clone con quella incollata
+        // (Assumendo che SECTION.getSection restituisca un riferimento alla sezione nel clone)
+        section.paragraphs = newSection.paragraphs;
+        // Object.assign(section, newSection); // Sovrascrive le proprietà della sezione esistente
+        // Oppure, se vuoi sostituire completamente la sezione:
+        // SECTION.setSection(clone, newSection); // (Dipende dalla tua implementazione di SECTION)
+
+        // 5. Aggiorna lo stato globale       
+        setBook(clone);
+
+        // 6. Salva le modifiche sul backend
+        const res = await BookHook.updateBook(book_id, clone);
+        if (!res) return toast.danger("Errore nel salvataggio");
+
+        toast.success("Sezione incollata con successo!");
+      } catch (err) {
+        console.error("Errore nell'incollaggio:", err);
+        toast.danger("Errore nell'incollaggio");
+      }
+    }    
   }
   
 
@@ -118,7 +183,22 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
   const styleInputState = useBracket({
     index:-1, isVisible:false, 
   });
+
   const PARAG = {
+    // aggiorna paragrafo e salva
+    set(index:number, newValue:Partial<Paragraph>){
+      const clone = structuredClone(book!);
+      const sec = SECTION.getSection(clone);
+      if (!sec || !sec.paragraphs?.length) return;
+      // aggiornamento stato
+      sec.paragraphs[index] = {...sec.paragraphs[index], ...newValue};
+      setBook(clone);
+      // aggiornamento backend e feedback
+      const res = BookHook.updateBook(book_id, clone)
+      if(!res) return toast.danger("Errore nel salvataggio");
+      toast.success("Paragrafo salvato con successo!");
+    },
+
     // crea nuovo paragrafo senza salvarlo
     handleCreate(index?: number |'top', paragraphText="") {
       if (!book) return console.error("Libro non disponibile");
@@ -224,6 +304,13 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
         isVisible: true,
         index: paragraph_i,
       }));
+    },
+
+    closeTemplateInputStyle(e: React.MouseEvent) {
+      e.stopPropagation();
+      const textarea = (e.target as HTMLElement).closest("textarea");
+      const dropdown = (e.target as HTMLElement).closest("[data-dropdown]");
+      if(!dropdown && !textarea) PARAG.setStyleInput()
     },
 
 

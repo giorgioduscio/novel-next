@@ -106,9 +106,8 @@ export function useBooksComponent() {
   // 3) UPLOAD
   const UPLOAD = {
     json: {
-      label: "JSON",
-
       // Carica un libro da un file JSON
+      label: "JSON",
       async execute() {
         try {
           const input = await ui_upload.json();
@@ -141,9 +140,8 @@ export function useBooksComponent() {
     },
 
     markdown: {
-      label: "MD",
-
       // Carica un libro da un file Markdown
+      label: "MD",
       async execute() {
         try {
           const input = (await ui_upload.markdown()) as string;

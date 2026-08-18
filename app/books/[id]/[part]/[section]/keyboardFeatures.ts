@@ -35,16 +35,17 @@ export function keyboardFeatures(
 
   // CHANGEFOCUS helper per cambiare il focus
   function _changeFocus(direction: "up" | "down" | "this", from: "|__" | "__|" | number) {
+    
     const walk = direction === "up" ? -1 
                 : direction === "down" ? 1 
                 : 0;
-    const selector = `${index + walk}>${key}`;
+
     setTimeout(() => {
-      const el = document.getElementById(selector) as HTMLTextAreaElement;
+      const el = document.getElementById(`${index + walk}>${key}`) as HTMLTextAreaElement;
       if(!el) return console.error("Elemento non trovato");
       // comincia all'inizio della textarea
       if(from === "__|") el.setSelectionRange(el.value.length, el.value.length);
-      else if(from === "|__") el.setSelectionRange(0, 0);
+      else if(from === "|__") el.setSelectionRange(0, 0); 
       else el.setSelectionRange(from, from);
       el.focus();
     }, 10);
@@ -67,8 +68,6 @@ export function keyboardFeatures(
         // recupera tutto il testo prima e dopo il cursore
         const start = textarea.selectionStart;
         const end = textarea.selectionEnd;
-        const before = value.substring(0, start);
-        const after = value.substring(end);
         // se è all'inizio, crea un paragrafo prima
         if(start === 0) {
           PARAG.handleCreate(index-1);
@@ -87,14 +86,19 @@ export function keyboardFeatures(
           const sec = SECTION.getSection(updatedBook);
           if (!sec?.paragraphs?.[index]) return;
 
-          sec.paragraphs[index].text = before; // Aggiorna direttamente il testo
+          const before = value.substring(0, start);
+          const after = value.substring(end);
+
+          // Aggiorna il testo corrente
+          sec.paragraphs[index].text = before; 
+          // inserisce il nuovo paragrafo dopo quello corrente
+          sec.paragraphs.splice(index + 1, 0, { text: after, in_style:"" } as Paragraph);
           setBook(updatedBook); // Aggiorna lo stato
 
           // 2. Crea un nuovo paragrafo con `after`
           setTimeout(() => {
-            PARAG.handleCreate(index, after);
             _changeFocus("down", "|__");
-          }, 10);
+          }, 100);
         }
       }
     ],
@@ -119,7 +123,7 @@ export function keyboardFeatures(
 
         // 3. Unisce il testo del paragrafo attuale a quello precedente
         sec.paragraphs[index - 1].text = prevParag.text + value;
-        sec.paragraphs.splice(index, 1); // Rimuove il paragrafo attuale
+        sec.paragraphs.splice(index, 1); // Rimuove il paragrafo attuale        
 
         // 4. Aggiorna lo stato
         setBook(updatedBook);
@@ -175,6 +179,15 @@ export function keyboardFeatures(
     ],
     [
       // verifica che il cursore sia esattamente all'inizio del testo
+      e.key === "ArrowUp" && index === 0 
+      && key === "text" && textarea.selectionStart === 0,
+      function ArrowUp(){
+        const title = document.getElementById("title") as HTMLInputElement;
+        if(title) title.focus();
+      }
+    ],
+    [
+      // verifica che il cursore sia esattamente all'inizio del testo
       (e.key === "ArrowLeft" || e.key ==="ArrowUp") 
       && key === "text" && textarea.selectionStart === 0,
       function ArrowLeft(){
@@ -184,7 +197,8 @@ export function keyboardFeatures(
     [
       // verifica che il cursore sia esattamente alla fine del testo
       (e.key === "ArrowRight" || e.key === "ArrowDown") 
-      && key === "text" && textarea.selectionEnd === textarea.value.length,
+      && key === "text" && textarea.selectionEnd === textarea.value.length
+      && index!==SECTION.getSection(book)?.paragraphs?.length - 1,
       function ArrowRight(){
         _changeFocus("down", "|__");
       }
@@ -193,6 +207,6 @@ export function keyboardFeatures(
   
   // ESECUZIONE
   const match = FEATURES.find(feature=> feature[0]);
-  if(!match) return;
+  if(!match) return;  
   match[1]();    
 }

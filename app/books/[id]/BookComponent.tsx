@@ -57,10 +57,10 @@ export function useBookComponent({ id }: UseBookComponentProps) {
   }
 
   // 2) AGGIORNA LIBRO
-  function handleUpdateBook(key: string, value: any) {
+  function handleUpdateBook(key: string, value: string) {
     if (!book) throw new Error("Libro non trovato");
     const newBook = { ...book };
-    (newBook as any)[key] = value;
+    (newBook as any)[key] = value.trim();
 
     // validazione
     const validatedBook = toggleErrors(key, newBook);
@@ -106,7 +106,7 @@ export function useBookComponent({ id }: UseBookComponentProps) {
     updateTitle(index: number, value: string) {
       if (!book) throw new Error("Libro non trovato");
       const newBook = structuredClone({ ...book, parts: [...(book.parts || [])] });
-      (newBook.parts as any)[index].title = value;
+      (newBook.parts as any)[index].title = value.trim();
       // stato
       setBook(newBook);
       // validazione
@@ -153,7 +153,7 @@ export function useBookComponent({ id }: UseBookComponentProps) {
       // stato
       if (!book) throw new Error("Libro non trovato");
       const newBook = structuredClone({ ...book, parts: [...(book.parts || [])] });
-      (newBook.parts as any)[part_i].sections[section_i].title = value;
+      (newBook.parts as any)[part_i].sections[section_i].title = value.trim();
       setBook(newBook);
       // validazione
       const errorKey = `section_title_${value}`;

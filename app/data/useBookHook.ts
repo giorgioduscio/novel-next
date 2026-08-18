@@ -172,12 +172,12 @@ export default function useBookHook() {
   // Download methods
   const DOWNLOAD = {
     // Helper function to convert book to text
-    _bookToText(data: Book, useFormat = false) {
-      let result = `${useFormat ? "# " : ""}${data.title}\n\n`;
+    _json_to_text(data: Book, isMarkdownFormat = false) {
+      let result = `${isMarkdownFormat ? "# " : ""}${data.title}\n\n`;
       for (let part of data.parts || []) {
-        result += `${useFormat ? "## " : ""}${part.title}\n\n`;
+        result += `${isMarkdownFormat ? "## " : ""}${part.title}\n\n`;
         for (let section of part.sections || []) {
-          result += `${useFormat ? "### " : ""}${section.title}\n\n`;
+          result += `${isMarkdownFormat ? "### " : ""}${section.title}\n\n`;
           for (let paragraph of section.paragraphs || []) {
             result += `${paragraph.text}\n\n`;
           }
@@ -202,7 +202,7 @@ export default function useBookHook() {
       execute(id: number) {
         const data = CRUD.getBookById(id);
         if (!data) throw new Error("libro non trovato");
-        const result = DOWNLOAD._bookToText(data);
+        const result = DOWNLOAD._json_to_text(data);
         ui_download.text(result, data.title);
       },
     },
@@ -212,7 +212,7 @@ export default function useBookHook() {
       execute(id: number) {
         const data = CRUD.getBookById(id);
         if (!data) throw new Error("libro non trovato");
-        const result = DOWNLOAD._bookToText(data, true);
+        const result = DOWNLOAD._json_to_text(data, true);
         ui_download.markdown(result, data.title);
       },
     },
@@ -233,12 +233,12 @@ export default function useBookHook() {
           const validatedBook = CRUD.validateBook(input);
           if (!validatedBook) return console.error("Formato non valido");
           CRUD.addBook(validatedBook);
-          console.log("Libro caricato con successo:", validatedBook);
         } catch (err) {
           console.error("Errore durante l'upload JSON:", err);
         }
       },
     },
+    
     markdown: {
       label: "Upload (.md)",
       icon: "bi-upload",
@@ -252,7 +252,7 @@ export default function useBookHook() {
           const validatedBook = CRUD.validateBook(input);
           if (!validatedBook) return console.error("Formato non valido");
           CRUD.addBook(validatedBook);
-          console.log("Libro caricato con successo:", validatedBook);
+
         } catch (err) {
           console.error("Errore durante l'upload markdown:", err);
         }
