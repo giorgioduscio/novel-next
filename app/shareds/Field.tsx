@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 
 interface FieldProps {
+  // proprietà
   input_class?: string;
   inline?: boolean;
   id: string;
@@ -10,16 +11,24 @@ interface FieldProps {
   placeholder: string;
   value: string | boolean;
   disabled?: boolean;
-  onChange?: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => any;
   rows?: number;
-  error_message?: string;
   message?: string;
+  // eventi
+  onChange?: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => any;
+  onInput?: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => any;
+  onFocus?: (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => any;
+  onBlur?: (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => any;
+
+  // validazione
+  error_message?: string;
   asterisk?: boolean;
+
+  // altro
   [key: string]: any;
 }
 
 
-const useEvents = ({ value, onChange }: Partial<FieldProps>) => {
+const useEvents = ({ value, onChange, onInput, onFocus, onBlur }: Partial<FieldProps>) => {
 
   // Sincronizza localValue con value
   useEffect(() => {
@@ -27,29 +36,36 @@ const useEvents = ({ value, onChange }: Partial<FieldProps>) => {
   }, [value]);
   
 
-    // Gestisce il cambiamento del valore locale
+    // Gestisce il cambiamento del valore locale (onInput - comportamento React onChange)
   function handleLocalChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>){
       setLocalValue(e.target.value);
+      onInput?.(e); // Triggera ad ogni cambiamento
   };
 
-    // Gestisce il blur (perdita di focus)
-  function handleBlur (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>){
+    // Gestisce il blur (perdita di focus) - onChange HTML
+  function handleBlur (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>){
+    onBlur?.(e); // Chiama il prop onBlur
     const hasChanged = localValue !== value;
     if (!hasChanged) return;
-    onChange?.(e);
+    onChange?.(e as any); // Chiama onChange solo se il valore è cambiato
   };
 
-    // Gestisce la pressione di Enter (solo per input non textarea)
+    // Gestisce il focus
+  function handleFocus(e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>){
+    onFocus?.(e); // Chiama il prop onFocus
+  };
+
+    // Gestisce la pressione di Enter (solo per input non textarea) - onChange HTML
   function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
     if (e.key === "Enter") {
       const hasChanged = localValue !== value;
       if (!hasChanged) return;
-      onChange?.(e as any);
+      onChange?.(e as any); // Chiama onChange su Enter
     }
   };
 
   const [localValue, setLocalValue] = useState(value !== undefined && value !== null ? value : "");
-  return { localValue, setLocalValue, handleLocalChange, handleBlur, handleKeyDown };
+  return { localValue, setLocalValue, handleLocalChange, handleBlur, handleFocus, handleKeyDown };
 };
 
 
@@ -131,6 +147,9 @@ export default function Field({
   placeholder,
   value,
   onChange,
+  onInput,
+  onFocus,
+  onBlur,
   hide_label,
   input_class,
   inline,
@@ -144,7 +163,7 @@ export default function Field({
   ...rest
 }: FieldProps) {
   // Custom Hooks
-  const EVENTS = useEvents({ value, onChange });
+  const EVENTS = useEvents({ value, onChange, onInput, onFocus, onBlur });
   const MOBILE = useMobile({ type });
   const RESIZE = useResize({ rows, localValue: EVENTS.localValue });
 
@@ -188,7 +207,10 @@ export default function Field({
           }}
           onChange={EVENTS.handleLocalChange}
           onBlur={EVENTS.handleBlur}
-          onFocus={MOBILE.handleFocus}
+          onFocus={(e) => {
+            EVENTS.handleFocus(e);
+            MOBILE.handleFocus();
+          }}
           {...rest}
         />
 
@@ -227,7 +249,10 @@ export default function Field({
           onChange={EVENTS.handleLocalChange}
           onBlur={EVENTS.handleBlur}
           onKeyDown={EVENTS.handleKeyDown}
-          onFocus={MOBILE.handleFocus}
+          onFocus={(e) => {
+            EVENTS.handleFocus(e);
+            MOBILE.handleFocus();
+          }}
           autoComplete={autoComplete}
           {...rest}
         />

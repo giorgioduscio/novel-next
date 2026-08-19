@@ -11,7 +11,6 @@
 ## 📌 To Do
 * [1] Sistema di autenticazione minimale
 * [2] undo e redo
-* [2] stili ripetuti
 
 ## 🔄 In Progress (max 2-3)
 
@@ -47,3 +46,4 @@
 * Responsive design per pc
 * funzionalità copia e incolla nell'editor della sezione
 * colore testo automatico in base allo sfondo
+* implementare autocomplete per stili ripetuti

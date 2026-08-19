@@ -1,10 +1,55 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Book, book_schema } from "../schemas/book_schema";
 import * as v from "valibot";
 import { ui_upload, ui_download, debounce } from "../tools/feedbacksUI";
 
+
+const FIREBASE_URL = "https://books-3e4c3-default-rtdb.europe-west1.firebasedatabase.app/books";
+
+// Servizio API separato dal ciclo di vita del hook:
+// Mantiene l'istanza di debouncing (timer closure) stabile tra i re-render del componente.
+const API_SERVICE = {
+  // Salva un singolo libro su Firebase (PUT per ID)
+  async saveSingleBook(book: Book) {
+    try {
+      const response = await fetch(`${FIREBASE_URL}/${book.id}.json`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(book),
+      });
+      if (!response.ok) {
+        console.error("Salvataggio non riuscito:", response.statusText);
+      }
+      return response;
+    } catch (error) {
+      console.error("Errore nel salvataggio delle api:", error);
+      throw error;
+    }
+  },
+
+  saveDebounced: debounce(async (book: Book) => {
+    console.log('debounce');
+    await API_SERVICE.saveSingleBook(book);
+  }, 1000),
+
+  // Elimina un singolo libro da Firebase (DELETE per ID)
+  async deleteSingleBook(id: number) {
+    try {
+      const response = await fetch(`${FIREBASE_URL}/${id}.json`, {
+        method: "DELETE",
+      });
+      if (!response.ok) {
+        console.error("Eliminazione non riuscita:", response.statusText);
+      }
+      return response.body;
+    } catch (error) {
+      console.error("Errore nell'eliminazione delle api:", error);
+      throw error;
+    }
+  },
+};
 
 export default function useBookHook() {
   const [books, setBooks] = useState<Book[]>([]);
@@ -16,29 +61,11 @@ export default function useBookHook() {
   }, []);
   
   // interazione con le api (firebase)
-  const API ={
-    URL: "https://books-3e4c3-default-rtdb.europe-west1.firebasedatabase.app/books",
-    // Salva un singolo libro su Firebase (PUT per ID)
-    async saveSingleBook(book: Book) {
-      try {
-        const response = await fetch(`${this.URL}/${book.id}.json`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(book),
-        });
-        if (!response.ok) {
-          console.error("Salvataggio non riuscito:", response.statusText);
-        }
-        return response;
-      } catch (error) {
-        console.error("Errore nel salvataggio delle api:", error);
-        throw error;
-      }
-    },
-
-    saveDebounced: debounce(async (book: Book) => {
-      await API.saveSingleBook(book);
-    }, 1000),
+  const API = {
+    URL: FIREBASE_URL,
+    saveSingleBook: API_SERVICE.saveSingleBook,
+    saveDebounced: API_SERVICE.saveDebounced,
+    deleteSingleBook: API_SERVICE.deleteSingleBook,
 
     // carica tutti i libri
     async loadBooks() {
@@ -63,24 +90,7 @@ export default function useBookHook() {
         setLoading(false);
       }
     },
-  
-    // Elimina un singolo libro da Firebase (DELETE per ID)
-    async deleteSingleBook(id: number) {
-      try {
-        const response = await fetch(`${this.URL}/${id}.json`, {
-          method: "DELETE",
-        });
-        if (!response.ok) {
-          console.error("Eliminazione non riuscita:", response.statusText);
-        }
-        return response.body;
-
-      } catch (error) {
-        console.error("Errore nell'eliminazione delle api:", error);
-        throw error;
-      }
-    }
-  } as const
+  } as const;
 
   // stato dei dati 
   const CRUD ={

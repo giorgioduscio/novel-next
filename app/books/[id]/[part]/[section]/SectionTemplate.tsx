@@ -6,7 +6,7 @@ import Frag from "@/app/shareds/Frag";
 import { LoadingComponent } from "@/app/shareds/LoadingComponent";
 import { Breadcrumb } from "@/app/shareds/Breadcrumb";
 import { useSectionComponent } from "./SectionComponent";
-import { useMemo } from "react";
+import React, { useMemo } from "react";
 import EditModeComponent from "@/app/shareds/EditModeComponent";
 import Navigation from "@/app/shareds/Navigation";
 
@@ -31,6 +31,7 @@ type SectionTemplateProps = ReturnType<typeof useSectionComponent>;
 export default function SectionTemplate({
   book_id,  section_title,  page,  SECTION_title,
   errors,  SECTION,  PARAG,
+  repeatingStyle
 }: SectionTemplateProps) {
 
   const showParagraphs = useMemo(() => 
@@ -141,15 +142,18 @@ export default function SectionTemplate({
                       {/* STILE PARAGRAFO */}
                       <Frag if={isEditMode && PARAG.styleInput.index === paragraph_i} className="relative">
                         <div className='absolute top-0 z-2 w-full' data-dropdown>
-                          <div className="bg-white text-black outline rounded">
-                            <div className="p-1 grid gap-1 grid-cols-[auto_1fr] items-center">
+                          <div className="p-1 bg-white text-black outline rounded">
+                            <div className="grid gap-1 grid-cols-[auto_1fr] items-start relative">
                               {/* ICONA PALETTE */}
                               {p.in_style 
                                 ?<button onClick={_=> PARAG.set(paragraph_i, {in_style:""})}
-                                        className="bi bi-x-lg px-1 bg-red-700 text-white rounded-lg"
-                                        aria-label="Resetta stile"></button>
+                                        className="p-1 text-red-700 rounded-lg relative outline"
+                                        aria-label="Resetta stile">
+                                  <i className="bi bi-x-lg absolute top-1 start-1"></i>
+                                  <i className="bi bi-palette"></i>
+                                </button>
                                 :<label htmlFor={paragraph_i + ">in_style"} 
-                                        className="bi bi-palette"
+                                        className="p-1 bi bi-palette-fill"
                                         aria-label="Seleziona stile"></label>
                               }
                               {/* INPUT STILE */}
@@ -164,13 +168,19 @@ export default function SectionTemplate({
                                   asterisk
                                   type="textarea"
                                   id={paragraph_i + ">in_style"}
-                                  onChange={(_e) => PARAG.handleChange(_e)}
+                                  onInput={(_e) => PARAG.handleChange(_e)}
                                   onKeyDown={(_e: any) => PARAG.handleKey(_e)}
-                                  error_message={errors[`${paragraph_i}>in_style`]}
+                                  // error_message={errors[`${paragraph_i}>in_style`]}
                                   onFocus={() => PARAG.setStyleInput(paragraph_i)}
                                 />
                               </div>
+
+                              {/* autocomplete */}
+                              <div className="p-1  absolute top-0 right-2 italic text-gray-500 pointler-event-none">
+                                <i>{repeatingStyle(p.in_style || '').label}</i>
+                              </div>
                             </div>
+
                           </div>
                         </div>
                       </Frag>

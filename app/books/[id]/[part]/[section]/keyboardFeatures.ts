@@ -1,20 +1,19 @@
 import { Book, Paragraph } from "@/app/schemas/book_schema";
+import { useSectionComponent } from "./SectionComponent";
+import useBookHook from "@/app/data/useBookHook";
+
+type Main = ReturnType<typeof useSectionComponent>;
+type BookHookProps = ReturnType<typeof useBookHook>;
 
 export function keyboardFeatures(
   book_id: number,
   e: React.KeyboardEvent<HTMLTextAreaElement>,
   book: Book,
   setBook: (book: Book) => void,
-  SECTION: { 
-    getSection: (book: Book) => any
-  },
-  PARAG: {
-    handleCreate: (index: number, value?: string) => void,
-    handleRemove: (index: number, targetParag: Paragraph, save?: boolean) => void
-  },
-  BookHook:{
-    updateBook: (book_id: number, updatedBook: Book, save?: boolean) => void,
-  }
+  repeatingStyle: (styleInput:string) => {value: string, label: string},
+  SECTION: Main['SECTION'],
+  PARAG: Main['PARAG'],
+  BookHook: BookHookProps
 ){
   const gesturesKeys = [
     "Enter", "Tab", "Backspace", "Delete", 
@@ -58,7 +57,10 @@ export function keyboardFeatures(
       e.key==="Enter" && key === "in_style",
       function enterStyle(){
         e.preventDefault();
-        (e.target as HTMLTextAreaElement).blur(); 
+        const in_style = repeatingStyle(textarea.value.trim()).value
+        
+        if(in_style.length === 0) return;
+        PARAG.set(index,{ in_style });
       }
     ],
     [
@@ -198,7 +200,8 @@ export function keyboardFeatures(
       // verifica che il cursore sia esattamente alla fine del testo
       (e.key === "ArrowRight" || e.key === "ArrowDown") 
       && key === "text" && textarea.selectionEnd === textarea.value.length
-      && index!==SECTION.getSection(book)?.paragraphs?.length - 1,
+      && SECTION.bookSection?.paragraphs !== undefined
+      && index!==SECTION.bookSection?.paragraphs?.length - 1,
       function ArrowRight(){
         _changeFocus("down", "|__");
       }

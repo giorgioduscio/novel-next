@@ -74,7 +74,7 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
       );
       if(!result) return undefined;
       if(!result.paragraphs) result.paragraphs = [];
-      
+            
       return result;
     }, [book, part_title, section_title, SECTION_title]),
 
@@ -178,7 +178,6 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
     }    
   }
   
-
   // 4) PARAGRAFI
   const styleInputState = useBracket({
     index:-1, isVisible:false, 
@@ -195,8 +194,8 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
       setBook(clone);
       // aggiornamento backend e feedback
       const res = BookHook.updateBook(book_id, clone)
-      if(!res) return toast.danger("Errore nel salvataggio");
-      toast.success("Paragrafo salvato con successo!");
+      if(!res) return toast.danger("Errore di validazione");
+      toast.success("Paragrafo salvato!");
     },
 
     // crea nuovo paragrafo senza salvarlo
@@ -241,35 +240,15 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
       const index = parseInt(_index)
       if(isNaN(index) || !key) return console.error("Parametri non validi");
 
-      // 2) recupera posizione paragrafo
-      const updated = structuredClone(book);
-      const sec = SECTION.getSection(updated);
-      if (!sec?.paragraphs || !sec.paragraphs[index]) {
-        console.error("Paragrafo non trovato");
-        return;
-      }
-      
-      // 3) stato locale
-      const [defaultValue, styleValue] = value.replaceAll("\n", "").trim().split(",,");
-      const newValue = (key==="in_style") ?defaultValue.toLowerCase() :defaultValue;
+      const newValue = (key==="in_style") ?value.toLowerCase() :value;
 
-      sec.paragraphs[index][key] = newValue;
-      if(styleValue && styleValue.length && key==="text") {
-        sec.paragraphs[index].in_style = styleValue.toLowerCase();
-      }
-
-      setBook(updated); // fix: il valore della textarea prende ',,'
-      // 4) salva su db
-      const res = BookHook.updateBook(book_id, updated, false);
-      // feedback
-      if (!res) console.error("Errore nel salvataggio");
-      toast.success("Paragrafo modificato");
+      PARAG.set(index, {[key]:newValue})
     },
 
     // gestisce alcune funzionalità speciali (es. Enter, Tab)
     handleKey(e: React.KeyboardEvent<HTMLTextAreaElement>){
       if(!book) return console.error("libro non disponibile");
-      return keyboardFeatures(book_id, e, book, setBook, SECTION, PARAG, BookHook)
+      return keyboardFeatures(book_id, e, book, setBook, repeatingStyle, SECTION, PARAG, BookHook)
     },
 
     // imposta il colore appropriato del testo
@@ -376,6 +355,7 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
           result[index+">"+key] = message;
         }) 
     })
+
     // 2) sezione
     const validatedSection = safeParse(section_schema, SECTION.bookSection);   
     if (!validatedSection.success) {
@@ -387,6 +367,30 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
     return result;
   }, [book])
 
+  // 5) stili ripetuti
+  function repeatingStyle(styleInput:string) :{label:string, value:string} {
+    const voidResult = {label:"", value:""};
+    const paragraphs = SECTION.bookSection?.paragraphs;
+    if (!paragraphs || !paragraphs.length || !styleInput) return voidResult;
+
+    // Estrai tutti gli stili (escludendo vuoti o null)
+    const allStyles = paragraphs
+      .map(p => p.in_style?.trim() || "")
+      .filter(s => s !== "");
+
+    // verifica quale degli stili inizia con l'input (autocomplete)
+    const clone = styleInput.toLowerCase();
+    const matches = allStyles.filter(style => 
+      style.toLowerCase().startsWith(clone) && style.toLowerCase() !== clone
+    );
+
+    if(matches.length === 0) return voidResult;
+    
+    // Prendi il primo match o quello più comune
+    const match = matches[0];    
+    return {label: match?.substring(clone.length) || "", value: match || ""};
+  }
+
   return {
     book,
     errors,
@@ -396,6 +400,7 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
     SECTION_title,
     SECTION,
     PARAG,
+    repeatingStyle,
   };
 }
 
