@@ -6,8 +6,9 @@ interface EditModeComponentProps {
   onClick?: (param:any) => void;
   buttonOnly?: boolean;
 }
-export default function EditModeComponent({page, onClick, buttonOnly}: EditModeComponentProps) {
 
+// componente che renderizza il pulsante di toggle modalità editing
+export default function EditModeComponent({page, onClick, buttonOnly}: EditModeComponentProps) {
   function handleClick(e: React.MouseEvent<HTMLButtonElement>) {
     e.preventDefault();
     page.toggleEditMode();
@@ -25,11 +26,12 @@ export default function EditModeComponent({page, onClick, buttonOnly}: EditModeC
   );
 }
 
+// renderizza solo il pulsante
 function ButtonOnly({onClick, page}: EditModeComponentProps) {
   return <button
       onClick={onClick}
       title={page.isEditMode ? "Modalità editing" : "Modalità lettura"}
-      className={`py-2 px-3 rounded-full shadow-lg ${page.isEditMode ? "bg-indigo-100 text-black border" : "bg-orange-500/60"}`}
+      className={`py-2 px-3 rounded-full shadow-lg ${page.isEditMode ? "bg-indigo-500" : "bg-orange-600"}`}
     >
       <i className={`text-xl bi ${page.isEditMode ? "bi-pencil" : "bi-eye"}`}></i>
     </button>

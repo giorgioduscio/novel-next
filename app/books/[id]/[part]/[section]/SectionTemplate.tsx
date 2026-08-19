@@ -31,7 +31,8 @@ type SectionTemplateProps = ReturnType<typeof useSectionComponent>;
 export default function SectionTemplate({
   book_id,  section_title,  page,  SECTION_title,
   errors,  SECTION,  PARAG,
-  repeatingStyle
+  repeatingStyle,
+  HISTORY
 }: SectionTemplateProps) {
 
   const showParagraphs = useMemo(() => 
@@ -43,6 +44,7 @@ export default function SectionTemplate({
   const {isEditMode} = page;
   return (
     <main id="SectionComponent" onClick={PARAG.closeTemplateInputStyle}>
+      {/* NAVBAR */}
       <Navigation back_btn={{ href: `/books/${book_id}` }} page_title={section_title}>
         <button onClick={SECTION.copy} 
                 className="p-2 bg-blue-900 truncate">
@@ -58,6 +60,18 @@ export default function SectionTemplate({
         </Frag>
       </Navigation>
       <Breadcrumb />
+
+      {/* UNDO / REDO */}
+      <div className={`pt-1 sticky top-10 z-3 ${isEditMode ?"" :"pointer-events-none invisible"}`}>
+        <div className="mx-auto w-max flex gap-2">
+          <button onClick={HISTORY.undo} className="px-2 py-1 bg-indigo-800 rounded">
+            <i className="me-1 bi bi-arrow-return-left"></i> Indietro
+          </button>
+          <button onClick={HISTORY.redo} className="px-2 py-1 bg-orange-800 rounded">
+            <i className="me-1 bi bi-arrow-return-right"></i> Ripeti
+          </button>
+        </div>
+      </div>
 
       {/* Contenitore principale scrollabile */}
       <section className="min-h-screen flex-1 overflow-y-auto mx-auto container max-w-[400px]">
@@ -121,9 +135,9 @@ export default function SectionTemplate({
                   {/* PARAGRAFO */}
                   <div className={`py-3 ${PARAG.getExternalStyle(p)}`}>
                     <div className={`p-1 ${PARAG.parseStyle(p) || ""}`}>
-                      <div className={isEditMode && PARAG.styleInput.index === paragraph_i ? 'outline-3 outline-dashed outline-black' : ''}>
+                      <div className={isEditMode && PARAG.styleInput().index === paragraph_i ? 'outline-3 outline-dashed outline-black' : ''}>
                         <Field
-                          input_class={`p-1 text-center ${isEditMode && PARAG.styleInput.index === paragraph_i ? 'outline-3 outline-white' : ''}`}
+                          input_class={`p-1 text-center ${isEditMode && PARAG.styleInput().index === paragraph_i ? 'outline-3 outline-white' : ''}`}
                           placeholder="Testo del paragrafo"
                           value={p.text}
                           disabled={!isEditMode}
@@ -132,7 +146,7 @@ export default function SectionTemplate({
                           asterisk
                           type="textarea"
                           id={paragraph_i + ">text"}
-                          onChange={(_e) => PARAG.handleChange(_e)}
+                          onChange={(_e) => PARAG.set(paragraph_i, {text: _e.target.value})}
                           onKeyDown={(_e: any) => PARAG.handleKey(_e)}
                           error_message={errors[`${paragraph_i}>text`]}
                           onFocus={() => PARAG.setStyleInput(paragraph_i)}
@@ -140,7 +154,7 @@ export default function SectionTemplate({
                       </div>
 
                       {/* STILE PARAGRAFO */}
-                      <Frag if={isEditMode && PARAG.styleInput.index === paragraph_i} className="relative">
+                      <Frag if={isEditMode && PARAG.styleInput().index === paragraph_i} className="relative">
                         <div className='absolute top-0 z-2 w-full' data-dropdown>
                           <div className="p-1 bg-white text-black outline rounded">
                             <div className="grid gap-1 grid-cols-[auto_1fr] items-start relative">
@@ -168,7 +182,7 @@ export default function SectionTemplate({
                                   asterisk
                                   type="textarea"
                                   id={paragraph_i + ">in_style"}
-                                  onInput={(_e) => PARAG.handleChange(_e)}
+                                  onInput={(_e) => PARAG.set(paragraph_i, {in_style: _e.target.value})}
                                   onKeyDown={(_e: any) => PARAG.handleKey(_e)}
                                   // error_message={errors[`${paragraph_i}>in_style`]}
                                   onFocus={() => PARAG.setStyleInput(paragraph_i)}
@@ -231,7 +245,7 @@ export default function SectionTemplate({
                 label="Stile del paragrafo"
                 type="textarea"
                 id={PARAG.styleInput.index + ">in_style"}
-                onChange={(_e) => PARAG.handleChange(_e)}
+                onChange={(_e) => PARAG.set(paragraph_i, {in_style: _e.target.value})}
                 onKeyDown={(_e: any) => PARAG.handleKey(_e)}
                 error_message={errors[`${PARAG.styleInput.index}>in_style`]}
               />

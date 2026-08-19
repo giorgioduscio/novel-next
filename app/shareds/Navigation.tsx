@@ -25,13 +25,13 @@ export default function Navigation(props: NavigationProps) {
   
   return (
     <nav id="Navigation" className="sticky top-0 z-100">
-      <div className="w-full bg-indigo-900 border-b-2 border-indigo-500">
+      <div className="w-full bg-indigo-900 border-b border-black">
         <div className="mx-auto container max-w-[800px]">
           <div className="flex items-center">
 
             {/* se esiste almeno l'href */}
             {(back_btn && back_btn.href) &&(
-              <Link href={back_btn.href} className="py-2 px-3 bg-indigo-900 truncate">
+              <Link href={back_btn.href} className="p-2 bg-indigo-900 truncate">
                 <i className={`${back_btn.icon || 'bi-chevron-left'} bi me-1`}></i>
                 <span>{back_btn.label ||''}</span>
               </Link>

@@ -49,8 +49,8 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
 
   const SECTION ={
     // restituisce la sezione corrente in base al libro
-    getSection(bookObj: Book) :Section | undefined {
-      return bookObj.parts
+    getSection(bookObj = book) :Section | undefined {
+      return bookObj?.parts
         ?.find((p) => p.title.toLowerCase() === part_title.toLowerCase())
         ?.sections.find((s) => s.title.toLowerCase() === section_title.toLowerCase());
     },
@@ -92,16 +92,16 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
         throw new Error("Titolo non modificato");
       }
   
-      const updated = structuredClone(book);
-      const sec = SECTION.getSection(updated);
+      const clone = structuredClone(book);
+      const sec = SECTION.getSection(clone);
       if (!sec) {
         throw new Error("Sezione non trovata");
       }
   
       sec.title = trimmed;  
-      setBook(updated);
+      setBook(clone);
       // api
-      const newBook = BookHook.updateBook(book_id, updated, false);
+      const newBook = BookHook.updateBook(book_id, clone, false);
       // feedback
       if(!newBook) return toast.danger("Titolo non valido");
       toast.success("Titolo aggiornato");
@@ -156,12 +156,8 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
         const newSection :Section = JSON.parse(serializedSection);
         if(!newSection || !newSection.paragraphs) return console.error("Sezione non valida");
 
-        // 4. **SOSTITUISCI** la sezione nel clone con quella incollata
-        // (Assumendo che SECTION.getSection restituisca un riferimento alla sezione nel clone)
+        // 4. sostituisci la sezione nel clone con quella incollata
         section.paragraphs = newSection.paragraphs;
-        // Object.assign(section, newSection); // Sovrascrive le proprietà della sezione esistente
-        // Oppure, se vuoi sostituire completamente la sezione:
-        // SECTION.setSection(clone, newSection); // (Dipende dalla tua implementazione di SECTION)
 
         // 5. Aggiorna lo stato globale       
         setBook(clone);
@@ -179,10 +175,6 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
   }
   
   // 4) PARAGRAFI
-  const styleInputState = useBracket({
-    index:-1, isVisible:false, 
-  });
-
   const PARAG = {
     // aggiorna paragrafo e salva
     set(index:number, newValue:Partial<Paragraph>){
@@ -230,21 +222,6 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
       toast.success("Paragrafo aggiunto");
     },
 
-    // modifica un paragrafo
-    handleChange(e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) {
-      // 1) dati e controlli
-      if (!book) return console.error("Libro non disponibile");
-      e.preventDefault();
-      const {value, id} = e.currentTarget;
-      const [_index, key] = id.split(">") as [string, keyof Paragraph];
-      const index = parseInt(_index)
-      if(isNaN(index) || !key) return console.error("Parametri non validi");
-
-      const newValue = (key==="in_style") ?value.toLowerCase() :value;
-
-      PARAG.set(index, {[key]:newValue})
-    },
-
     // gestisce alcune funzionalità speciali (es. Enter, Tab)
     handleKey(e: React.KeyboardEvent<HTMLTextAreaElement>){
       if(!book) return console.error("libro non disponibile");
@@ -280,13 +257,15 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
     },
 
     // input di stile
-    styleInput: styleInputState(),
+    styleInput: useBracket({
+      index:-1, isVisible:false, 
+    }),
     setStyleInput(paragraph_i?:number){
       if(!page.isEditMode) return;
             
       // RESET
       if (paragraph_i === undefined){
-        styleInputState(prev=> ({ 
+        this.styleInput(prev=> ({ 
           ...prev,
           isVisible: false,
           index: -1,
@@ -297,7 +276,7 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
       const target = SECTION.bookSection?.paragraphs?.[paragraph_i];
       if (!target) return console.error("Paragrafo non trovato");
       
-      styleInputState(prev=> ({ 
+      this.styleInput(prev=> ({ 
         ...prev, 
         isVisible: true,
         index: paragraph_i,
@@ -367,7 +346,7 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
     return result;
   }, [book])
 
-  // 5) stili ripetuti
+  // 5) AUTOCOMPLETE PER STILI RIPETUTI
   function repeatingStyle(styleInput:string) :{label:string, value:string} {
     const voidResult = {label:"", value:""};
     const paragraphs = SECTION.bookSection?.paragraphs;
@@ -391,6 +370,84 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
     return {label: match?.substring(clone.length) || "", value: match || ""};
   }
 
+  // 6) STORICO AZIONI
+  const HISTORY = {
+    undoStack: useDot<Paragraph[][]>([]),
+    redoStack: useDot<Paragraph[][]>([]),
+
+    // Salva lo stato attuale in undoStack e svuota redoStack
+    saveState(paragraphs: Paragraph[]) {
+      HISTORY.undoStack.set(prev => [...prev, structuredClone(paragraphs)]);
+      // Svuota redoStack dopo una nuova azione
+      HISTORY.redoStack.set([]); 
+    },
+
+    // torna allo stato precedente
+    undo() {
+      const undoStack = HISTORY.undoStack.get();
+      if (undoStack.length <= 1) return; // Non c'è nulla da fare undo
+
+      const currentState = undoStack[undoStack.length - 1];
+      const previousState = undoStack[undoStack.length - 2];
+
+      // Sposta lo stato attuale in redoStack
+      HISTORY.redoStack.set(prev => [...prev, currentState]);
+
+      // Rimuovi l'ultimo stato da undoStack
+      HISTORY.undoStack.set(prev => prev.slice(0, -1));
+
+      // Applica lo stato precedente
+      const clone = structuredClone(book!);
+      const sec = SECTION.getSection(clone);
+      if (!sec) return console.error("Sezione non trovata");
+
+      sec.paragraphs = structuredClone(previousState);
+      setBook(clone);
+    },
+
+    // torna allo stato successivo
+    redo() {
+      const redoStack = HISTORY.redoStack.get();
+      if (redoStack.length === 0) return; // Non c'è nulla da fare redo
+
+      const nextState = redoStack[redoStack.length - 1];
+
+      // Sposta lo stato attuale in undoStack
+      HISTORY.undoStack.set(prev => [...prev, structuredClone(nextState)]);
+
+      // Rimuovi l'ultimo stato da redoStack
+      HISTORY.redoStack.set(prev => prev.slice(0, -1));
+
+      // Applica lo stato successivo
+      const clone = structuredClone(book!);
+      const sec = SECTION.getSection(clone);
+      if (!sec) return console.error("Sezione non trovata");
+
+      sec.paragraphs = structuredClone(nextState);
+      setBook(clone);
+    },
+    
+    // salva i paragrafi ogni volta che book cambia
+    onChangeBook() {
+      useEffect(() => {
+        if (!book) return;
+        const sec = SECTION.getSection(structuredClone(book));
+        if (!sec) return console.error("Sezione non trovata");
+    
+        const paragraphs = sec.paragraphs;
+        if (!paragraphs) return console.error("Paragrafi non trovati");
+    
+        // Salva solo se lo stato è diverso dall'ultimo in undoStack
+        const lastState = HISTORY.undoStack.get()[HISTORY.undoStack.get().length - 1];
+        if (!lastState || JSON.stringify(lastState) !== JSON.stringify(paragraphs)) {
+          HISTORY.saveState(paragraphs);
+        }
+      }, [book])
+    }
+  };
+  HISTORY.onChangeBook();
+
+
   return {
     book,
     errors,
@@ -401,6 +458,7 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
     SECTION,
     PARAG,
     repeatingStyle,
+    HISTORY
   };
 }
 

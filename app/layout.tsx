@@ -14,11 +14,9 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }: 
+  Readonly<{ children: React.ReactNode }>
+) {
   
   return (
     <html lang="en" className={`${comicNeue.variable} ${bubblegum .variable}`}>
@@ -27,7 +25,7 @@ export default function RootLayout({
       </head>
       <body className="flex flex-col">
         <AgreeProvider>
-          <div id="app" className="flex-1">
+          <div id="app" className="bg-gray-900/90 text-white flex-1">
             {children}
           </div>
         </AgreeProvider>

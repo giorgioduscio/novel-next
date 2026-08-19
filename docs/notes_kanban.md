@@ -10,7 +10,6 @@
 # Kanban - Novel Writer (Next.js)
 ## 📌 To Do
 * [1] Sistema di autenticazione minimale
-* [2] undo e redo
 
 ## 🔄 In Progress (max 2-3)
 
@@ -47,3 +46,4 @@
 * funzionalità copia e incolla nell'editor della sezione
 * colore testo automatico in base allo sfondo
 * implementare autocomplete per stili ripetuti
+* implementare funzionalità 'undo' e 'redo' 
