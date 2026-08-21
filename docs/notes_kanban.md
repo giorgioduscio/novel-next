@@ -12,7 +12,6 @@
 * [1] Sistema di autenticazione minimale
 * [1] layout mobile
   - fluidita input in fondo e tastiera digitale
-* [1] EditMode copre gli input sottostanti
 
 ## 🔄 In Progress (max 2-3)
 
@@ -50,3 +49,4 @@
 * colore testo automatico in base allo sfondo
 * implementare autocomplete per stili ripetuti
 * implementare funzionalità 'undo' e 'redo' 
+* EditMode copre gli input sottostanti

@@ -42,26 +42,26 @@ export default function SectionTemplate({
   if (!page.isPageLoaded) return <LoadingComponent />;
 
   const {isEditMode} = page;
-  return (
-    <main id="SectionComponent" onClick={PARAG.closeTemplateInputStyle}>
-      {/* NAVBAR */}
-      <Navigation back_btn={{ href: `/books/${book_id}` }} page_title={section_title}>
-        <button onClick={SECTION.copy} 
-                className="p-2 bg-blue-900 text-sm truncate">
-          <i className="bi bi-copy"></i> 
-          <span className="pl-2">Copia</span>
+  return (<>
+    {/* NAVBAR */}
+    <Navigation back_btn={{ href: `/books/${book_id}` }} page_title={section_title}>
+      <button onClick={SECTION.copy} 
+              className="p-2 bg-blue-900 text-sm truncate">
+        <i className="bi bi-copy"></i> 
+        <span className="pl-2">Copia</span>
+      </button>
+      <Frag if={isEditMode}>
+        <button onClick={SECTION.paste} 
+                className="p-2 bg-green-900 text-sm truncate">
+          <i className="bi bi-clipboard"></i> 
+          <span className="pl-2">Incolla</span>
         </button>
-        <Frag if={isEditMode}>
-          <button onClick={SECTION.paste} 
-                  className="p-2 bg-green-900 text-sm truncate">
-            <i className="bi bi-clipboard"></i> 
-            <span className="pl-2">Incolla</span>
-          </button>
-        </Frag>
-      </Navigation>
+      </Frag>
+    </Navigation>
 
-      <Breadcrumb />
+    <Breadcrumb />
 
+    <main id="SectionComponent" onClick={PARAG.closeTemplateInputStyle} className="mx-auto container max-w-[400px]">
       {/* UNDO / REDO */}
       <div className={`pt-1 sticky top-[calc(45px+env(safe-area-inset-top))] z-20 ${isEditMode ?"" :"pointer-events-none invisible"}`}>
         <div className="flex justify-center gap-2">
@@ -75,7 +75,7 @@ export default function SectionTemplate({
       </div>
 
       {/* Contenitore principale */}
-      <section className="pb-50 min-h-dvh flex-1 mx-auto container max-w-[400px]">
+      <section className="pb-50 min-h-dvh flex-1">
         {/* SEZIONE NON TROVATA */}
         <Frag if={!SECTION.bookSection}>
           <div className="py-10 text-center text-red-500">
@@ -239,6 +239,7 @@ export default function SectionTemplate({
       </section>
 
       <EditModeComponent page={page} />
+      
       {/* STILE PARAGRAFO */}
       {/* <Frag if={PARAG.styleInput.isVisible && isEditMode}>
         <div className="p-2 sticky bottom-0 z-2 mx-auto max-w-[400px]">
@@ -273,5 +274,5 @@ export default function SectionTemplate({
       {/* STILE PARAGRAFO */}
 
     </main>
-  );
+  </>);
 }
