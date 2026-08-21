@@ -10,6 +10,9 @@
 # Kanban - Novel Writer (Next.js)
 ## 📌 To Do
 * [1] Sistema di autenticazione minimale
+* [1] layout mobile
+  - fluidita input in fondo e tastiera digitale
+* [1] EditMode copre gli input sottostanti
 
 ## 🔄 In Progress (max 2-3)
 

@@ -69,38 +69,25 @@ const useEvents = ({ value, onChange, onInput, onFocus, onBlur }: Partial<FieldP
 };
 
 
-// Custom Hook per gestire l'adattamento mobile
+// Custom Hook per gestire l'adattamento mobile e focus tastiera
 const useMobile = ({ type }: Partial<FieldProps>) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const inputRefInternal = useRef<HTMLInputElement | null>(null);
-  const lastKeyboardHeight = useRef(0);
 
-  useEffect(() => {
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-
-    // Gestisce il resize della finestra in base alla presenza della tastiera
-  function handleResize() {
-    const keyboardHeight = window.innerHeight - document.documentElement.clientHeight;
-
-    // Applica solo se la differenza è significativa (evita flickering)
-    if (Math.abs(keyboardHeight - lastKeyboardHeight.current) > 10) {
-      requestAnimationFrame(() => {
-        document.body.style.paddingBottom = `${keyboardHeight}px`;
-        lastKeyboardHeight.current = keyboardHeight;
-      });
-    }
-  }
-
-  // Scrolla la pagina per visualizzare l'elemento
+  // Scrolla la pagina per visualizzare l'elemento centrato, gestendo la comparsa della tastiera
   function handleFocus() {
     const element = type === 'textarea' ? textareaRef.current : inputRefInternal.current;
-    element?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    if (!element) return;
+
+    element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+    // Secondo passaggio dopo che la tastiera mobile ha completato l'animazione di apertura
+    setTimeout(() => {
+      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 300);
   }
 
-  return { textareaRef, inputRefInternal, handleFocus, handleResize };
+  return { textareaRef, inputRefInternal, handleFocus };
 };
 
 

@@ -6,7 +6,7 @@ import Frag from "@/app/shareds/Frag";
 import { LoadingComponent } from "@/app/shareds/LoadingComponent";
 import { Breadcrumb } from "@/app/shareds/Breadcrumb";
 import { useSectionComponent } from "./SectionComponent";
-import React, { useMemo } from "react";
+import { useMemo } from "react";
 import EditModeComponent from "@/app/shareds/EditModeComponent";
 import Navigation from "@/app/shareds/Navigation";
 
@@ -31,7 +31,7 @@ type SectionTemplateProps = ReturnType<typeof useSectionComponent>;
 export default function SectionTemplate({
   book_id,  section_title,  page,  SECTION_title,
   errors,  SECTION,  PARAG,
-  repeatingStyle,
+  AUTOCOMPLETE,
   HISTORY
 }: SectionTemplateProps) {
 
@@ -47,34 +47,35 @@ export default function SectionTemplate({
       {/* NAVBAR */}
       <Navigation back_btn={{ href: `/books/${book_id}` }} page_title={section_title}>
         <button onClick={SECTION.copy} 
-                className="p-2 bg-blue-900 truncate">
+                className="p-2 bg-blue-900 text-sm truncate">
           <i className="bi bi-copy"></i> 
-          <span className="pl-2 hidden sm:inline">Copia</span>
+          <span className="pl-2">Copia</span>
         </button>
         <Frag if={isEditMode}>
           <button onClick={SECTION.paste} 
-                  className="p-2 bg-green-900 truncate">
+                  className="p-2 bg-green-900 text-sm truncate">
             <i className="bi bi-clipboard"></i> 
-            <span className="pl-2 hidden sm:inline">Incolla</span>
+            <span className="pl-2">Incolla</span>
           </button>
         </Frag>
       </Navigation>
+
       <Breadcrumb />
 
       {/* UNDO / REDO */}
-      <div className={`pt-1 sticky top-10 z-3 ${isEditMode ?"" :"pointer-events-none invisible"}`}>
-        <div className="mx-auto w-max flex gap-2">
-          <button onClick={HISTORY.undo} className="px-2 py-1 bg-indigo-800 rounded">
-            <i className="me-1 bi bi-arrow-return-left"></i> Indietro
+      <div className={`pt-1 sticky top-[calc(45px+env(safe-area-inset-top))] z-20 ${isEditMode ?"" :"pointer-events-none invisible"}`}>
+        <div className="flex justify-center gap-2">
+          <button onClick={HISTORY.undo} className="px-2 py-1 bg-indigo-800 rounded truncate">
+            <i className="me-1 bi bi-arrow-left"></i> Indietro
           </button>
-          <button onClick={HISTORY.redo} className="px-2 py-1 bg-orange-800 rounded">
-            <i className="me-1 bi bi-arrow-return-right"></i> Ripeti
+          <button onClick={HISTORY.redo} className="px-2 py-1 bg-orange-800 rounded truncate">
+            <i className="me-1 bi bi-arrow-right"></i> Ripeti
           </button>
         </div>
       </div>
 
-      {/* Contenitore principale scrollabile */}
-      <section className="min-h-screen flex-1 overflow-y-auto mx-auto container max-w-[400px]">
+      {/* Contenitore principale */}
+      <section className="pb-50 min-h-dvh flex-1 mx-auto container max-w-[400px]">
         {/* SEZIONE NON TROVATA */}
         <Frag if={!SECTION.bookSection}>
           <div className="py-10 text-center text-red-500">
@@ -146,60 +147,72 @@ export default function SectionTemplate({
                           asterisk
                           type="textarea"
                           id={paragraph_i + ">text"}
-                          onChange={(_e) => PARAG.set(paragraph_i, {text: _e.target.value})}
+                          onChange={(_e) => PARAG.update(paragraph_i, "text", _e.target.value)}
                           onKeyDown={(_e: any) => PARAG.handleKey(_e)}
                           error_message={errors[`${paragraph_i}>text`]}
                           onFocus={() => PARAG.setStyleInput(paragraph_i)}
                         />
                       </div>
+                    </div> {/* stile interno */}
 
-                      {/* STILE PARAGRAFO */}
-                      <Frag if={isEditMode && PARAG.styleInput().index === paragraph_i} className="relative">
-                        <div className='absolute top-0 z-2 w-full' data-dropdown>
-                          <div className="p-1 bg-white text-black outline rounded">
-                            <div className="grid gap-1 grid-cols-[auto_1fr] items-start relative">
-                              {/* ICONA PALETTE */}
-                              {p.in_style 
-                                ?<button onClick={_=> PARAG.set(paragraph_i, {in_style:""})}
-                                        className="p-1 text-red-700 rounded-lg relative outline"
-                                        aria-label="Resetta stile">
-                                  <i className="bi bi-x-lg absolute top-1 start-1"></i>
-                                  <i className="bi bi-palette"></i>
-                                </button>
-                                :<label htmlFor={paragraph_i + ">in_style"} 
-                                        className="p-1 bi bi-palette-fill"
-                                        aria-label="Seleziona stile"></label>
-                              }
-                              {/* INPUT STILE */}
-                              <div>
-                                <Field
-                                  input_class="p-1"
-                                  placeholder="Stile tailwind del paragrafo"
-                                  value={p.in_style || ''}
-                                  disabled={!isEditMode}
-                                  hide_label
-                                  label="Stile tailwind del paragrafo"
-                                  asterisk
-                                  type="textarea"
-                                  id={paragraph_i + ">in_style"}
-                                  onInput={(_e) => PARAG.set(paragraph_i, {in_style: _e.target.value})}
-                                  onKeyDown={(_e: any) => PARAG.handleKey(_e)}
-                                  // error_message={errors[`${paragraph_i}>in_style`]}
-                                  onFocus={() => PARAG.setStyleInput(paragraph_i)}
-                                />
-                              </div>
-
-                              {/* autocomplete */}
-                              <div className="p-1  absolute top-0 right-2 italic text-gray-500 pointler-event-none">
-                                <i>{repeatingStyle(p.in_style || '').label}</i>
-                              </div>
+                    {/* STILE PARAGRAFO */}
+                    <Frag if={isEditMode && PARAG.styleInput().index === paragraph_i} className="mx-8 relative">
+                      <div className='absolute top-0 z-2 w-full' data-dropdown>
+                        <div className="p-1 bg-white text-black outline rounded">
+                          {/* CONSIGLIATI */}
+                          
+                          <div className="flex flex-wrap items-center gap-1">
+                            {AUTOCOMPLETE.values(paragraph_i).map(({tailwindClass, color, handleClick}, index) => (
+                              <button key={index} 
+                                      onClick={_e=> handleClick(paragraph_i)}
+                                      className={`px-1 rounded-full text-sm outline ${color}`}
+                                      aria-label={`Applica stile: ${tailwindClass}`}
+                                      >{tailwindClass}</button>
+                            ))}
+                          </div>
+                          
+                          <div className="grid gap-1 grid-cols-[auto_1fr] items-start relative">
+                            {/* ICONA PALETTE */}
+                            {p.in_style 
+                              ?<button onClick={_=> PARAG.update(paragraph_i, "in_style", "")}
+                                      className="p-1 text-red-700 rounded-lg relative outline"
+                                      aria-label="Resetta stile">
+                                <i className="bi bi-x-lg absolute top-1 start-1"></i>
+                                <i className="bi bi-palette"></i>
+                              </button>
+                              :<label htmlFor={paragraph_i + ">in_style"} 
+                                      className="p-1 bi bi-palette-fill"
+                                      aria-label="Seleziona stile"></label>
+                            }
+                            {/* INPUT STILE */}
+                            <div>
+                              <Field
+                                input_class="p-1"
+                                placeholder="Stile tailwind del paragrafo"
+                                value={p.in_style || ''}
+                                disabled={!isEditMode}
+                                hide_label
+                                label="Stile tailwind del paragrafo"
+                                asterisk
+                                type="textarea"
+                                id={paragraph_i + ">in_style"}
+                                onInput={(_e) => PARAG.update(paragraph_i, "in_style", _e.target.value.toLowerCase())}
+                                onKeyDown={(_e: any) => PARAG.handleKey(_e)}
+                                error_message={errors[`${paragraph_i}>in_style`]}
+                                onFocus={() => PARAG.setStyleInput(paragraph_i)}
+                              />
                             </div>
 
+                            {/* autocomplete */}
+                            <div className="p-1  absolute top-0 right-2 italic text-gray-500 pointler-event-none">
+                              <i>{AUTOCOMPLETE.repeatingStyle(p.in_style || '').label}</i>
+                            </div>
                           </div>
+
                         </div>
-                      </Frag>
-                    </div>
-                  </div>
+                      </div>
+                    </Frag>
+                  </div> {/* stile esterno */}
 
                   {/* RIMUOVI PARAGRAFO */}
                   <Frag if={isEditMode} className="pr-1 pt-3 absolute top-0 end-0 z-1">
@@ -245,7 +258,7 @@ export default function SectionTemplate({
                 label="Stile del paragrafo"
                 type="textarea"
                 id={PARAG.styleInput.index + ">in_style"}
-                onChange={(_e) => PARAG.set(paragraph_i, {in_style: _e.target.value})}
+                onChange={(_e) => PARAG.update(paragraph_i, "in_style", _e.target.value.toLowerCase())}
                 onKeyDown={(_e: any) => PARAG.handleKey(_e)}
                 error_message={errors[`${PARAG.styleInput.index}>in_style`]}
               />

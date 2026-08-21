@@ -27,12 +27,12 @@ export default function BooksTemplate({
 
   const {isEditMode} = page;
   return (
-    <main id="BooksTemplate">
+    <main id="BooksTemplate" className="flex-1 flex flex-col">
       <Navigation page_title="Libri" />
       <Breadcrumb />
 
       {/* Sezione principale per la gestione dei libri */}
-      <section className="p-2 mx-auto container min-h-screen max-w-[800px]">
+      <section className="p-2 mx-auto container min-h-dvh max-w-[800px] flex-1">
 
 
         {/* HEAD */}

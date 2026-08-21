@@ -27,7 +27,7 @@ export default function BookTemplate({
 
   const {isEditMode} =page;
   return (
-      <main id="BookTemplate" onClick={DROPDOWN.autoClose}>
+      <main id="BookTemplate" onClick={DROPDOWN.autoClose} className="flex-1 flex flex-col">
         <Navigation back_btn={{ href:"/books", label:"", icon:"bi-chevron-left" }} 
                 page_title={book?.title || ""}/>
         <Breadcrumb />
@@ -42,7 +42,7 @@ export default function BookTemplate({
         
         {/* LIBRO TROVATO */}
         <Frag if={!!book}>
-          <section className="pb-10 mx-auto container max-w-[800px]">
+          <section className="pb-10 mx-auto container max-w-[800px] flex-1">
             {/* HEADER */}
             <div className="p-3 py-8 text-center">
               <div className="grid grid-cols-1 sm:grid-cols-[1fr_2fr] gap-1">

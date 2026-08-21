@@ -117,7 +117,7 @@ export function AgreeProvider({ children }: { children: React.ReactNode }) {
     <AgreeContext.Provider value={{ showAgree }}>
       {children}
       {agreeState.show && (
-        <div className='p-3 fixed top-0 left-0 w-full h-full z-50 flex items-start justify-center bg-black/50'>
+        <div className='p-3 fixed inset-0 z-50 flex items-start justify-center bg-black/50 overflow-y-auto pb-[calc(1rem+env(safe-area-inset-bottom))] pt-[calc(1rem+env(safe-area-inset-top))]'>
           <AgreeComponent
             title={agreeState.title}
             message={agreeState.message}

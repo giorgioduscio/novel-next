@@ -12,10 +12,10 @@ export default function Home() {
   ];
   
   return (
-    <main id="Home">
+    <main id="Home" className="flex-1 flex flex-col">
       <Navigation page_title="Home" />
 
-      <section className="mx-auto container max-w-[800px] shadow-xl md:border-x md:border-x-gray-800">
+      <section className="mx-auto container max-w-[800px] shadow-xl md:border-x md:border-x-gray-800 flex-1 flex flex-col">
         {/* Hero Section */}
         <div className="flex flex-col items-center justify-center px-4 py-16">
           <div className="max-w-3xl text-center">

@@ -10,26 +10,158 @@ Gerarchie
 * Frase     
 */
 
-const allowed_styles = [
-  "w-", "h-",
-  "m-", "my-", "mx-", "mt-", "mb-", "ml-", "mr-", 
-  "p-", "py-", "px-", "pt-", "pb-", "pl-", "pr-", 
-  "text-", "border", "bg-", "outline", "shadow",
-  "translate-", "rounded", "slash-",
-  // custom classes
-  "ex:", "full",  
-  "v", "vignetta", "f", "fumetto", "s", "spazio"
-] as const;
+const not_allowed_styles = [
+  // Display
+  "inline",
+  "block",
+  "inline-block",
+  "flex",
+  "inline-flex",
+  "table",
+  "inline-table",
+  "table-caption",
+  "table-cell",
+  "table-column",
+  "table-column-group",
+  "table-footer-group",
+  "table-header-group",
+  "table-row-group",
+  "table-row",
+  "flow-root",
+  "grid",
+  "inline-grid",
+  "contents",
+  "list-item",
+  "hidden",
 
+  // Position
+  "static",
+  "fixed",
+  "absolute",
+  "relative",
+  "sticky",
+
+  // Z-index
+  "z-",
+
+  // Float / clear
+  "float-",
+  "clear-",
+
+  // Overflow
+  "overflow-",
+  "overscroll-",
+
+  // Flexbox
+  "flex-",
+  "grow",
+  "grow-",
+  "shrink",
+  "shrink-",
+  "basis-",
+  "order-",
+  "justify-",
+  "items-",
+  "content-",
+  "self-",
+  "place-",
+
+  // Grid
+  "grid-",
+  "col-",
+  "row-",
+  "auto-cols-",
+  "auto-rows-",
+
+  // Gap
+  "gap-",
+  "gap-x-",
+  "gap-y-",
+
+  // Typography — behavior/structure
+  "font-",
+  "leading-",
+  "tracking-",
+  "align-",
+  "whitespace-",
+  "break-",
+  "hyphens-",
+  "truncate",
+  "text-ellipsis",
+  "text-clip",
+
+  // Visibility / interaction
+  "visible",
+  "invisible",
+  "collapse",
+  "pointer-events-",
+  "select-",
+  "resize",
+  "cursor-",
+
+  // Transitions / animation
+  "transition",
+  "transition-",
+  "duration-",
+  "ease-",
+  "delay-",
+  "animate-",
+
+  // Transforms — except translate-
+  "scale-",
+  "rotate-",
+  "skew-",
+  "origin-",
+
+  // Accessibility
+  "sr-only",
+  "not-sr-only",
+
+  // Appearance / interaction
+  "appearance-",
+  "accent-",
+  "caret-",
+  "scroll-",
+  "snap-",
+
+  // Columns
+  "columns-",
+
+  // Aspect / object
+  "aspect-",
+  "object-",
+
+  // Container
+  "container",
+
+  // Misc layout
+  "box-",
+  "isolate",
+  "isolation-",
+  "decoration-",
+  "break-before-",
+  "break-after-",
+  "break-inside-",
+
+  // Tables
+  "border-collapse",
+  "border-separate",
+  "border-spacing-",
+  "caption-",
+
+  // Accessibility / forced colors
+  "forced-color-adjust-",
+] as const;
 
 function validateStyle(v:string){
   if(v.trim().length === 0) return true;
   const classes = v.trim().split(" "); // tutte le classi tailwind
   // verifica se c'è almeno una classe che non appartiene a quelle permesse
   return classes.every((classe) => // verificare tutte le classi attuali
-    allowed_styles.some((style) => // verificare almeno una classe permessa
-      // verifica corrispondenza 
-      classe.includes(style)) // (classe attuale deve contenere una delle classi permesse)
+    // verificare che nessuna classe non permessa sia presente
+    not_allowed_styles.every((style) => 
+      // (classe attuale non deve contenere una delle classi non permesse)
+      !classe.includes(style)) 
   );
 }
 

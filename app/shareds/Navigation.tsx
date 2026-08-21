@@ -24,22 +24,23 @@ export default function Navigation(props: NavigationProps) {
   }, [pathname, page_title]);
   
   return (
-    <nav id="Navigation" className="sticky top-0 z-100">
+    <nav id="Navigation" className="sticky top-0 z-50 pt-[env(safe-area-inset-top)]">
       <div className="w-full bg-indigo-900 border-b border-black">
         <div className="mx-auto container max-w-[800px]">
-          <div className="flex items-center">
+          <div className="flex items-center min-h-[44px]">
 
             {/* se esiste almeno l'href */}
             {(back_btn && back_btn.href) &&(
-              <Link href={back_btn.href} className="p-2 bg-indigo-900 truncate">
+              <Link href={back_btn.href} className="p-2 bg-indigo-900">
                 <i className={`${back_btn.icon || 'bi-chevron-left'} bi me-1`}></i>
-                <span>{back_btn.label ||''}</span>
+                <span className='truncate'>{back_btn.label ||''}</span>
               </Link>
             )}
 
             {title && (
-              <h1 className="p-2 text-bold text-orange-500 truncate flex-1">{title || 'NovelNext'}</h1>
+              <h1 className="p-2 text-bold text-orange-500">{title || 'NovelNext'}</h1>
             )}
+            <div className="flex-1"></div>
 
             {children}
 

@@ -18,8 +18,8 @@ export default function EditModeComponent({page, onClick, buttonOnly}: EditModeC
   if(buttonOnly) return <ButtonOnly onClick={handleClick} page={page} />;
 
   return (
-    <div className="pr-2 pb-2 mx-auto max-w-[400px] sticky bottom-0 z-5">
-      <div className="flex justify-end">
+    <div className="pr-2 pb-[calc(0.75rem+env(safe-area-inset-bottom))] mx-auto max-w-[400px] sticky bottom-0 z-30 pointer-events-none w-full">
+      <div className="flex justify-end pointer-events-auto">
         <ButtonOnly onClick={handleClick} page={page} />
       </div>
     </div>

@@ -10,7 +10,7 @@ export function keyboardFeatures(
   e: React.KeyboardEvent<HTMLTextAreaElement>,
   book: Book,
   setBook: (book: Book) => void,
-  repeatingStyle: (styleInput:string) => {value: string, label: string},
+  AUTOCOMPLETE: Main['AUTOCOMPLETE'],
   SECTION: Main['SECTION'],
   PARAG: Main['PARAG'],
   BookHook: BookHookProps
@@ -57,10 +57,10 @@ export function keyboardFeatures(
       e.key==="Enter" && key === "in_style",
       function enterStyle(){
         e.preventDefault();
-        const in_style = repeatingStyle(textarea.value.trim()).value
+        const in_style = AUTOCOMPLETE.repeatingStyle(textarea.value.trim()).value
         
         if(in_style.length === 0) return;
-        PARAG.set(index,{ in_style });
+        PARAG.update(index, "in_style", in_style);
       }
     ],
     [
