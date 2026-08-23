@@ -18,7 +18,6 @@ export default function BooksTemplate({
   page,
   BookHook,
   BOOKS,
-  UPLOAD,
 }: ReturnType<typeof useBooksComponent>) {
   // Mostra il componente di caricamento se la pagina non è pronta o è in corso il caricamento
   if (!page.isPageLoaded || BookHook.loading) {
@@ -60,18 +59,16 @@ export default function BooksTemplate({
         <div className="py-3 flex justify-center items-center gap-3">
           <div className="md:hidden truncate">Upload:</div>
 
-          <button onClick={UPLOAD.json.execute}
+          <button onClick={BookHook.upload.json.execute}
                   className="py-2 px-3 text-sm rounded bg-green-800">
-            <i className="me-2 bi bi-upload"></i>
-            <span className="me-1 hidden md:inline">Upload</span>
-            <span>{UPLOAD.json.label}</span>
+            <i className={`me-2 bi ${BookHook.upload.json.icon}`}></i>
+            <span>{BookHook.upload.json.label}</span>
           </button>
 
-          <button onClick={UPLOAD.markdown.execute}
+          <button onClick={BookHook.upload.markdown.execute}
                   className="py-2 px-3 text-sm rounded bg-blue-800">
-            <i className="me-2 bi bi-upload"></i>
-            <span className="me-1 hidden md:inline">Upload</span>
-            <span>{UPLOAD.markdown.label}</span>
+            <i className={`me-2 bi ${BookHook.upload.markdown.icon}`}></i>
+            <span>{BookHook.upload.markdown.label}</span>
           </button>
         </div>
         {/* UPLOAD */}

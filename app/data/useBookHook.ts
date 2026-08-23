@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Book, book_schema } from "../schemas/book_schema";
 import * as v from "valibot";
-import { ui_upload, ui_download, debounce } from "../tools/feedbacksUI";
+import { ui_upload, ui_download, debounce, toast } from "../tools/feedbacksUI";
 
 
 const FIREBASE_URL = "https://books-3e4c3-default-rtdb.europe-west1.firebasedatabase.app/books";
@@ -268,15 +268,28 @@ export default function useBookHook() {
             console.error("Nessun file selezionato");
             return;
           }
-          const validatedBook = CRUD.validateBook(input);
-          if (!validatedBook) return console.error("Formato non valido");
-          CRUD.addBook(validatedBook);
+
+          // Type guard: ensure input is a single Book, not an array
+          if (Array.isArray(input)) {
+            toast.danger("Caricare un solo libro alla volta");
+            return;
+          }
+
+          // Gestione libro esistente - genera nuovo ID se duplicato
+          const existingBook = CRUD.readAll().find((book) => book.id === input.id);
+          if (existingBook) {
+            input.id = CRUD.createId(); // genera nuovo ID per il libro caricato
+          }
+          const res = CRUD.addBook(input);
+
+          if(!res) toast.danger("Errore durante il caricamento")
+          toast.success("Libro caricato da JSON"); // Feedback
         } catch (err) {
           console.error("Errore durante l'upload JSON:", err);
         }
       },
     },
-    
+
     markdown: {
       label: "Upload (.md)",
       icon: "bi-upload",
@@ -289,8 +302,10 @@ export default function useBookHook() {
           }
           const validatedBook = CRUD.validateBook(input);
           if (!validatedBook) return console.error("Formato non valido");
-          CRUD.addBook(validatedBook);
 
+          CRUD.addBook(validatedBook);
+          setBooks(CRUD.readAll()); // Aggiorna lo stato
+          toast.success("Libro caricato da Markdown"); // Feedback
         } catch (err) {
           console.error("Errore durante l'upload markdown:", err);
         }
