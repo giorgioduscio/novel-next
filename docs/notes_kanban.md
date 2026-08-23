@@ -2,6 +2,8 @@
 
 * git reset head~1; git add .; git commit -m "deploy"; git push -f
 
+* leggi book_schema; controlla le pagine bookscomponent, bookcomponent, sectioncomponent. il tuo compito è assicurarti che le parti e le sezioni del libro, abbiano l'attributo 'note' e inserisci una textare reattiva per modificare il campo
+
 ### Connettersi al network
 * ipconfig
 * npm run dev -- --hostname 0.0.0.0 --port 3000
@@ -9,6 +11,7 @@
 
 # Kanban - Novel Writer (Next.js)
 ## 📌 To Do
+* [1] external_style: inserire uno sfondo comune tra più paragrafi
 * [1] Sistema di autenticazione minimale
 * [1] layout mobile
   - fluidita input in fondo e tastiera digitale
@@ -50,3 +53,5 @@
 * implementare autocomplete per stili ripetuti
 * implementare funzionalità 'undo' e 'redo' 
 * EditMode copre gli input sottostanti
+* implementazione per uso pratico
+* inserire note e id per parti, sezioni e paragrafi

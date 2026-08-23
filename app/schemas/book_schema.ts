@@ -166,24 +166,29 @@ function validateStyle(v:string){
 }
 
 export const paragraph_schema = v.object({
-  in_style: v.optional(v.pipe(v.string(), 
-    v.check((v) => validateStyle(v), "in_style: Solo stili ornamentali (m-, p-, text-, border-, bg-, outline-, shadow-, translate-)")
-  )),
+  id: v.pipe(v.string(), v.uuid()),
+  in_style: v.pipe(v.string(), 
+    v.check((v) => validateStyle(v), "in_style: Solo stili standard o ornamentali")
+  ),
   text: v.string(),
 });
 
 export const section_schema = v.object({
+  id: v.pipe(v.string(), v.uuid()),
   title: v.pipe(v.string(), v.minLength(3, "title: Il titolo della sezione deve contenere almeno 3 caratteri")),
+  note: v.string(),
   paragraphs: v.optional(v.array(paragraph_schema)),
 });
 
 export const parts_schema = v.object({
+  id: v.pipe(v.string(), v.uuid()),
   title: v.pipe(v.string(), v.minLength(3, "title: Il titolo della parte deve contenere almeno 3 caratteri")),
+  note: v.string(),
   sections: v.array(section_schema),
 });
 
 export const book_schema = v.object({
-  id: v.number(),
+  id: v.pipe(v.string(), v.uuid()),
   title: v.pipe(v.string(), v.minLength(3, "title: Il titolo deve contenere almeno 3 caratteri")),
   description: v.pipe(v.string(), v.minLength(3, "description: La descrizione deve contenere almeno 3 caratteri")),
   author: v.pipe(v.string(), v.minLength(3, "author: L'autore deve contenere almeno 3 caratteri")),

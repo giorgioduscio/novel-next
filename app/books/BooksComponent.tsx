@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Book, book_schema } from "../schemas/book_schema";
+import { Book, book_schema, Part, Section } from "../schemas/book_schema";
 import { useAgreeWrapper } from "@/app/shareds/Agree";
 import { ui_upload, toast } from "../tools/feedbacksUI";
 import { safeParse } from "valibot";
@@ -91,7 +91,7 @@ export function useBooksComponent() {
     },
 
     // Elimina un libro dopo conferma
-    async delete(id: number) {
+    async delete(id: string) {
       if (!(await agree.danger("Rimuovere il libro?", "Rimuovi"))) return;
       // aggiorna lo stato
       setbooks(BookHook.readAll());
@@ -148,15 +148,15 @@ export function useBooksComponent() {
 
           // Struttura base del libro
           const book: Book = {
-            id: 0,
-            title: "Inserire titolo",
-            description: "Inserire descrizione",
-            author: "Inserire autore",
+            id: BookHook.createId(),
+            title: "Senza titolo",
+            description: "Descrizione",
+            author: "Autore sconosciuto",
             parts: [],
           };
 
-          let currentPart: any = null;
-          let currentSection: any = null;
+          let currentPart: Part | null = null;
+          let currentSection: Section | null = null;
 
           // Elabora ogni riga del file Markdown
           const lines = input.split(/\r?\n/).map((l) => l.trim());
@@ -173,7 +173,9 @@ export function useBooksComponent() {
             // Gestisce le parti del libro
             if (line.startsWith("## ")) {
               currentPart = {
+                id: BookHook.createId(),
                 title: line.substring(3).trim(),
+                note: "",
                 sections: [],
               };
 
@@ -186,7 +188,9 @@ export function useBooksComponent() {
             if (line.startsWith("### ")) {
               if (!currentPart) {
                 currentPart = {
+                  id: BookHook.createId(),
                   title: "",
+                  note: "",
                   sections: [],
                 };
 
@@ -194,7 +198,9 @@ export function useBooksComponent() {
               }
 
               currentSection = {
+                id: BookHook.createId(),
                 title: line.substring(4).trim(),
+                note: "",
                 paragraphs: [],
               };
 
@@ -206,7 +212,9 @@ export function useBooksComponent() {
             if (!currentSection) {
               if (!currentPart) {
                 currentPart = {
+                  id: BookHook.createId(),
                   title: "",
+                  note: "",
                   sections: [],
                 };
 
@@ -214,14 +222,18 @@ export function useBooksComponent() {
               }
 
               currentSection = {
+                id: BookHook.createId(),
                 title: "",
+                note: "",
                 paragraphs: [],
               };
 
               currentPart.sections.push(currentSection);
             }
 
-            currentSection.paragraphs.push({
+            currentSection?.paragraphs?.push({
+              id: BookHook.createId(),
+              in_style: "",
               text: line,
             });
           }

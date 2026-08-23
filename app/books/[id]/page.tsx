@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 
 export default async function Book({ params }: PageProps) {
   const paramsData = await params;
-  const id = parseInt(paramsData.id);
+  const id = paramsData.id;
 
   return <BookComponent id={id} />;
 }

@@ -35,7 +35,7 @@ const API_SERVICE = {
   }, 1000),
 
   // Elimina un singolo libro da Firebase (DELETE per ID)
-  async deleteSingleBook(id: number) {
+  async deleteSingleBook(id: string) {
     try {
       const response = await fetch(`${FIREBASE_URL}/${id}.json`, {
         method: "DELETE",
@@ -94,10 +94,38 @@ export default function useBookHook() {
 
   // stato dei dati 
   const CRUD ={
+    // crea l'id univoco (UUID v4)
+    createId(){
+      return crypto.randomUUID()
+    },
+
+    // Migra i dati per garantire che i campi note siano presenti
+    migrateBook(book: any): Book {
+      const migrated = structuredClone(book);
+      
+      // Migra le parti
+      if (migrated.parts && Array.isArray(migrated.parts)) {
+        migrated.parts = migrated.parts.map((part: any) => ({
+          ...part,
+          note: part.note ?? "",
+          // Migra le sezioni
+          sections: part.sections?.map((section: any) => ({
+            ...section,
+            note: section.note ?? "",
+          })) || [],
+        }));
+      }
+      
+      return migrated;
+    },
+
     // Valida un libro usando valibot
     validateBook(book: unknown): Book | null {
       try {
-        const result = v.safeParse(book_schema, book);
+        // Prima migra i dati
+        const migratedBook = this.migrateBook(book as any);
+        
+        const result = v.safeParse(book_schema, migratedBook);
   
         if (!result.success) {
           console.error("Validation error:", result.issues);
@@ -130,9 +158,9 @@ export default function useBookHook() {
   
     // Crea un nuovo libro con un ID univoco e lo aggiunge alla lista
     createBook(book: Omit<Book, "id">) {
-      let newId = Date.now();
+      let newId =  CRUD.createId();
       while (books.some((b) => b.id === newId)) {
-        newId++;
+        newId = CRUD.createId();
       }
   
       const newBook: Book = { ...book, id: newId, parts: book.parts || [] };
@@ -147,13 +175,13 @@ export default function useBookHook() {
   
     // Trova un libro per ID
     getBookById :useCallback(
-      (id: number): Book | undefined => {
+      (id: string): Book | undefined => {
         return books.find((book) => book.id === id);
       }, [books]
     ),
   
     // Aggiorna un libro esistente
-    updateBook(id: number, updatedBook: Partial<Book>, validation = true) {
+    updateBook(id: string, updatedBook: Partial<Book>, validation = true) {
       const stored = this.getBookById(id);
       if (!stored) {
         console.error("Libro non trovato");
@@ -171,7 +199,7 @@ export default function useBookHook() {
       return validatedBook;
     },
   
-    deleteBook(id: number) {
+    deleteBook(id: string) {
       setBooks((prevBooks) => prevBooks.filter((book) => book.id !== id));
       const res = API.deleteSingleBook(id);
       if (!res) return false;
@@ -199,7 +227,7 @@ export default function useBookHook() {
     json: {
       label: "Download (.json)",
       icon: "bi-download",
-      execute(id: number){
+      execute(id: string){
         const data = CRUD.getBookById(id);
         if (!data) throw new Error("libro non trovato");
         ui_download.json(data, data.title);
@@ -209,7 +237,7 @@ export default function useBookHook() {
     txt: {
       label: "Download (.txt)",
       icon: "bi-file",
-      execute(id: number) {
+      execute(id: string) {
         const data = CRUD.getBookById(id);
         if (!data) throw new Error("libro non trovato");
         const result = DOWNLOAD._json_to_text(data);
@@ -219,7 +247,7 @@ export default function useBookHook() {
     md: {
       label: "Download (.md)",
       icon: "bi-file-earmark-text",
-      execute(id: number) {
+      execute(id: string) {
         const data = CRUD.getBookById(id);
         if (!data) throw new Error("libro non trovato");
         const result = DOWNLOAD._json_to_text(data, true);

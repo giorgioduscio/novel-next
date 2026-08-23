@@ -19,5 +19,5 @@ export default async function ChapterServer({ params }: ChapterServerProps) {
   const parsedParts = part.replaceAll("-", " ");
   const parsedSection = section.replaceAll("-", " ");
 
-  return <SectionComponent book_id={parseInt(id)} part_title={parsedParts} section_title={parsedSection} />;
+  return <SectionComponent book_id={id} part_title={parsedParts} section_title={parsedSection} />;
 }

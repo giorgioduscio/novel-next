@@ -19,7 +19,7 @@ export default function SectionComponent(props: UseSectionComponentProps) {
 
 
 interface UseSectionComponentProps {
-  book_id: number;
+  book_id: string;
   part_title: string;
   section_title: string;
 }
@@ -34,134 +34,130 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
   const [book, setBook] = useState<Book | undefined>(undefined);
   
   useEffect(() => {
-    if (isNaN(book_id)) return;
     const foundBook = BookHook.getBookById(book_id);
     setBook(foundBook);
   }, [book_id, BookHook.getBookById]);
 
-  
+  // restituisce la sezione corrente in base al libro
+  function getSection(bookObj = book) :Section | undefined {
+    return bookObj?.parts
+      ?.find((p) => p.title.toLowerCase() === part_title.toLowerCase())
+      ?.sections.find((s) => s.title.toLowerCase() === section_title.toLowerCase());
+  };
+
   // 2) SEZIONE
   const [SECTION_title, SECTION_setTitle] = useState(section_title);
+  const SECTION = {
 
-  // sicronizza con l'url
-  useEffect(()=>{ SECTION_setTitle(section_title) }, [section_title]);
-
-  const SECTION ={
-    // restituisce la sezione corrente in base al libro
-    getSection(bookObj = book) :Section | undefined {
-      return bookObj?.parts
-        ?.find((p) => p.title.toLowerCase() === part_title.toLowerCase())
-        ?.sections.find((s) => s.title.toLowerCase() === section_title.toLowerCase());
-    },
-
-    // restituisce la sezione corrente
-    bookSection: useMemo(() => {
-      if (!book?.parts) return undefined;
-
-      let result :Section | undefined = undefined;
-      const foundPart = book.parts.find((p) =>
-        p.title.toLowerCase() === part_title.toLowerCase()
-      );
-
-      result = (
-        foundPart?.sections.find(
-          (s) => s.title.toLowerCase() === SECTION_title.toLowerCase()
-        ) ??
-        foundPart?.sections.find(
-          (s) => s.title.toLowerCase() === section_title.toLowerCase()
-        )
-      );
-      if(!result) return undefined;
-      if(!result.paragraphs) result.paragraphs = [];
-            
+    // Restituisce la sezione corrente
+    bookSection: useMemo(() :Section |undefined => {
+      const result = getSection();
+      if (!result) return undefined;
+      if (!result.paragraphs) result.paragraphs = [];
       return result;
-    }, [book, part_title, section_title, SECTION_title]),
+    }, [book, part_title, SECTION_title]),
 
-    // cambia il titolo della sezione
-    handleChange(value: string) {      
+    // Numero di parole nella sezione
+    words: useMemo(() :number => {
+      const section = getSection();
+      return section?.paragraphs?.reduce((acc, p) => acc + p.text.length, 0) || 0;
+    }, [book, SECTION_title]),
+
+    // Cambia il titolo della sezione
+    handleChange(value: string) {
       SECTION_setTitle(value);
     },
-   
-    // esegue cambio di rotta
+
+    // Esegue cambio di rotta
     handleSubmit(e: React.FormEvent) {
       e.preventDefault();
-      // stato
       const trimmed = SECTION_title.trim();
       if (!book || !trimmed || trimmed === section_title) {
         throw new Error("Titolo non modificato");
       }
-  
+
       const clone = structuredClone(book);
-      const sec = SECTION.getSection(clone);
+      const sec = getSection(clone);
       if (!sec) {
         throw new Error("Sezione non trovata");
       }
-  
-      sec.title = trimmed;  
+
+      sec.title = trimmed;
       setBook(clone);
-      // api
+
       const newBook = BookHook.updateBook(book_id, clone, false);
-      // feedback
-      if(!newBook) return toast.danger("Titolo non valido");
+      if (!newBook) return toast.danger("Titolo non valido");
       toast.success("Titolo aggiornato");
-  
-      // redirect alla nuova URL della sezione
-      const _part = part_title.replaceAll(" ", "-");
-      const _title = trimmed.replaceAll(" ", "-");
-      router.push(`/books/${book_id}/${_part}/${_title}`);
+
+      setTimeout(() => {
+        const _part = part_title.replaceAll(" ", "-");
+        const _title = trimmed.replaceAll(" ", "-");
+        router.push(`/books/${book_id}/${_part}/${_title}`);
+      }, 1000);
     },
 
-    // premendo 'invio' o 'freccia giù' passa al primo paragrafo
+    // Aggiorna la nota della sezione
+    updateNote(value: string) {
+      if (!book) throw new Error("Libro non trovato");
+      const clone = structuredClone(book);
+      const sec = getSection(clone);
+      if (!sec) throw new Error("Sezione non trovata");
+
+      sec.note = value.trim();
+      setBook(clone);
+
+      const newBook = BookHook.updateBook(book_id, clone);
+      if (!newBook) return toast.danger("Errore nell'aggiornamento della nota");
+      toast.success("Nota sezione aggiornata");
+    },
+
+    // Premendo 'invio' o 'freccia giù' passa al primo paragrafo
     titleKeyDown(e: React.KeyboardEvent) {
-      if (e.key === "Enter" || e.key==="ArrowDown") {
-        e.preventDefault();
+      if (e.key === "ArrowDown") {
         const firstParagraph = document.getElementById("0>text");
-        if(firstParagraph) firstParagraph.focus();
+        if (firstParagraph) firstParagraph.focus();
       }
     },
 
-    // copia nel sistema la struttura del libro
+    // Copia nel sistema la struttura del libro
     async copy() {
-      const section = SECTION.bookSection;
+      const section = getSection();
       if (!section) return console.error("Sezione non trovata");
 
       try {
-        // Serializza la sezione in JSON
-        const serializedSection = JSON.stringify(section);
-        // Copia negli appunti di sistema
+        const serializedSection = JSON.stringify(section, null, 4);
         await navigator.clipboard.writeText(serializedSection);
         toast.success("Sezione copiata negli appunti!");
-        
       } catch (err) {
         console.error("Errore nella copia:", err);
       }
     },
 
-    // incolla la struttura del libro dal sistema
+    // Incolla la struttura del libro dal sistema
     async paste() {
       try {
-        // 1. Crea una copia profonda del libro
         const clone = structuredClone(book);
         if (!clone) return console.error("Libro non trovato");
 
-        // 2. Ottieni la sezione da sostituire
-        const section = SECTION.getSection(clone);
+        const section = getSection(clone);
         if (!section) return console.error("Sezione non trovata");
-        if(section.paragraphs?.length && 
-          !(await agree.warning("Sei sicuro di voler sostituire i paragrafi precedenti?", "Incolla"))) return;
+        if (
+          section.paragraphs?.length &&
+          !(await agree.warning(
+            "Sei sicuro di voler sostituire i paragrafi precedenti?",
+            "Incolla"
+          ))
+        )
+          return;
 
-        // 3. Leggi il testo dagli appunti e deserializza
         const serializedSection = await navigator.clipboard.readText();
-        const newSection :Section = JSON.parse(serializedSection);
-        if(!newSection || !newSection.paragraphs) return console.error("Sezione non valida");
+        const newSection: Section = JSON.parse(serializedSection);
+        if (!newSection || !newSection.paragraphs)
+          return console.error("Sezione non valida");
 
-        // 4. sostituisci la sezione nel clone con quella incollata
         section.paragraphs = newSection.paragraphs;
-
-        // 5. Aggiorna lo stato globale       
         setBook(clone);
 
-        // 6. Salva le modifiche sul backend
         const res = await BookHook.updateBook(book_id, clone);
         if (!res) return toast.danger("Errore nel salvataggio");
 
@@ -170,15 +166,15 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
         console.error("Errore nell'incollaggio:", err);
         toast.danger("Errore nell'incollaggio");
       }
-    }    
-  }
+    },
+  };
   
   // 4) PARAGRAFI
   const PARAG = {
     // aggiorna paragrafo e salva
     update(index:number, key: keyof Paragraph, value:string, reemplazar =true){
       const clone = structuredClone(book!);
-      const sec = SECTION.getSection(clone);
+      const sec = getSection(clone);
       if (!sec || !sec.paragraphs?.length) return;
 
       // aggiornamento stato
@@ -196,10 +192,14 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
       if (!book) return console.error("Libro non disponibile");
         
       const updated = structuredClone(book);
-      const sec = SECTION.getSection(updated);
+      const sec = getSection(updated);
       if (!sec) return console.error("Sezione non trovata");
 
-      const newParagraph: Paragraph = { in_style: "", text: paragraphText || "" };
+      const newParagraph: Paragraph = { 
+        id: BookHook.createId(),
+        in_style: "", 
+        text: paragraphText || "" 
+      };
       if (!sec.paragraphs) sec.paragraphs = [];
 
       // stringa TOP -> aggiungi in cima
@@ -226,7 +226,7 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
     // gestisce alcune funzionalità speciali (es. Enter, Tab)
     handleKey(e: React.KeyboardEvent<HTMLTextAreaElement>){
       if(!book) return console.error("libro non disponibile");
-      return keyboardFeatures(book_id, e, book, setBook, AUTOCOMPLETE, SECTION, PARAG, BookHook)
+      return keyboardFeatures(book_id, getSection, e, book, setBook, AUTOCOMPLETE, SECTION, PARAG, BookHook)
     },
 
     // imposta il colore appropriato del testo
@@ -302,7 +302,7 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
       }
   
       const updated = structuredClone(book);
-      const sec = SECTION.getSection(updated);
+      const sec = getSection(updated);
 
       if (!sec) {
         throw new Error("Sezione non trovata");
@@ -326,7 +326,7 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
 
     // 1) validazione paragrafi
     let result: Record<string, string> = {};
-    SECTION.bookSection?.paragraphs?.forEach((p, index)=>{
+    getSection()?.paragraphs?.forEach((p, index)=>{
       const validatedParagraph = safeParse(paragraph_schema, p);
       if (!validatedParagraph.success) 
         // inserire un campo d'errore
@@ -376,51 +376,77 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
       }, []);
     },
 
-    values: useMemo( () => 
-      (paragraphIndex: number) => {
-        const paragraphs = SECTION.bookSection?.paragraphs;
-        const paragraph = paragraphs?.[paragraphIndex];
-        if(! paragraphs || !paragraph) return [];
+    // mostra classi standard o usate
+// mostra classi standard o usate
+values: useMemo(
+  () => (paragraphIndex: number) => {
+    const paragraphs = SECTION.bookSection?.paragraphs;
+    const paragraph = paragraphs?.[paragraphIndex];
+    if (!paragraphs || !paragraph) return [];
 
-        const standardColor = "bg-orange-200"
-        const repeatColor = "bg-indigo-200"
-        const input = (paragraph.in_style || "").trim().toLowerCase();
+    const standardColor = "bg-orange-200";
+    const repeatColor = "bg-indigo-200";
+    const input = (paragraph.in_style || "").trim().toLowerCase();
 
-        // Stili standard + stili già utilizzati
-        let allStyles: string[] = [
-          ...AUTOCOMPLETE.standardStyles.get(),
-          ...AUTOCOMPLETE.usedStyles,
-        ];
+    // Stili standard + stili già utilizzati
+    let allStyles: string[] = [
+      ...AUTOCOMPLETE.standardStyles.get(),
+      ...AUTOCOMPLETE.usedStyles,
+    ];
 
-        // Elimina duplicati
-        const uniqueStyles = [...new Set(allStyles)];
+    // Elimina duplicati
+    const uniqueStyles = [...new Set(allStyles)];
 
-        // Filtra in base a ciò che l'utente ha digitato
-        const result :{tailwindClass:string, color:string, handleClick:(i:number) => void}[] =[]; 
+    // Filtra in base a ciò che l'utente ha digitato (mostra solo stili che includono l'input)
+    const filteredStyles = uniqueStyles.filter(style => {
+      const tailwindClass = style.toLowerCase();
+      return tailwindClass.includes(input) && tailwindClass!==input;
+    });
 
-        uniqueStyles.forEach(style => {
-          const tailwindClass = style.toLowerCase();
-          // controlla se lo stile è uno standard
-          const isStandarsClass = AUTOCOMPLETE.standardStyles.get().includes(style);
-          
-          const color = isStandarsClass ? standardColor : repeatColor;
-          function handleClick(i:number){ 
-            PARAG.update(i, "in_style", tailwindClass, !isStandarsClass)
-          }
+    // Separare stili standard e stili personalizzati
+    const standardStyles = filteredStyles.filter(style =>
+      AUTOCOMPLETE.standardStyles.get().includes(style)
+    );
+    const usedStyles = filteredStyles.filter(style =>
+      !AUTOCOMPLETE.standardStyles.get().includes(style)
+    );
 
-          // se l'inpun non iclude la classe -> mostra
-          if (!input.includes(tailwindClass)){
-            result.push({tailwindClass, color, handleClick});
-          }
-        });
+    // Limita a 5 stili personalizzati
+    const maxUsedStyles = 5;
+    const limitedUsedStyles = usedStyles.slice(0, maxUsedStyles);
 
-        return result;
-      },
-      [
-        SECTION.bookSection,
-        SECTION.bookSection?.paragraphs,
-      ]
-    ),
+    // Nascondi gli stili standard se ci sono già 5 stili personalizzati
+    const showStandardStyles = usedStyles.length < maxUsedStyles;
+
+    // Costruisci il risultato finale
+    const result: { tailwindClass: string; color: string; handleClick: (i: number) => void }[] = [];
+
+    // Aggiungi stili personalizzati (fino a 5)
+    limitedUsedStyles.forEach(style => {
+      const tailwindClass = style.toLowerCase();
+      const color = repeatColor;
+      const handleClick = (i: number) => {
+        PARAG.update(i, "in_style", tailwindClass, true);
+      };
+      result.push({ tailwindClass, color, handleClick });
+    });
+
+    // Aggiungi stili standard solo se non ci sono già 5 stili personalizzati
+    if (showStandardStyles) {
+      standardStyles.forEach(style => {
+        const tailwindClass = style.toLowerCase();
+        const color = standardColor;
+        const handleClick = (i: number) => {
+          PARAG.update(i, "in_style", tailwindClass, false);
+        };
+        result.push({ tailwindClass, color, handleClick });
+      });
+    }
+
+    return result;
+  },
+  [SECTION.bookSection, SECTION.bookSection?.paragraphs]
+),
 
     repeatingStyle(styleInput:string) :{label:string, value:string} {
       const voidResult = {label:"", value:""};
@@ -478,7 +504,7 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
 
       // Applica lo stato precedente
       const clone = structuredClone(book!);
-      const sec = SECTION.getSection(clone);
+      const sec = getSection(clone);
       if (!sec) return console.error("Sezione non trovata");
 
       sec.paragraphs = structuredClone(previousState);
@@ -500,7 +526,7 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
 
       // Applica lo stato successivo
       const clone = structuredClone(book!);
-      const sec = SECTION.getSection(clone);
+      const sec = getSection(clone);
       if (!sec) return console.error("Sezione non trovata");
 
       sec.paragraphs = structuredClone(nextState);
@@ -511,7 +537,7 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
     onChangeBook() {
       useEffect(() => {
         if (!book) return;
-        const sec = SECTION.getSection(structuredClone(book));
+        const sec = getSection(structuredClone(book));
         if (!sec) return console.error("Sezione non trovata");
     
         const paragraphs = sec.paragraphs;

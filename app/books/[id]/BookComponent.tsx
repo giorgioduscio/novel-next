@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { safeParse } from "valibot";
-import { book_schema, type Book } from "../../schemas/book_schema";
+import { book_schema, Part, type Book } from "../../schemas/book_schema";
 import { toast } from "@/app/tools/feedbacksUI";
 import { useAgreeWrapper } from "@/app/shareds/Agree";
 import BookTemplate from "./BookTemplate";
@@ -15,7 +15,7 @@ export default function BookComponent(props: UseBookComponentProps) {
 }
 
 interface UseBookComponentProps {
-  id: number;
+  id: string;
 }
 
 export function useBookComponent({ id }: UseBookComponentProps) {
@@ -25,10 +25,8 @@ export function useBookComponent({ id }: UseBookComponentProps) {
   const agree = useAgreeWrapper();
 
   useEffect(() => {
-    if (!isNaN(id)) {
-      const bookFromStore = BookHook.getBookById(id);
-      setBook(bookFromStore ? structuredClone(bookFromStore) : undefined);
-    }
+    const bookFromStore = BookHook.getBookById(id);
+    setBook(bookFromStore ? structuredClone(bookFromStore) : undefined);
   }, [id, BookHook.getBookById]);
 
 
@@ -82,10 +80,14 @@ export function useBookComponent({ id }: UseBookComponentProps) {
       const newBook = structuredClone({ ...book, parts: [...(book.parts || [])] });
 
       newBook.parts.push({
+        id: BookHook.createId(),
         title: "Parte" + Date.now(),
+        note: "",
         sections: [
           {
+            id: BookHook.createId(),
             title: "Sezione" + Date.now(),
+            note: "",
           },
         ],
       });
@@ -103,14 +105,14 @@ export function useBookComponent({ id }: UseBookComponentProps) {
     },
 
     // modifica il titolo della parte
-    updateTitle(index: number, value: string) {
+    update(index: number, key: keyof Part, value: string) {
       if (!book) throw new Error("Libro non trovato");
       const newBook = structuredClone({ ...book, parts: [...(book.parts || [])] });
-      (newBook.parts as any)[index].title = value.trim();
+      (newBook.parts as any)[index][key] = value.trim();
       // stato
       setBook(newBook);
       // validazione
-      const errorKey = `part_title_${index}`;
+      const errorKey = `${index}>${key}`;
       const validatedBook = toggleErrors(errorKey, newBook);
       if (!validatedBook) return toast.danger("Titolo parte non valido");
       // api
@@ -130,7 +132,9 @@ export function useBookComponent({ id }: UseBookComponentProps) {
       // aggiunge una sezione vuota nella sezione selezionata
       if (!newBook.parts || newBook.parts.length === 0) newBook.parts = [];
       newBook.parts[part_i].sections.push({
+        id: BookHook.createId(),
         title: "Sezione" + Date.now(),
+        note: "",
       });
 
       // stato
@@ -142,8 +146,8 @@ export function useBookComponent({ id }: UseBookComponentProps) {
       toast.success("Sezione aggiunta");
     },
 
-    // sostituisce gli spazo vuoti con trattini
-    writeHref(book_id: number, part: string, section: string) {
+    // sostituisce gli spazi vuoti con trattini
+    writeHref(book_id: string, part: string, section: string) {
       part = part.replaceAll(" ", "-");
       section = section.replaceAll(" ", "-");
       return `/books/${book_id}/${part}/${section}`;
@@ -287,23 +291,6 @@ export function useBookComponent({ id }: UseBookComponentProps) {
     },
   };
 
-  // 6) DROPDOWN
-  const [dropdownsState, setDropdownsState] = useState<Record<string, boolean>>({});
-  const DROPDOWN = {
-    toggle(title: string) {
-      setDropdownsState((prev) => ({
-        [title]: !prev[title],
-      }));
-    },
-    
-    autoClose(e: React.MouseEvent) {
-      // se l'elemento cliccato non è un dropdown, chiude tutti i dropdown
-      if (!(e.target as HTMLElement).closest(".dropdown")) {
-        setDropdownsState({});
-      }
-    },
-  };
-
   return {
     book,
     setBook,
@@ -314,8 +301,6 @@ export function useBookComponent({ id }: UseBookComponentProps) {
     PART,
     SECTION,
     SORT,
-    DROPDOWN,
-    dropdownsState,
     BookHook,
   };
 }

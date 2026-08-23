@@ -6,7 +6,8 @@ type Main = ReturnType<typeof useSectionComponent>;
 type BookHookProps = ReturnType<typeof useBookHook>;
 
 export function keyboardFeatures(
-  book_id: number,
+  book_id: string,
+  getSection :Function,
   e: React.KeyboardEvent<HTMLTextAreaElement>,
   book: Book,
   setBook: (book: Book) => void,
@@ -27,7 +28,7 @@ export function keyboardFeatures(
   const [_index, key] = id.split(">") as [string, keyof Paragraph];
   const index = parseInt(_index);
   if(isNaN(index) || !key) return console.error("Parametri non validi");
-  const section = SECTION.getSection(book);
+  const section = getSection(book);
   if(!section) return console.error("Sezione non trovata");
   const textarea = e.target as HTMLTextAreaElement;
 
@@ -85,7 +86,7 @@ export function keyboardFeatures(
         } else {
           // 1. Aggiorna il paragrafo corrente con `before`
           const updatedBook = structuredClone(book);
-          const sec = SECTION.getSection(updatedBook);
+          const sec = getSection(updatedBook);
           if (!sec?.paragraphs?.[index]) return;
 
           const before = value.substring(0, start);
@@ -94,7 +95,11 @@ export function keyboardFeatures(
           // Aggiorna il testo corrente
           sec.paragraphs[index].text = before; 
           // inserisce il nuovo paragrafo dopo quello corrente
-          sec.paragraphs.splice(index + 1, 0, { text: after, in_style:"" } as Paragraph);
+          sec.paragraphs.splice(index + 1, 0, { 
+            id: BookHook.createId(),
+            text: after, 
+            in_style:"" 
+          } as Paragraph);
           setBook(updatedBook); // Aggiorna lo stato
 
           // 2. Crea un nuovo paragrafo con `after`
@@ -118,7 +123,7 @@ export function keyboardFeatures(
 
         // 2. Crea una copia aggiornata del libro
         const updatedBook = structuredClone(book);
-        const sec = SECTION.getSection(updatedBook);
+        const sec = getSection(updatedBook);
         if (!sec?.paragraphs?.[index] || !sec.paragraphs?.[index - 1]) {
           return console.error("Paragrafo non trovato");
         }
@@ -164,7 +169,7 @@ export function keyboardFeatures(
           if(!nextParag) return console.error("Paragrafo successivo non trovato");
   
           const updatedBook = structuredClone(book);
-          const sec = SECTION.getSection(updatedBook);
+          const sec = getSection(updatedBook);
           if (!sec?.paragraphs?.[index]) return console.error("Paragrafo non trovato");
           
           sec.paragraphs[index].text = value + nextParag.text;

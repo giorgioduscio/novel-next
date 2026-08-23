@@ -61,19 +61,19 @@ export default function SectionTemplate({
 
     <Breadcrumb />
 
-    <main id="SectionComponent" onClick={PARAG.closeTemplateInputStyle} className="mx-auto container max-w-[400px]">
-      {/* UNDO / REDO */}
-      <div className={`pt-1 sticky top-[calc(45px+env(safe-area-inset-top))] z-20 ${isEditMode ?"" :"pointer-events-none invisible"}`}>
-        <div className="flex justify-center gap-2">
-          <button onClick={HISTORY.undo} className="px-2 py-1 bg-indigo-800 rounded truncate">
-            <i className="me-1 bi bi-arrow-left"></i> Indietro
-          </button>
-          <button onClick={HISTORY.redo} className="px-2 py-1 bg-orange-800 rounded truncate">
-            <i className="me-1 bi bi-arrow-right"></i> Ripeti
-          </button>
-        </div>
+    {/* UNDO / REDO */}
+    <div className={`pt-1 sticky top-[calc(45px+env(safe-area-inset-top))] z-20 ${isEditMode ?"" :"pointer-events-none invisible"}`}>
+      <div className="flex justify-center gap-2">
+        <button onClick={HISTORY.undo} className="px-2 py-1 bg-indigo-800 rounded truncate">
+          <i className="me-1 bi bi-arrow-left"></i> Indietro
+        </button>
+        <button onClick={HISTORY.redo} className="px-2 py-1 bg-orange-800 rounded truncate">
+          <i className="me-1 bi bi-arrow-right"></i> Ripeti
+        </button>
       </div>
+    </div>
 
+    <main id="SectionComponent" onClick={PARAG.closeTemplateInputStyle} className="mx-auto container max-w-[400px]">
       {/* Contenitore principale */}
       <section className="pb-50 min-h-dvh flex-1">
         {/* SEZIONE NON TROVATA */}
@@ -95,14 +95,32 @@ export default function SectionTemplate({
               value={SECTION_title}
               disabled={!isEditMode}
               asterisk
-              onChange={(_e) => SECTION.handleChange(_e.target.value)}
+              onInput={(_e) => SECTION.handleChange(_e.target.value)}
               error_message={errors["section>title"]}
               id={"title"}
               type={"text"}
               placeholder={"Titolo della sezione"}
               onKeyDown={SECTION.titleKeyDown}
             />
-            <div className="mt-5 border-y border-gray-500"></div>
+            <div className="mt-5 border-t border-gray-500 relative">
+              <Frag if={isEditMode} className="flex flex-wrap gap-2 absolute">
+                <b className="px-2 bg-blue-900 rounded-full">Paragrafi: {SECTION.bookSection?.paragraphs?.length}</b>
+                <b className="px-2 bg-green-900 rounded-full">Lettere: {SECTION.words}</b>
+                
+                <div className="w-full">
+                  <Field
+                    id={"section-note"}
+                    input_class={`p-2 text-sm ${isEditMode ? "bg-white text-black outline rounded" : "text-gray-300"}`}
+                    label="Nota della sezione"
+                    value={SECTION.bookSection?.note || ""}
+                    disabled={!isEditMode}
+                    type={"textarea"}
+                    placeholder={"Nota della sezione"}
+                    onChange={(_e) => SECTION.updateNote(_e.target.value)}
+                  />
+                </div>
+              </Frag>
+            </div>
           </form>
 
           {/* WRAPPER PARAGRAFI */}

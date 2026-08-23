@@ -8,6 +8,7 @@ import Link from "next/link";
 import { useBookComponent } from "./BookComponent";
 import EditModeComponent from "@/app/shareds/EditModeComponent";
 import Navigation from "@/app/shareds/Navigation";
+import { Dropdown, DropdownContent, DropdownSummary } from "@/app/shareds/Dropdown";
 
 export default function BookTemplate({
   book,
@@ -17,8 +18,6 @@ export default function BookTemplate({
   PART,
   SECTION,
   SORT,
-  DROPDOWN,
-  dropdownsState,
   BookHook,
 }: ReturnType<typeof useBookComponent>) {  
 
@@ -31,7 +30,7 @@ export default function BookTemplate({
             page_title={book?.title || ""}/>
     <Breadcrumb />
 
-    <main id="BookTemplate" onClick={DROPDOWN.autoClose} className="mx-auto container max-w-[800px]">
+    <main id="BookTemplate" className="mx-auto container max-w-[800px]">
       {/* LIBRO NON TROVATO */}
       <Frag if={!book}>
         <div className="p-3 py-8 text-center text-red-500">
@@ -116,16 +115,32 @@ export default function BookTemplate({
                     {/* TITOLO PARTE */}
                     <Frag if={!!part.sections?.length}>
                       <h3 className="hidden">{part.title}</h3>
-                      <Field  id={part_i.toString()} 
-                              hide_label label={"Titolo della parte"} 
-                              input_class={`py-2 px-5 font-bold ${isEditMode ? "bg-white text-black outline rounded" : ""}`}
-                              type={"text"} 
-                              disabled={!isEditMode}
-                              placeholder={"Modifica il titolo della parte"} 
-                              value={part.title || ""} 
-                              error_message={errors[`part_title_${part_i}`]}
-                              onChange={(e) => PART.updateTitle(part_i, e.target.value)}
-                      />
+                      <Dropdown>
+                        <DropdownSummary>
+                          <Field  id={part_i.toString()} 
+                                  hide_label label={"Titolo della parte"} 
+                                  input_class={`py-2 px-5 font-bold ${isEditMode ? "bg-white text-black outline rounded" : ""}`}
+                                  type={"text"} 
+                                  disabled={!isEditMode}
+                                  placeholder={"Modifica il titolo della parte"} 
+                                  value={part.title || ""} 
+                                  error_message={errors[`${part_i}>title`]}
+                                  onChange={(e) => PART.update(part_i,"title", e.target.value)}
+                          />
+                        </DropdownSummary>
+
+                        <DropdownContent className="absolute w-full bg-white text-black outline rounded">
+                          <Field  id={`part-note-${part_i}`} 
+                                  label={"Nota della parte"} 
+                                  input_class={`pb-2 px-3 text-sm`}
+                                  type={"textarea"} 
+                                  disabled={!isEditMode}
+                                  placeholder={"Inserisci descrizione o cose da fare"} 
+                                  value={part.note || ""} 
+                                  onInput={(e) => PART.update(part_i, "note", e.target.value)}
+                          />
+                        </DropdownContent>
+                      </Dropdown>
                     </Frag>
 
 
@@ -139,40 +154,40 @@ export default function BookTemplate({
                             <div className="flex">
 
                               {/* DROPDOWN */}
-                              <Frag if={isEditMode} className="relative dropdown">
-                                <button onClick={() => DROPDOWN.toggle(section.title)} 
-                                        className="py-3 px-2">
-                                  <i className="bi bi-three-dots"></i>
-                                </button>
+                              <Frag if={isEditMode} className="relative">
+                                <Dropdown>
+                                  <DropdownSummary className="py-3 px-2">
+                                    <i className="bi bi-three-dots"></i>
+                                  </DropdownSummary>
 
-                                <Frag if={!!dropdownsState[section.title]} 
-                                      className="absolute start-10 right-0 z-10">
-                                  <div className="grid w-max bg-indigo-800 border rounded overflow-hidden">
+                                  <DropdownContent className="absolute start-10 right-0 z-10">
+                                    <div className="grid w-max bg-indigo-800 border rounded overflow-hidden">
 
-                                    <button className="py-1 px-2 bg-red-500 truncate text-left" 
-                                            onClick={() => SECTION.delete(part_i, section_i)}>
-                                      <i className="inline-block w-[20px] bi bi-trash"></i> Rimuovi
-                                    </button>
-                                    <Frag if={!SORT.isFirstOfBook(part_i, section_i)}>
-                                      <button className="py-1 px-2 bg-indigo-600 truncate text-left" 
-                                              onClick={() => SORT.pushOrder("up", part_i, section_i)}>
-                                        <i className="inline-block w-[20px] bi bi-caret-up-fill"></i> Sposta su
+                                      <button className="py-1 px-2 bg-red-500 truncate text-left" 
+                                              onClick={() => SECTION.delete(part_i, section_i)}>
+                                        <i className="inline-block w-[20px] bi bi-trash"></i> Rimuovi
                                       </button>
-                                    </Frag>
-                                    <Frag if={!SORT.isLastOfBook(part_i, section_i)}>
-                                      <button className="py-1 px-2 bg-indigo-600 truncate text-left" 
-                                              onClick={() => SORT.pushOrder("down", part_i, section_i)}>
-                                        <i className="inline-block w-[20px] bi bi-caret-down-fill"></i> Sposta giù
+                                      <Frag if={!SORT.isFirstOfBook(part_i, section_i)}>
+                                        <button className="py-1 px-2 bg-indigo-600 truncate text-left" 
+                                                onClick={() => SORT.pushOrder("up", part_i, section_i)}>
+                                          <i className="inline-block w-[20px] bi bi-caret-up-fill"></i> Sposta su
+                                        </button>
+                                      </Frag>
+                                      <Frag if={!SORT.isLastOfBook(part_i, section_i)}>
+                                        <button className="py-1 px-2 bg-indigo-600 truncate text-left" 
+                                                onClick={() => SORT.pushOrder("down", part_i, section_i)}>
+                                          <i className="inline-block w-[20px] bi bi-caret-down-fill"></i> Sposta giù
+                                        </button>
+                                      </Frag>
+                                      <button className="py-1 px-2 bg-indigo-800 text-left" 
+                                              onClick={() => SECTION.create(part_i, section_i)}>
+                                        <i className="inline-block w-[20px] bi bi-journal-arrow-down"></i>
+                                        <span>Aggiungi sezione</span>
                                       </button>
-                                    </Frag>
-                                    <button className="py-1 px-2 bg-indigo-800 text-left" 
-                                            onClick={() => SECTION.create(part_i, section_i)}>
-                                      <i className="inline-block w-[20px] bi bi-arrow-down"></i>
-                                      <span>Aggiungi sezione</span>
-                                    </button>
 
-                                  </div>
-                                </Frag>
+                                    </div>
+                                  </DropdownContent>
+                                </Dropdown>
                               </Frag>
 
                               {/* input */}
