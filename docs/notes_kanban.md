@@ -12,7 +12,6 @@
 # Kanban - Novel Writer (Next.js)
 ## 📌 To Do
 * [1] external_style: inserire uno sfondo comune tra più paragrafi
-* [1] Sistema di autenticazione minimale
 * [1] layout mobile
   - fluidita input in fondo e tastiera digitale
 
@@ -55,3 +54,4 @@
 * EditMode copre gli input sottostanti
 * implementazione per uso pratico
 * inserire note e id per parti, sezioni e paragrafi
+* Sistema di autenticazione minimale

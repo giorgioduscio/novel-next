@@ -1,28 +1,21 @@
-"use client";
-
-import React, { useEffect, useState } from "react";
-import { safeParse } from "valibot";
-import { book_schema, Part, type Book } from "../../schemas/book_schema";
-import { toast } from "@/app/tools/feedbacksUI";
-import { useAgreeWrapper } from "@/app/shareds/Agree";
-import BookTemplate from "./BookTemplate";
+import useAuth from "@/app/auth/useAuth";
 import useBookHook from "@/app/data/useBookHook";
 import useCommonPagesHook from "@/app/data/useCommonPagesHook";
+import { Book, book_schema, Part } from "@/app/schemas/book_schema";
+import { useAgreeWrapper } from "@/app/shareds/Agree";
+import { useDot } from "@/app/tools/customStates";
+import { toast } from "@/app/tools/feedbacksUI";
+import { useState, useEffect } from "react";
+import { safeParse } from "valibot";
 
-export default function BookComponent(props: UseBookComponentProps) {
-  const hookData = useBookComponent(props);
-  return <BookTemplate {...hookData} />;
-}
-
-interface UseBookComponentProps {
-  id: string;
-}
-
+interface UseBookComponentProps { id: string }
 export function useBookComponent({ id }: UseBookComponentProps) {
   const [book, setBook] = useState<Book | undefined>(undefined);
+  const view = useDot<"metadati" | "struttura" | "libro">("libro");
   const page = useCommonPagesHook();
   const BookHook = useBookHook();
   const agree = useAgreeWrapper();
+  const auth = useAuth();
 
   useEffect(() => {
     const bookFromStore = BookHook.getBookById(id);
@@ -55,7 +48,7 @@ export function useBookComponent({ id }: UseBookComponentProps) {
   }
 
   // 2) AGGIORNA LIBRO
-  function handleUpdateBook(key: string, value: string) {
+  function handleUpdateBook(key: keyof Book, value: string) {
     if (!book) throw new Error("Libro non trovato");
     const newBook = { ...book };
     (newBook as any)[key] = value.trim();
@@ -292,6 +285,7 @@ export function useBookComponent({ id }: UseBookComponentProps) {
   };
 
   return {
+    view,
     book,
     setBook,
     page,
@@ -302,5 +296,6 @@ export function useBookComponent({ id }: UseBookComponentProps) {
     SECTION,
     SORT,
     BookHook,
+    auth,
   };
 }

@@ -1,13 +1,30 @@
 import * as v from "valibot";
 
-/*
+
+// PERMESSI
+export const auth_code_schema = v.pipe( 
+  v.string(), 
+  v.check((v) => v.length===0 || v.length >= 8, "auth_code: Il codice deve contenere almeno 8 caratteri")
+)
+
+export const permission_schema =v.object({
+  title: v.string("title: Il titolo deve essere una stringa"),
+  auth_code: auth_code_schema,
+})
+
+export type Permission = v.InferOutput<typeof permission_schema>
+export type PermissionString = v.InferOutput<typeof auth_code_schema>
+
+
+
+/* LIBRI
 Gerarchie 
-* Libro     
-* Parte     
+* Libro   
+* Parte   
 * Sezione   
 * Capitolo  
 * Paragrafo 
-* Frase     
+* Frase   
 */
 
 const not_allowed_styles = [
@@ -158,10 +175,10 @@ function validateStyle(v:string){
   const classes = v.trim().split(" "); // tutte le classi tailwind
   // verifica se c'è almeno una classe che non appartiene a quelle permesse
   return classes.every((classe) => // verificare tutte le classi attuali
-    // verificare che nessuna classe non permessa sia presente
-    not_allowed_styles.every((style) => 
-      // (classe attuale non deve contenere una delle classi non permesse)
-      !classe.includes(style)) 
+  // verificare che nessuna classe non permessa sia presente
+  not_allowed_styles.every((style) => 
+    // (classe attuale non deve contenere una delle classi non permesse)
+    !classe.includes(style)) 
   );
 }
 
@@ -175,24 +192,28 @@ export const paragraph_schema = v.object({
 
 export const section_schema = v.object({
   id: v.pipe(v.string(), v.uuid()),
-  title: v.pipe(v.string(), v.minLength(3, "title: Il titolo della sezione deve contenere almeno 3 caratteri")),
+  title: v.string(),
   note: v.string(),
   paragraphs: v.optional(v.array(paragraph_schema)),
 });
 
 export const parts_schema = v.object({
   id: v.pipe(v.string(), v.uuid()),
-  title: v.pipe(v.string(), v.minLength(3, "title: Il titolo della parte deve contenere almeno 3 caratteri")),
+  title: v.string(),
   note: v.string(),
   sections: v.array(section_schema),
 });
 
 export const book_schema = v.object({
   id: v.pipe(v.string(), v.uuid()),
-  title: v.pipe(v.string(), v.minLength(3, "title: Il titolo deve contenere almeno 3 caratteri")),
-  description: v.pipe(v.string(), v.minLength(3, "description: La descrizione deve contenere almeno 3 caratteri")),
-  author: v.pipe(v.string(), v.minLength(3, "author: L'autore deve contenere almeno 3 caratteri")),
+  title: v.pipe(v.string(), v.minLength(2, "title: Il titolo deve contenere almeno 2 caratteri")),
+  description: v.string(),
+  author_name: v.pipe(v.string(), v.minLength(2, "author_name: Il nome deve contenere almeno 2 caratteri")),
   parts: v.optional(v.array(parts_schema)),
+
+  // autorizzazioni
+  auth_read: auth_code_schema,
+  auth_write: auth_code_schema,
 });
 
 
@@ -201,4 +222,3 @@ export type Book = v.InferOutput<typeof book_schema>;
 export type Part = v.InferOutput<typeof parts_schema>;
 export type Section = v.InferOutput<typeof section_schema>;
 export type Paragraph = v.InferOutput<typeof paragraph_schema>;
-

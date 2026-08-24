@@ -292,7 +292,7 @@ export default function useBookHook() {
 
     markdown: {
       label: "Upload (.md)",
-      icon: "bi-upload",
+      icon: "bi-filetype-md",
       async execute() {
         try {
           const input = await ui_upload.markdown();
@@ -313,11 +313,19 @@ export default function useBookHook() {
     },
   };
 
+  function findFirsted(book:Book) :{part:string, section:string} {
+    return {
+      part: book.parts?.[0].id || "", 
+      section: book.parts?.[0].sections?.[0].id || ""
+    };
+  }
+
   return {
     ...CRUD,
     books,
     download: DOWNLOAD,
     upload: UPLOAD,
     loading,
+    findFirsted
   };
 }

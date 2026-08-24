@@ -1,0 +1,144 @@
+"use client"
+
+import { Breadcrumb } from "../shareds/Breadcrumb"
+import Navigation from "../shareds/Navigation"
+import Field from "../shareds/Field"
+import Frag from "../shareds/Frag"
+import useAuth from "./useAuth"
+
+
+export default function AuthComponent() {
+  const { permissions, FORM, CRUD, errors, checkedTargets } = useAuth()
+
+  return <>
+    <Frag if={checkedTargets.get().length === 0}>
+      <Navigation page_title="Permessi" back_btn={{ href:'/' }} />
+    </Frag>
+
+    {/* AZIONI MULTIPLE */}
+    <Frag if={checkedTargets.get().length > 0}>
+      <div className="sticky top-0 z-1 bg-red-900">
+        <div className="mx-auto max-w-[800px] flex items-center">
+
+          <button onClick={() => checkedTargets.set([])} className="p-2 bg-red-900 truncate">
+            <i className="bi bi-x-lg"></i>
+            <span className="hidden">Deseleziona</span>
+          </button>
+
+          <strong className="py-2 px-3 flex-1 text-white">{checkedTargets.get().length}</strong>
+
+          <button onClick={CRUD.handleDeleteMany} className="p-2 px-3 bg-red-900 text-red-300 truncate relative">
+            <i className="bi bi-trash3-fill absolute top-1 left-2"></i>
+            <i className="bi bi-trash3"></i>
+            <i className="bi bi-trash3 absolute bottom-1 right-2"></i>
+            <span className="hidden">Elimina selezionati</span>
+          </button>
+
+        </div>
+      </div>
+    </Frag>
+
+    <Breadcrumb />
+
+
+    <main className="mx-auto container max-w-[800px]">
+      <section className="p-3 min-h-dvh">
+        {/* header */}
+        <div className="flex justify-between items-center">
+          <h2 className="my-3 text-2xl font-bold">Permessi</h2>
+          <button onClick={() => FORM.isVisible.set(prev=> !prev)} className="py-1 px-2 bg-indigo-600 text-white rounded">
+            {FORM.isVisible.get()
+              ? <><i className="bi bi-x-lg"></i> Chiudi</>
+              : <><i className="bi bi-plus-lg"></i> Aggiungi</>
+            }
+          </button>
+        </div>
+
+        {/* NUOVO PERMESSO */}
+        <Frag if={FORM.isVisible.get()} className="mx-auto max-w-max">
+          <div className="outline outline-indigo-600 rounded">
+            <div className="p-2 bg-indigo-600 flex gap-2">
+              <h3>Aggiungi codice</h3>
+            </div>
+            <form onSubmit={FORM.handleSubmit} className="p-2 flex flex-wrap gap-2 items-center bg-indigo-200">
+              {FORM.state.get().map((item) => (
+                <div key={item.key} className="flex-auto bg-white text-black outline rounded">
+                  <Field 
+                    type="text" 
+                    input_class="pb-2 px-3"
+                    id={item.key}
+                    label={item.label}
+                    placeholder={item.placeholder} 
+                    value={item.value} 
+                    onChange={(e) => FORM.state.set(prev => prev.map(i => i.key === item.key ? { ...i, value: e.target.value } : i))} 
+                    error_message={errors['form>'+item.key] || ""}
+                  />
+                </div>
+              ))}
+
+              <div className="w-full">
+                <button className="py-1 px-2 bg-orange-600 rounded" type="submit">Aggiungi</button>
+              </div>
+            </form>
+          </div>
+        </Frag>
+
+
+
+        {/* LISTA PERMESSI */}
+        <h3 className="mt-5 mb-3">Lista codici</h3>
+
+        <ol>
+          <Frag if={!permissions.get().length} className="p-3 bg-sky-700 rounded flex gap-2">
+            <i className="bi bi-info-circle"></i>
+            <span>Nessun permesso trovato</span>
+          </Frag>
+
+          {permissions.get().map((permession, i)=>
+            <li key={i + permession.title} className={`p-1 my-3 rounded ${checkedTargets.get().includes(i) ? 'bg-red-800 outline' : 'bg-indigo-800'}`}>
+              <div className="grid grid-cols-[auto_1fr] items-start">
+                <input
+                  type="checkbox"
+                  checked={checkedTargets.get().includes(i)}
+                  onChange={() => CRUD.toggleTarget(i)}
+                  className="block m-2 scale-150"
+                />
+
+                <div>
+                  <Field
+                    input_class="py-1 px-5 bg-white text-black outline italic"
+                    id={permession.title}
+                    hide_label label={permession.title}
+                    type="text"
+                    placeholder={permession.title}
+                    value={permession.title}
+                    onChange={(e) => CRUD.handleUpdate(i, 'title', e.target.value)}
+                    error_message={errors[`${i}>title`]}
+                  />
+                </div>
+
+                <button onClick={() => CRUD.handleDelete(i)} className="p-1 text-red-400">
+                  <i className="bi bi-trash"></i>
+                </button>
+
+                <div>
+                  <Field
+                    input_class="py-1 px-2 bg-white text-black outline font-bold"
+                    id={permession.auth_code}
+                    hide_label label={permession.auth_code}
+                    type="text"
+                    placeholder={permession.auth_code}
+                    value={permession.auth_code}
+                    onChange={(e) => CRUD.handleUpdate(i, 'auth_code', e.target.value)}
+                    error_message={errors[`${i}>auth_code`]}
+                  />
+                </div>
+
+              </div>
+            </li>
+          )}
+        </ol>
+      </section>
+    </main>
+  </>
+}

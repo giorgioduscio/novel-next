@@ -1,101 +1,90 @@
 "use client";
 
-import Field from "@/app/shareds/Field";
-import Frag from "@/app/shareds/Frag";
-import { LoadingComponent } from "@/app/shareds/LoadingComponent";
-import { Breadcrumb } from "@/app/shareds/Breadcrumb";
-import Link from "next/link";
-import { useBookComponent } from "./BookComponent";
-import EditModeComponent from "@/app/shareds/EditModeComponent";
+import { useBookComponent } from "../useBookComponent";
 import Navigation from "@/app/shareds/Navigation";
+import { Breadcrumb } from "@/app/shareds/Breadcrumb";
+import Bottombar from "@/app/shareds/Bottombar";
+import Frag from "@/app/shareds/Frag";
 import { Dropdown, DropdownContent, DropdownSummary } from "@/app/shareds/Dropdown";
+import { LoadingComponent } from "@/app/shareds/LoadingComponent";
+import { useMemo } from "react";
+import Link from "next/link";
+import { Book } from "@/app/schemas/book_schema";
+import Field from "@/app/shareds/Field";
 
-export default function BookTemplate({
-  book,
-  page,
-  errors,
-  handleUpdateBook,
-  PART,
-  SECTION,
-  SORT,
-  BookHook,
-}: ReturnType<typeof useBookComponent>) {  
+interface BookNavbarProps { book: Book | undefined, canRead: boolean, canWrite: boolean }
+export function BookNavbar({book, canRead, canWrite}: BookNavbarProps) {
+  const firstPart = book?.parts?.[0]?.title.replaceAll(" ", "-") || "";
+  const firstSection = book?.parts?.[0]?.sections?.[0]?.title.replaceAll(" ", "-") || "";
 
-  // caricamento
+  return <>
+    <Navigation page_title={book?.title ||""} back_btn={{ href:"/books" }}>
+      <Dropdown>
+
+        <DropdownSummary className="py-2 px-3 bg-indigo-900">
+          <i className="bi bi-three-dots"></i>
+        </DropdownSummary>
+
+        <DropdownContent className="absolute right-0 z-2 bg-indigo-700 rounded">
+          <Frag if={canRead && canWrite}>
+            <Link href={`/books/${book?.id || ''}`} className="p-2 w-max block"> 
+              <i className="bi bi-info-circle"></i> Metadati
+            </Link>
+          </Frag>
+
+          <Link href={`/books/${book?.id || ''}/structure`} className="p-2 w-max block"> 
+            <i className="bi bi-bar-chart-steps"></i> Struttura
+          </Link>
+
+          <Link href={`/books/${book?.id || ''}/${firstPart}/${firstSection}`} className="p-2 w-max block"> 
+            <i className="bi bi-chat-dots-fill"></i> Libro  
+          </Link>
+        </DropdownContent>
+
+      </Dropdown>
+    </Navigation>
+  </>
+}
+
+
+interface UseBookComponentProps { id: string }
+export default function StructureComponent(props: UseBookComponentProps) {
+  const data = useBookComponent(props);
+  const {PART, SECTION, SORT, BookHook, errors, book, page, auth} = data;
+  const {isEditMode} = page;
+  
+
+  const canRead =useMemo(()=> !!book && !!auth.CONTROLS.canRead(book), [book, auth])
+  const canWrite =useMemo(()=> !!book && !!auth.CONTROLS.canWrite(book), [book, auth])
+
+
   if (!page.isPageLoaded) return <LoadingComponent/>
-
-  const {isEditMode} =page;
-  return (<>
-    <Navigation back_btn={{ href:"/books", label:"", icon:"bi-chevron-left" }} 
-            page_title={book?.title || ""}/>
+  if(!canRead) return (
+    <div className="p-3">
+      <div className="p-3 mx-auto max-w-fit bg-red-300 text-black border rounded">
+        <i className="bi bi-exclamation-triangle me-1"></i>
+        <strong>Non hai i permessi per leggere questo libro.</strong> <br />
+        <Link href="/books" className="underline">Catalogo</Link>
+      </div>
+    </div>
+  )
+  
+  return <>
+    <BookNavbar book={book} canRead={canRead} canWrite={canWrite} />
+    
     <Breadcrumb />
 
-    <main id="BookTemplate" className="mx-auto container max-w-[800px]">
+    <main id="StructureComponent" className="mx-auto container max-w-[800px]">
       {/* LIBRO NON TROVATO */}
-      <Frag if={!book}>
+      <Frag if={!canRead}>
         <div className="p-3 py-8 text-center text-red-500">
           <i className="bi bi-exclamation-triangle text-2xl"></i>
           <span>Libro non trovato</span>
         </div>
       </Frag>
       
-      {/* LIBRO TROVATO */}
-      <Frag if={!!book}>
+      <Frag if={!!canRead}>
         <section className="pb-10 min-h-dvh">
-          {/* HEADER */}
-          <div className="p-3 py-8 text-center">
-            <div className="grid grid-cols-1 sm:grid-cols-[1fr_2fr] gap-1">
-              <div>
-
-                <h2 className="hidden">{book?.title}</h2>
-                <div>
-                  <Field id={"title"} 
-                          hide_label
-                          label={"Titolo"} 
-                          input_class={`p-2 rounded text-2xl text-orange-500 ${isEditMode ?'bg-white text-black outline' :''}`}
-                          asterisk
-                          type={"textarea"} 
-                          placeholder={"Titolo"} 
-                          disabled={!isEditMode}
-                          value={book?.title || ""} 
-                          error_message={errors.title}
-                          onChange={_e=> handleUpdateBook("title", _e.target.value)} 
-                  />
-                </div>
-                <div className="mx-3 border-y border-gray-500"></div>
-                <div>
-                  <Field id={"author"} 
-                          hide_label
-                          label={"Autore"} 
-                          input_class={`p-2 rounded italic ${isEditMode ?'bg-white text-black outline' :'text-gray-300'}`}
-                          asterisk
-                          type={"text"} 
-                          placeholder={"Autore"} 
-                          disabled={!isEditMode}
-                          value={book?.author || ""} 
-                          error_message={errors.author}
-                          onChange={_e=> handleUpdateBook("author", _e.target.value)} 
-                  />
-                </div>
-              </div>
-              <div>
-                <Field id={"description"} 
-                        hide_label
-                        label={"Descrizione"} 
-                        input_class={`p-4 rounded ${isEditMode ?'bg-white text-black outline' :'text-gray-300'}`}
-                        asterisk
-                        type={"textarea"} 
-                        placeholder={"Descrizione"} 
-                        disabled={!isEditMode}
-                        value={book?.description || ""} 
-                        error_message={errors.description}
-                        onChange={_e=> handleUpdateBook("description", _e.target.value)} 
-                />
-              </div>
-            </div>
-          </div>
-          <div className="mx-3 border-y border-gray-500"></div>
-
 
           {/* PARTI */}
           <Frag if={!!book?.parts?.length}>
@@ -116,7 +105,7 @@ export default function BookTemplate({
                     <Frag if={!!part.sections?.length}>
                       <h3 className="hidden">{part.title}</h3>
                       <Dropdown>
-                        <DropdownSummary>
+                        <DropdownSummary className="">
                           <Field  id={part_i.toString()} 
                                   hide_label label={"Titolo della parte"} 
                                   input_class={`py-2 px-5 font-bold ${isEditMode ? "bg-white text-black outline rounded" : ""}`}
@@ -146,7 +135,7 @@ export default function BookTemplate({
 
                     {/* SEZIONI */}
                     <div>
-                      {part.sections?.map((section, section_i, section_array) => 
+                      {part.sections?.map((section, section_i) => 
                         <div key={section.title + section_i}>
 
                           {/* MODIFICA SEZIONE */}
@@ -257,11 +246,11 @@ export default function BookTemplate({
               ))}
             </div>
           </div>
-
+    
         </section>
-        <EditModeComponent page={page} />
-
       </Frag>
     </main>
-  </>);
+    
+    <Bottombar page={page} />
+  </>;
 }

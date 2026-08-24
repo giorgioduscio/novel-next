@@ -15,8 +15,7 @@ export function Breadcrumb() {
     // aggiunge i segmenti dell'url
     let url=''; // url crescente
     
-    pathname.split("/").filter(Boolean)
-    .forEach((segment, segment_i) => {
+    pathname.split("/").filter(Boolean).forEach((segment, segment_i) => {
 
       // cliccare la parte rimanda al libro, 
       // le pagine delle parti sono dedicate anche alle sezioni
@@ -29,6 +28,7 @@ export function Breadcrumb() {
         icon: "",
       })
     })
+    
     return routes;
   }
 

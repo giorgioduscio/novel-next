@@ -3,22 +3,16 @@
 import { useState, useEffect } from "react";
 
 export default function useCommonPagesHook() {
-  // Modalità editing o view
+  // Modalità editing o view - letta da localStorage
   const [isEditMode, setIsEditMode] = useState(false);
 
   function toggleEditMode() {
     const newEditMode = !isEditMode;
     setIsEditMode(newEditMode);
 
-    // Aggiorna l'URL senza ricaricare la pagina
+    // Aggiorna localStorage
     if (typeof window !== "undefined") {
-      const url = new URL(window.location.href);
-      if (newEditMode) {
-        url.searchParams.set("edit", "true");
-      } else {
-        url.searchParams.delete("edit");
-      }
-      window.history.pushState({}, "", url.toString());
+      localStorage.setItem("isEditMode", newEditMode ? "true" : "false");
     }
   }
 
@@ -31,9 +25,9 @@ export default function useCommonPagesHook() {
   useEffect(() => {
     if (typeof window == "undefined") return;
 
-    // Leggi lo stato iniziale dall'URL
-    const hasEditQuery = window.location.search.includes("edit");
-    setIsEditMode(hasEditQuery);
+    // Leggi lo stato iniziale da localStorage
+    const storedEditMode = localStorage.getItem("isEditMode") === "true";
+    setIsEditMode(storedEditMode);
     setIsPageLoaded(true);
 
     // Larghezza schermo
