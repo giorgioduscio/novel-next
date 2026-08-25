@@ -1,32 +1,30 @@
 import { useState, useEffect, useMemo } from "react";
 import { safeParse } from "valibot";
 import useAuth from "../auth/useAuth";
-import useBookHook from "../data/useBookHook";
-import useCommonPagesHook from "../data/useCommonPagesHook";
+import { useBookContext } from "../data/BookContext";
+import { useCommonPagesContext } from "../data/CommonPagesContext";
 import { Book, book_schema } from "../schemas/book_schema";
 import { useAgreeWrapper } from "../shareds/Agree";
 import { useDot } from "../tools/customStates";
 import { toast } from "../tools/feedbacksUI";
 
 export function useBooksComponent() {
-  const BookHook = useBookHook();
-  const page = useCommonPagesHook();
+  const BookHook = useBookContext();
+  const page = useCommonPagesContext();
   const agree = useAgreeWrapper();
   const auth = useAuth();
-  
-  const canRead =(book:Book)=> !!book && !!auth.CONTROLS.canRead(book);
-  const canWrite =(book:Book)=> !!book && !!auth.CONTROLS.canWrite(book);
+  const { canRead, canWrite } = auth;
 
   
   // 1) LIBRI
   const [books, setbooks] = useState<Book[]>([]);
   useEffect(() => {
-    // trova tutti i libri per cui ha un codice
-    const booksMatch = BookHook.readAll().filter(_book=> 
-      canRead(_book)
-    );
-    setbooks(booksMatch);
-    
+    // trova tutti i libri per cui ha un codice di lettura
+    const booksMatch = BookHook.readAll().filter(_book=> {
+      const res = canRead(_book)      
+      return res
+    });
+    setbooks(booksMatch);   
   }, [BookHook.books]);
 
   const BOOKS = {

@@ -2,11 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import useBookHook from "../data/useBookHook";
+import { useBookContext } from "../data/BookContext";
 
 export function Breadcrumb() {
   const pathname = usePathname();
-  const bookStore = useBookHook();
+  const bookStore = useBookContext();
 
   // converte l'url nel breadcrumb
   function buildRoutes() {

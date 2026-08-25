@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import React, { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
-import useCommonPagesHook from '../data/useCommonPagesHook';
+import { useCommonPagesContext } from '../data/CommonPagesContext';
 
 interface NavigationProps {
   page_title: string;
@@ -16,7 +16,7 @@ export default function Navigation(props: NavigationProps) {
   const {page_title, back_btn, children} = props;
   const [title, setTitle] = useState('');
   const pathname = usePathname();
-  const page = useCommonPagesHook()
+  const page = useCommonPagesContext();
   
 
   useEffect(()=>{

@@ -1,25 +1,27 @@
 "use client";
 
-import Navigation from "@/app/shareds/Navigation";
 import { Breadcrumb } from "@/app/shareds/Breadcrumb";
 import Bottombar from "@/app/shareds/Bottombar";
 import Frag from "@/app/shareds/Frag";
-import { Dropdown, DropdownContent, DropdownSummary } from "@/app/shareds/Dropdown";
 import { LoadingComponent } from "@/app/shareds/LoadingComponent";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Book } from "@/app/schemas/book_schema";
 import { useBookComponent } from "../useBookComponent";
 import Field from "@/app/shareds/Field";
 import { BookNavbar } from "../structure/StructureComponent";
+import { useAuthContext } from "@/app/data/AuthContext";
+import { useCommonPagesContext } from "@/app/data/CommonPagesContext";
+import { useDot } from "@/app/tools/customStates";
 
 interface UseBookComponentProps { id: string }
 
 export default function SettingsComponent(props: UseBookComponentProps) {
-  const data = useBookComponent(props);
-  const { view, book, page, errors, handleUpdateBook, auth } = data;
+  const { book, errors, handleUpdateBook } = useBookComponent(props);
+  const authContext = useAuthContext();
+  const page = useCommonPagesContext();
 
-  const canRead = useMemo(() => !!book && !!auth.CONTROLS.canRead(book), [book, auth]);
-  const canWrite = useMemo(() => !!book && !!auth.CONTROLS.canWrite(book), [book, auth]);
+  const canRead = useMemo(() => !!book && !!authContext.CONTROLS.canRead(book), [book, authContext]);
+  const canWrite = useMemo(() => !!book && !!authContext.CONTROLS.canWrite(book), [book, authContext]);
 
   type fieldType = {
     key: keyof Book;
@@ -29,6 +31,7 @@ export default function SettingsComponent(props: UseBookComponentProps) {
     asterisk?: boolean;
     rows?: number;
     preLabel?: string;
+    type?: string;
   };
 
   const fields = useMemo((): fieldType[] => {
@@ -49,6 +52,7 @@ export default function SettingsComponent(props: UseBookComponentProps) {
         placeholder: "Descrizione",
         asterisk: true,
         rows: 5,
+        type:"textarea",
       },
       {
         key: "author_name",
@@ -63,18 +67,20 @@ export default function SettingsComponent(props: UseBookComponentProps) {
         value: book.auth_read,
         label: "Codice di lettura",
         placeholder: "Codice di lettura",
+        type: "password"
       },
       {
         key: "auth_write",
         value: book.auth_write,
         label: "Codice di scrittura",
         placeholder: "Codice di scrittura",
+        type: "password"
       },
     ];
   }, [book]);
 
-  if (!page.isPageLoaded) return <LoadingComponent />;
 
+  if (!page.isPageLoaded) return <LoadingComponent />;
   return (
     <>
       <BookNavbar book={book} canRead={canRead} canWrite={canWrite} />
@@ -103,7 +109,7 @@ export default function SettingsComponent(props: UseBookComponentProps) {
                       label={field.label}
                       input_class={`p-2 rounded bg-white text-black outline`}
                       asterisk={field.asterisk}
-                      type={field.key === "description" ? "textarea" : "text"}
+                      type={field.type || "text"}
                       rows={field.rows}
                       placeholder={field.placeholder}
                       value={field.value || ""}

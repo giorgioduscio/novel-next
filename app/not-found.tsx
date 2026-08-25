@@ -17,10 +17,10 @@ export default function NotFound() {
 
         <div className="flex justify-center">
           <Link
-            href="/"
+            href="/books"
             className="mt-6 px-4 py-2 bg-blue-600 text-white rounded-md"
           >
-            Torna alla home
+            Torna al catalogo
           </Link>
         </div>
       </section>

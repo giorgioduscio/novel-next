@@ -11,6 +11,8 @@ import { useMemo } from "react";
 import Link from "next/link";
 import { Book } from "@/app/schemas/book_schema";
 import Field from "@/app/shareds/Field";
+import { useAuthContext } from "@/app/data/AuthContext";
+import { useCommonPagesContext } from "@/app/data/CommonPagesContext";
 
 interface BookNavbarProps { book: Book | undefined, canRead: boolean, canWrite: boolean }
 export function BookNavbar({book, canRead, canWrite}: BookNavbarProps) {
@@ -27,8 +29,8 @@ export function BookNavbar({book, canRead, canWrite}: BookNavbarProps) {
 
         <DropdownContent className="absolute right-0 z-2 bg-indigo-700 rounded">
           <Frag if={canRead && canWrite}>
-            <Link href={`/books/${book?.id || ''}`} className="p-2 w-max block"> 
-              <i className="bi bi-info-circle"></i> Metadati
+            <Link href={`/books/${book?.id || ''}/settings`} className="p-2 w-max block"> 
+              <i className="bi bi-info-circle"></i> Opzioni
             </Link>
           </Frag>
 
@@ -49,13 +51,18 @@ export function BookNavbar({book, canRead, canWrite}: BookNavbarProps) {
 
 interface UseBookComponentProps { id: string }
 export default function StructureComponent(props: UseBookComponentProps) {
-  const data = useBookComponent(props);
-  const {PART, SECTION, SORT, BookHook, errors, book, page, auth} = data;
-  const {isEditMode} = page;
+  const page = useCommonPagesContext();
+  const {PART, SECTION, SORT, BookHook, errors, book} = useBookComponent(props);
+  const authContext = useAuthContext();
   
 
-  const canRead =useMemo(()=> !!book && !!auth.CONTROLS.canRead(book), [book, auth])
-  const canWrite =useMemo(()=> !!book && !!auth.CONTROLS.canWrite(book), [book, auth])
+  const canRead =useMemo(()=> 
+    !!book && !!authContext.CONTROLS.canRead(book)
+  , [book, authContext, page])
+
+  const canWrite =useMemo(()=> 
+    !!page.isEditMode && !!book && !!authContext.CONTROLS.canWrite(book)
+  , [book, authContext, page])
 
 
   if (!page.isPageLoaded) return <LoadingComponent/>
@@ -108,9 +115,9 @@ export default function StructureComponent(props: UseBookComponentProps) {
                         <DropdownSummary className="">
                           <Field  id={part_i.toString()} 
                                   hide_label label={"Titolo della parte"} 
-                                  input_class={`py-2 px-5 font-bold ${isEditMode ? "bg-white text-black outline rounded" : ""}`}
+                                  input_class={`py-2 px-5 font-bold ${canWrite ? "bg-white text-black outline rounded" : ""}`}
                                   type={"text"} 
-                                  disabled={!isEditMode}
+                                  disabled={!canWrite}
                                   placeholder={"Modifica il titolo della parte"} 
                                   value={part.title || ""} 
                                   error_message={errors[`${part_i}>title`]}
@@ -123,7 +130,7 @@ export default function StructureComponent(props: UseBookComponentProps) {
                                   label={"Nota della parte"} 
                                   input_class={`pb-2 px-3 text-sm`}
                                   type={"textarea"} 
-                                  disabled={!isEditMode}
+                                  disabled={!canWrite}
                                   placeholder={"Inserisci descrizione o cose da fare"} 
                                   value={part.note || ""} 
                                   onInput={(e) => PART.update(part_i, "note", e.target.value)}
@@ -143,7 +150,7 @@ export default function StructureComponent(props: UseBookComponentProps) {
                             <div className="flex">
 
                               {/* DROPDOWN */}
-                              <Frag if={isEditMode} className="relative">
+                              <Frag if={canWrite} className="relative">
                                 <Dropdown>
                                   <DropdownSummary className="py-3 px-2">
                                     <i className="bi bi-three-dots"></i>
@@ -180,15 +187,15 @@ export default function StructureComponent(props: UseBookComponentProps) {
                               </Frag>
 
                               {/* input */}
-                              <Frag if={isEditMode}>
+                              <Frag if={canWrite}>
                                 <div className={`py-2 px-1 flex-1`}>
                                   <Field  id={"section-" + section_i} 
                                           hide_label label={"Sezione " + (section_i + 1)} 
-                                          input_class={`py-1 px-2 ${isEditMode ?'bg-white text-black outline rounded' : ''}`}
+                                          input_class={`py-1 px-2 ${canWrite ?'bg-white text-black outline rounded' : ''}`}
                                           type={"text"} 
                                           placeholder={"Nome della sezione"} 
                                           value={section.title} 
-                                          disabled={!isEditMode}
+                                          disabled={!canWrite}
                                           error_message={errors[`section_title_${section.title}`]}
                                           onChange={(e) => SECTION.updateTitle(part_i, section_i, e.target.value)} 
                                   />
@@ -202,7 +209,7 @@ export default function StructureComponent(props: UseBookComponentProps) {
                               </Frag>
 
                               {/* link */}
-                              <Frag if={!isEditMode} className="flex-1">
+                              <Frag if={!canWrite} className="flex-1">
                                 <Link className={`p-3 flex items-center justify-between bg-indigo-800`} 
                                         href={SECTION.writeHref(book?.id!, part.title, section.title)}>
                                   <span className="flex-1">{section.title}</span>
@@ -222,7 +229,7 @@ export default function StructureComponent(props: UseBookComponentProps) {
           </Frag>
 
           {/* pulsante aggiunta */}
-          <Frag if={isEditMode}>
+          <Frag if={canWrite}>
             <button onClick={() => PART.create()}
                     className="py-2 px-3 mx-auto my-3 block bg-green-600 rounded">
               <i className="bi bi-plus-lg"></i>

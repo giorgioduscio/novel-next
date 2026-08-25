@@ -1,9 +1,7 @@
 import useAuth from "@/app/auth/useAuth";
-import useBookHook from "@/app/data/useBookHook";
-import useCommonPagesHook from "@/app/data/useCommonPagesHook";
+import { useBookContext } from "@/app/data/BookContext";
 import { Book, book_schema, Part } from "@/app/schemas/book_schema";
 import { useAgreeWrapper } from "@/app/shareds/Agree";
-import { useDot } from "@/app/tools/customStates";
 import { toast } from "@/app/tools/feedbacksUI";
 import { useState, useEffect } from "react";
 import { safeParse } from "valibot";
@@ -11,9 +9,7 @@ import { safeParse } from "valibot";
 interface UseBookComponentProps { id: string }
 export function useBookComponent({ id }: UseBookComponentProps) {
   const [book, setBook] = useState<Book | undefined>(undefined);
-  const view = useDot<"metadati" | "struttura" | "libro">("libro");
-  const page = useCommonPagesHook();
-  const BookHook = useBookHook();
+  const BookHook = useBookContext();
   const agree = useAgreeWrapper();
   const auth = useAuth();
 
@@ -285,10 +281,8 @@ export function useBookComponent({ id }: UseBookComponentProps) {
   };
 
   return {
-    view,
     book,
     setBook,
-    page,
     errors,
     setErrors,
     handleUpdateBook,

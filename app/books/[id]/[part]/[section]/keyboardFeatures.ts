@@ -1,9 +1,9 @@
 import { Book, Paragraph } from "@/app/schemas/book_schema";
-import { useSectionComponent } from "./SectionComponent";
-import useBookHook from "@/app/data/useBookHook";
+import { BookContextType } from "@/app/data/BookContext";
+import { useSectionComponent } from "./useSectionComponent";
 
 type Main = ReturnType<typeof useSectionComponent>;
-type BookHookProps = ReturnType<typeof useBookHook>;
+type BookHookProps = BookContextType;
 
 export function keyboardFeatures(
   book_id: string,

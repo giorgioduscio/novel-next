@@ -1,5 +1,5 @@
-import useBookHook from "@/app/data/useBookHook";
-import useCommonPagesHook from "@/app/data/useCommonPagesHook";
+import { useBookContext } from "@/app/data/BookContext";
+import { useCommonPagesContext } from "@/app/data/CommonPagesContext";
 import { Book, Section, Paragraph, paragraph_schema, section_schema } from "@/app/schemas/book_schema";
 import { useAgreeWrapper } from "@/app/shareds/Agree";
 import { useBracket, useDot } from "@/app/tools/customStates";
@@ -9,6 +9,7 @@ import { useState, useEffect, useMemo } from "react";
 import { safeParse } from "valibot";
 import { keyboardFeatures } from "./keyboardFeatures";
 import useAuth from "@/app/auth/useAuth";
+import { AuthContext, useAuthContext } from "@/app/data/AuthContext";
 
 export interface UseSectionComponentProps {
   book_id: string;
@@ -19,17 +20,20 @@ export interface UseSectionComponentProps {
 export function useSectionComponent({ book_id, part_title, section_title }: UseSectionComponentProps) {
   // 1) DATI PRINCIPALI
   const router = useRouter();
-  const BookHook = useBookHook();
+  const BookHook = useBookContext();
   const agree = useAgreeWrapper();
-  const page = useCommonPagesHook();
+  const page = useCommonPagesContext();
   const [book, setBook] = useState<Book | undefined>(undefined);
-  const auth = useAuth()
+  const authContext = useAuthContext()
 
   // autorizzazioni
-  const canRead =useMemo(()=> !!book && !!auth.CONTROLS.canRead(book), [book, auth])
+  const canRead =useMemo(()=> 
+    !!book && !!authContext.CONTROLS.canRead(book)
+  , [book, authContext])
+  
   const canWrite =useMemo(
-    ()=> !!book && !!auth.CONTROLS.canWrite(book) && page.isEditMode
-  , [book, auth])
+    ()=> !!book && !!authContext.CONTROLS.canWrite(book) && page.isEditMode
+  , [book, authContext, page])
   
   
   useEffect(() => {
@@ -169,6 +173,10 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
   };
   
   // 4) PARAGRAFI
+  const showParagraphs = useMemo(() => 
+    !!SECTION.bookSection?.paragraphs?.length
+  , [SECTION.bookSection]);
+  
   const PARAG = {
     // aggiorna paragrafo e salva
     update(index:number, key: keyof Paragraph, value:string, reemplazar =true){
@@ -561,6 +569,7 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
     SECTION_title,
     SECTION,
     PARAG,
+    showParagraphs,
     AUTOCOMPLETE,
     HISTORY, 
     canRead, canWrite

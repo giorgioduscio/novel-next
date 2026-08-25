@@ -4,10 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { safeParse } from "valibot";
 import { Book, Paragraph, Section, paragraph_schema, section_schema } from "@/app/schemas/book_schema";
-import useCommonPagesHook from "@/app/data/useCommonPagesHook";
 import { useAgreeWrapper } from "@/app/shareds/Agree";
 import { toast } from "@/app/tools/feedbacksUI";
-import useBookHook from "@/app/data/useBookHook";
 import { keyboardFeatures } from "./keyboardFeatures";
 import { useBracket, useDot } from "@/app/tools/customStates";
 import "./Section.sass";
@@ -19,6 +17,7 @@ import Bottombar from "@/app/shareds/Bottombar";
 import Navigation from "@/app/shareds/Navigation";
 import { useSectionComponent, UseSectionComponentProps } from "./useSectionComponent";
 import Link from "next/link";
+import { useAuthContext } from "@/app/data/AuthContext";
 
 
 interface AddParagraphButtonProps { handleCreate: Function; if: boolean; className?: string }
@@ -42,16 +41,12 @@ function AddParagraphButton({ if: show, handleCreate, className = "" }: AddParag
 export default function SectionComponent(props: UseSectionComponentProps) {
   const {
     book_id,  section_title,  page,  SECTION_title,
-    errors,  SECTION,  PARAG,
+    SECTION,  PARAG, showParagraphs,
+    errors,  
     AUTOCOMPLETE,
     HISTORY,
-    canRead,
-    canWrite
+    canRead, canWrite
   } = useSectionComponent(props);
-  
-  const showParagraphs = useMemo(() => 
-    !!SECTION.bookSection?.paragraphs?.length
-  , [SECTION.bookSection]);
 
   if (!page.isPageLoaded) return <LoadingComponent />;
   if(!canRead) return (

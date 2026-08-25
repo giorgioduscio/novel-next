@@ -5,10 +5,12 @@ import Navigation from "../shareds/Navigation"
 import Field from "../shareds/Field"
 import Frag from "../shareds/Frag"
 import useAuth from "./useAuth"
+import { useAuthContext } from "../data/AuthContext"
 
 
 export default function AuthComponent() {
-  const { permissions, FORM, CRUD, errors, checkedTargets } = useAuth()
+  const { FORM, CRUD, errors, checkedTargets } = useAuth()
+  const { permissions } = useAuthContext()
 
   return <>
     <Frag if={checkedTargets.get().length === 0}>

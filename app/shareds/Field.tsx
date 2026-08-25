@@ -36,13 +36,13 @@ const useEvents = ({ value, onChange, onInput, onFocus, onBlur }: Partial<FieldP
   }, [value]);
   
 
-    // Gestisce il cambiamento del valore locale (onInput - comportamento React onChange)
+  // Gestisce il cambiamento del valore locale (onInput - comportamento React onChange)
   function handleLocalChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>){
       setLocalValue(e.target.value);
       onInput?.(e); // Triggera ad ogni cambiamento
   };
 
-    // Gestisce il blur (perdita di focus) - onChange HTML
+  // Gestisce il blur (perdita di focus) - onChange HTML
   function handleBlur (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>){
     onBlur?.(e); // Chiama il prop onBlur
     const hasChanged = localValue !== value;
@@ -50,12 +50,12 @@ const useEvents = ({ value, onChange, onInput, onFocus, onBlur }: Partial<FieldP
     onChange?.(e as any); // Chiama onChange solo se il valore è cambiato
   };
 
-    // Gestisce il focus
+  // Gestisce il focus
   function handleFocus(e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>){
     onFocus?.(e); // Chiama il prop onFocus
   };
 
-    // Gestisce la pressione di Enter (solo per input non textarea) - onChange HTML
+  // Gestisce la pressione di Enter (solo per input non textarea) - onChange HTML
   function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
     if (e.key === "Enter") {
       const hasChanged = localValue !== value;
@@ -63,9 +63,21 @@ const useEvents = ({ value, onChange, onInput, onFocus, onBlur }: Partial<FieldP
       onChange?.(e as any); // Chiama onChange su Enter
     }
   };
+  
+  // Resetta l'input
+  function resetInput() {
+    setLocalValue("");
+    onChange?.({ target: { value: "" } } as any);
+  }
+
+  // mostra pasword
+  const [showPassword, setShowPassword] = useState(false);
+  function togglePassword() {
+    setShowPassword(!showPassword);
+  }
 
   const [localValue, setLocalValue] = useState(value !== undefined && value !== null ? value : "");
-  return { localValue, setLocalValue, handleLocalChange, handleBlur, handleFocus, handleKeyDown };
+  return { localValue, setLocalValue, handleLocalChange, handleBlur, handleFocus, handleKeyDown, resetInput, showPassword, togglePassword };
 };
 
 
@@ -220,30 +232,55 @@ export default function Field({
 
       /* DEFAULT */
       ) : (
-        <input
-          ref={MOBILE.inputRefInternal}
-          type={type}
-          placeholder={placeholder}
-          value={EVENTS.localValue as string}
-          id={id}
-          name={id}
-          disabled={disabled}
-          required={asterisk}
-          aria-required={asterisk || undefined}
-          aria-invalid={!!error_message}
-          aria-describedby={error_message ? errorId : undefined}
-          className={`block w-full ${input_class} ${error_message ? "border border-red-500" : ""}`}
-          onChange={EVENTS.handleLocalChange}
-          onBlur={EVENTS.handleBlur}
-          onKeyDown={EVENTS.handleKeyDown}
-          onFocus={(e) => {
-            EVENTS.handleFocus(e);
-            MOBILE.handleFocus();
-          }}
-          autoComplete={autoComplete}
-          {...rest}
-        />
+        <div className="relative">
+          <input
+            ref={MOBILE.inputRefInternal}
+            type={type==='password' ? (EVENTS.showPassword ? 'text' : 'password') : type}
+            placeholder={placeholder}
+            value={EVENTS.localValue as string}
+            id={id}
+            name={id}
+            disabled={disabled}
+            required={asterisk}
+            aria-required={asterisk || undefined}
+            aria-invalid={!!error_message}
+            aria-describedby={error_message ? errorId : undefined}
+            className={`block w-full ${input_class} ${error_message ? "border border-red-500" : ""}`}
+            onChange={EVENTS.handleLocalChange}
+            onBlur={EVENTS.handleBlur}
+            onKeyDown={EVENTS.handleKeyDown}
+            onFocus={(e) => {
+              EVENTS.handleFocus(e);
+              MOBILE.handleFocus();
+            }}
+            autoComplete={autoComplete}
+            {...rest}
+          />
+          {/* pulsanti */}
+          {/* se premuto mostra la password */}
+          {type==="password" && (
+            <div className="h-full absolute right-0 top-0  flex items-center justify-center">
+              <button type="button" onClick={EVENTS.togglePassword} 
+                      className="me-1 py-1 px-2 bg-gray-800/80 rounded-full text-xl block">
+                {EVENTS.showPassword 
+                  ? <i className="bi bi-eye-slash" aria-hidden="true"></i>
+                  : <i className="bi bi-eye" aria-hidden="true"></i>
+                } 
+              </button>
+            </div>
+          )}
+          {/* se premuto, resetta l'input */}
+          {type==="search" && (
+            <div className="absolute right-0 top-0">
+              <button type="button" onClick={EVENTS.resetInput} 
+                      className="m-1 px-1 bg-gray-800/80 rounded-full text-2xl block">
+                <i className="bi bi-x" aria-hidden="true"></i>
+              </button>
+            </div>
+          )}
+        </div>
       )}
+
 
       {/* ERROR MESSAGE */}
       {error_message && (
