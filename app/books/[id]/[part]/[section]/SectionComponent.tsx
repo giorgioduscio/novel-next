@@ -1,13 +1,5 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
-import { safeParse } from "valibot";
-import { Book, Paragraph, Section, paragraph_schema, section_schema } from "@/app/schemas/book_schema";
-import { useAgreeWrapper } from "@/app/shareds/Agree";
-import { toast } from "@/app/tools/feedbacksUI";
-import { keyboardFeatures } from "./keyboardFeatures";
-import { useBracket, useDot } from "@/app/tools/customStates";
 import "./Section.sass";
 import Field from "@/app/shareds/Field";
 import Frag from "@/app/shareds/Frag";
@@ -17,7 +9,6 @@ import Bottombar from "@/app/shareds/Bottombar";
 import Navigation from "@/app/shareds/Navigation";
 import { useSectionComponent, UseSectionComponentProps } from "./useSectionComponent";
 import Link from "next/link";
-import { useAuthContext } from "@/app/data/AuthContext";
 
 
 interface AddParagraphButtonProps { handleCreate: Function; if: boolean; className?: string }
@@ -41,11 +32,12 @@ function AddParagraphButton({ if: show, handleCreate, className = "" }: AddParag
 export default function SectionComponent(props: UseSectionComponentProps) {
   const {
     book_id,  section_title,  page,  SECTION_title,
+    book,
     SECTION,  PARAG, showParagraphs,
     errors,  
     AUTOCOMPLETE,
     HISTORY,
-    canRead, canWrite
+    canRead, canWrite,
   } = useSectionComponent(props);
 
   if (!page.isPageLoaded) return <LoadingComponent />;
@@ -90,6 +82,7 @@ export default function SectionComponent(props: UseSectionComponentProps) {
       </div>
     </div>
 
+
     <main id="SectionComponent" onClick={PARAG.closeTemplateInputStyle} className="mx-auto container max-w-[400px]">
       {/* Contenitore principale */}
       <section className="pb-50 min-h-dvh flex-1">
@@ -104,7 +97,7 @@ export default function SectionComponent(props: UseSectionComponentProps) {
         {/* SEZIONE TROVATA */}
         <Frag if={!!SECTION.bookSection}>
           {/* TITOLO SEZIONE */}
-          <form onSubmit={SECTION.handleSubmit} className="p-3 py-50 text-center">
+          <form onSubmit={SECTION.handleSubmit} className="p-3 pb-60 text-center">
             <Field
               input_class="text-3xl font-bold text-center text-orange-500"
               hide_label
@@ -120,20 +113,24 @@ export default function SectionComponent(props: UseSectionComponentProps) {
               onKeyDown={SECTION.titleKeyDown}
             />
             <div className="mt-5 border-t border-gray-500 relative">
-              <Frag if={canWrite} className="flex flex-wrap gap-2 absolute">
-                <b className="px-2 bg-blue-900 rounded-full">Paragrafi: {SECTION.bookSection?.paragraphs?.length}</b>
-                <b className="px-2 bg-green-900 rounded-full">Lettere: {SECTION.words}</b>
-                
-                <div className="w-full">
+              <Frag if={canWrite} className="absolute z-2">
+                <div className="py-1 flex flex-wrap gap-1 justify-around">
+                  <b className="px-2 bg-blue-300 text-sm text-black outline rounded-full">Paragrafi: {SECTION.bookSection?.paragraphs?.length}</b>
+                  <b className="px-2 bg-green-300 text-sm text-black outline rounded-full">Lettere: {SECTION.words}</b>
+                  <b className="px-2 bg-indigo-300 text-sm text-black outline rounded-full">Lunghezza pagina: {SECTION.words}</b>
+                </div>
+                <div className="p-1 bg-white text-black outline rounded">
                   <Field
+                    input_class={`p-2 text-sm`}
+                    label_class="px-2 text-sm font-bold italic"
                     id={"section-note"}
-                    input_class={`p-2 text-sm ${canWrite ? "bg-white text-black outline rounded" : "text-gray-300"}`}
                     label="Nota della sezione"
                     value={SECTION.bookSection?.note || ""}
                     disabled={!canWrite}
                     type={"textarea"}
-                    placeholder={"Nota della sezione"}
-                    onChange={(_e) => SECTION.updateNote(_e.target.value)}
+                    rows={4}
+                    placeholder={"Visualizzato solo dagli scrittori. Inserire sintesi o modifiche da implementare"}
+                    onInput={(_e) => SECTION.updateNote(_e.target.value)}
                   />
                 </div>
               </Frag>
@@ -168,9 +165,9 @@ export default function SectionComponent(props: UseSectionComponentProps) {
                     handleCreate={() => PARAG.handleCreate("top")}
                   />
 
-                  {/* PARAGRAFO */}
-                  <div className={`py-3 ${PARAG.getExternalStyle(p)}`}>
-                    <div className={`p-1 ${PARAG.parseStyle(p) || ""}`}>
+                  {/* PARAGRAFO TESTO */}
+                  <div onClick={PARAG.handleFocusText} className={`block py-3 ${PARAG.getExternalStyle(p)}`}>
+                    <div className={`block p-1 ${PARAG.parseStyle(p) || ""}`}>
                       <div className={canWrite && PARAG.styleInput().index === paragraph_i ? 'outline-3 outline-dashed outline-black' : ''}>
                         <Field
                           input_class={`p-1 text-center ${canWrite && PARAG.styleInput().index === paragraph_i ? 'outline-3 outline-white' : ''}`}
@@ -178,11 +175,11 @@ export default function SectionComponent(props: UseSectionComponentProps) {
                           value={p.text}
                           disabled={!canWrite}
                           hide_label
-                          label="Testo del paragrafo"
+                          label="Descrivi la scena"
                           asterisk
                           type="textarea"
                           id={paragraph_i + ">text"}
-                          onChange={(_e) => PARAG.update(paragraph_i, "text", _e.target.value)}
+                          onInput={(_e) => PARAG.update(paragraph_i, "text", _e.target.value)}
                           onKeyDown={(_e: any) => PARAG.handleKey(_e)}
                           error_message={errors[`${paragraph_i}>text`]}
                           onFocus={() => PARAG.setStyleInput(paragraph_i)}
@@ -273,8 +270,7 @@ export default function SectionComponent(props: UseSectionComponentProps) {
         </Frag>
       </section>
 
-      <Bottombar page={page} />
-      
+     
       {/* STILE PARAGRAFO */}
       {/* 
         <Frag if={PARAG.styleInput.isVisible && canWrite}>
@@ -291,7 +287,7 @@ export default function SectionComponent(props: UseSectionComponentProps) {
                         type={"text"} 
                         placeholder={"in_style"} 
                         value={PARAG.styleInput.value} 
-                        onChange={(_e) => PARAG.update(paragraph_i, "in_style", _e.target.value.toLowerCase())}
+                        onInput={(_e) => PARAG.update(paragraph_i, "in_style", _e.target.value.toLowerCase())}
                   onKeyDown={(_e: any) => PARAG.handleKey(_e)}
                   error_message={errors[`${PARAG.styleInput.index}>in_style`]}
                 />

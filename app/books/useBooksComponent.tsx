@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { safeParse } from "valibot";
-import useAuth from "../auth/useAuth";
+import useAuthComponent from "../auth/useAuthComponent";
 import { useBookContext } from "../data/BookContext";
 import { useCommonPagesContext } from "../data/CommonPagesContext";
 import { Book, book_schema } from "../schemas/book_schema";
@@ -12,7 +12,7 @@ export function useBooksComponent() {
   const BookHook = useBookContext();
   const page = useCommonPagesContext();
   const agree = useAgreeWrapper();
-  const auth = useAuth();
+  const auth = useAuthComponent();
   const { canRead, canWrite } = auth;
 
   

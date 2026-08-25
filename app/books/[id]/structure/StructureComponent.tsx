@@ -13,6 +13,7 @@ import { Book } from "@/app/schemas/book_schema";
 import Field from "@/app/shareds/Field";
 import { useAuthContext } from "@/app/data/AuthContext";
 import { useCommonPagesContext } from "@/app/data/CommonPagesContext";
+import handleArrowKeyFocus from "@/app/tools/handleArrowKeyFocus";
 
 interface BookNavbarProps { book: Book | undefined, canRead: boolean, canWrite: boolean }
 export function BookNavbar({book, canRead, canWrite}: BookNavbarProps) {
@@ -81,7 +82,9 @@ export default function StructureComponent(props: UseBookComponentProps) {
     
     <Breadcrumb />
 
-    <main id="StructureComponent" className="mx-auto container max-w-[800px]">
+    <main id="StructureComponent" 
+          className="mx-auto container max-w-[800px]" 
+          onKeyDown={handleArrowKeyFocus}>
       {/* LIBRO NON TROVATO */}
       <Frag if={!canRead}>
         <div className="p-3 py-8 text-center text-red-500">
@@ -125,7 +128,7 @@ export default function StructureComponent(props: UseBookComponentProps) {
                           />
                         </DropdownSummary>
 
-                        <DropdownContent className="absolute w-full bg-white text-black outline rounded">
+                        <DropdownContent className="absolute z-2 w-full bg-white text-black outline rounded">
                           <Field  id={`part-note-${part_i}`} 
                                   label={"Nota della parte"} 
                                   input_class={`pb-2 px-3 text-sm`}
@@ -258,6 +261,5 @@ export default function StructureComponent(props: UseBookComponentProps) {
       </Frag>
     </main>
     
-    <Bottombar page={page} />
   </>;
 }

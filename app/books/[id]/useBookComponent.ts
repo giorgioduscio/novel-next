@@ -1,4 +1,4 @@
-import useAuth from "@/app/auth/useAuth";
+import useAuthComponent from "@/app/auth/useAuthComponent";
 import { useBookContext } from "@/app/data/BookContext";
 import { Book, book_schema, Part } from "@/app/schemas/book_schema";
 import { useAgreeWrapper } from "@/app/shareds/Agree";
@@ -11,12 +11,13 @@ export function useBookComponent({ id }: UseBookComponentProps) {
   const [book, setBook] = useState<Book | undefined>(undefined);
   const BookHook = useBookContext();
   const agree = useAgreeWrapper();
-  const auth = useAuth();
+  const auth = useAuthComponent();
 
   useEffect(() => {
     const bookFromStore = BookHook.getBookById(id);
     setBook(bookFromStore ? structuredClone(bookFromStore) : undefined);
-  }, [id, BookHook.getBookById]);
+    BookHook.setTarget(bookFromStore);
+  }, [id, BookHook.getBookById, BookHook.setTarget]);
 
 
   // 1) ERRORI

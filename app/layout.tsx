@@ -4,6 +4,8 @@ import "bootstrap-icons/font/bootstrap-icons.css";
 import { AppProviders } from "./data/AppProviders";
 import { bubblegum, comicNeue } from "./styles/fonts";
 import BottomFooter from "./shareds/BottomFooter";
+import Bottombar from "./shareds/Bottombar";
+import { KeyboardEventHandler } from "react";
 
 
 export const metadata: Metadata = {
@@ -29,14 +31,15 @@ export default function RootLayout({ children }:
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
       </head>
-      <body className="flex flex-col min-h-dvh bg-gray-600">
+      <body className="bg-gray-600">
         <AppProviders>
-          <div id="app" className="text-white flex-1 flex flex-col min-h-dvh">
+          <div id="app" className="text-white min-h-dvh">
             {children}
           </div>
-        </AppProviders>
 
-        <BottomFooter />
+          <BottomFooter />
+          <Bottombar />
+        </AppProviders>
       </body>
     </html>
   );

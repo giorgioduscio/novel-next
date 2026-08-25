@@ -9,23 +9,28 @@ body
   min-height: 100dvh
 
 button, a
-  cursor: pointer !important
+    cursor: pointer !important
 
-  // nello stato hover, il background diventa più chiaro
-  &:hover
-    filter: brightness(1.3) !important
-    transition: filter 0.3s ease-in-out !important
+    // nello stato hover, il background diventa più chiaro
+    &:hover
+        filter: brightness(1.3) !important
+        transition: filter 0.3s ease-in-out !important
     
-  // nello stato active, il background diventa molto più chiaro
-  &:active
-    filter: brightness(1.8) !important
-    transition: filter 0.2s ease-in-out !important
+    // nello stato active, il background diventa molto più chiaro
+    &:active
+        filter: brightness(1.8) !important
+        transition: filter 0.2s ease-in-out !important
 
+    &:disabled
+        background: #808080dd !important
+textarea
+    resize: none !important
+    
 .pointler-event-none
     pointer-events: none
     
-// HELPER
 
+// HELPER
 // TRANSLATE
 .translate-y-1
     transform: translateY(1rem)

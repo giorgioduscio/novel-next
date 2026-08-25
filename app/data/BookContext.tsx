@@ -62,6 +62,8 @@ export interface BookContextType {
   getBookById: (id: string) => Book | undefined;
   updateBook: (id: string, updatedBook: Partial<Book>, validation?: boolean) => Book | null;
   deleteBook: (id: string) => boolean;
+  target: Book | undefined;
+  setTarget: (book: Book | undefined) => void;
   download: {
     _json_to_text: (data: Book, isMarkdownFormat?: boolean) => string;
     json: { label: string; icon: string; execute: (id: string) => void };
@@ -170,6 +172,7 @@ export const BookProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [books]);
 
   // Trova un libro per ID
+  const [target, setTarget] = useState<Book | undefined>(undefined);
   const getBookById = useCallback(
     (id: string): Book | undefined => {
       return books.find((book) => book.id === id);
@@ -359,8 +362,7 @@ export const BookProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, []);
 
-  const value = useMemo(
-    () => ({
+  const value = useMemo(() => ({
       books,
       loading,
       createId,
@@ -375,6 +377,8 @@ export const BookProvider: React.FC<{ children: React.ReactNode }> = ({ children
       download,
       upload,
       findFirsted,
+      target,
+      setTarget,
     }),
     [
       books,
@@ -391,6 +395,8 @@ export const BookProvider: React.FC<{ children: React.ReactNode }> = ({ children
       download,
       upload,
       findFirsted,
+      target,
+      setTarget,
     ]
   );
 

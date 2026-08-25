@@ -11,8 +11,12 @@
 
 # Kanban - Novel Writer (Next.js)
 ## 📌 To Do
-* [1] external_style: inserire uno sfondo comune tra più paragrafi
-* [1] layout mobile
+  
+* [2] (2h) opzione delle guide nell'editor
+* [1] (2h) external_style: inserire uno sfondo comune tra più paragrafi
+
+* MIGLIORA I CONTEXT API
+* [?] layout mobile
   - fluidita input in fondo e tastiera digitale
 
 ## 🔄 In Progress (max 2-3)

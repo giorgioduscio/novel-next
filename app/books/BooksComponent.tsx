@@ -9,15 +9,18 @@ import { LoadingComponent } from "../shareds/LoadingComponent";
 import ManySelect from "../shareds/ManySelect";
 import Navigation from "../shareds/Navigation";
 import { useBooksComponent } from "./useBooksComponent";
+import handleArrowKeyFocus from "../tools/handleArrowKeyFocus";
+
 
 export default function BooksComponent() {
   const {page, BookHook, deleteTargets, books, BOOKS, canWrite, errors} = useBooksComponent();
+  const {isEditMode} = page;
+  
   // Mostra il componente di caricamento se la pagina non è pronta o è in corso il caricamento
   if (!page.isPageLoaded || BookHook.loading) {
     return <LoadingComponent />;
   }
 
-  const {isEditMode} = page;
   return (<>
     <Frag if={deleteTargets.get().length === 0}>
       <Navigation page_title="Libri" />
@@ -52,7 +55,8 @@ export default function BooksComponent() {
 
 
 
-    <main id="BooksTemplate" className="mx-auto container max-w-[800px]">
+    <main id="BooksTemplate" className="mx-auto container max-w-[800px]" 
+          onKeyDown={handleArrowKeyFocus}>
       <section className="p-2 min-h-dvh">
 
         {/* HEAD */}
@@ -112,7 +116,7 @@ export default function BooksComponent() {
                   <div className="outline rounded">
                     {/* Visualizzazione o modifica dei dettagli del libro */}
                     <Link href={isEditMode && canWrite(book) ?'' :`/books/${book.id}/structure`}
-                          aria-disabled={!isEditMode && canWrite(book)}
+                          aria-disabled={!isEditMode && !canWrite(book)}
                           className={`block p-2 ${deleteTargets.get().includes(book.id) ? 'bg-red-600' : 'bg-indigo-600'}`}>
                       {/* MODIFICA LIBRO */}
                       <Field id="title"
@@ -120,7 +124,7 @@ export default function BooksComponent() {
                               label="Titolo del libro"
                               type="textarea"
                               input_class={`p-2 text-center text-2xl font-bold ${isEditMode && canWrite(book) ?"bg-white text-black outline rounded" :"pointler-event-none"}`}
-                              disabled={!isEditMode && canWrite(book)}
+                              disabled={!isEditMode && !canWrite(book)}
                               placeholder="Inserisci il titolo"
                               value={book.title}
                               onChange={e=> BOOKS.update(book_i, "title", e)}
@@ -132,7 +136,7 @@ export default function BooksComponent() {
                               label="Autore del libro"
                               type="textarea"
                               input_class={`p-2 text-center italic border-t ${isEditMode && canWrite(book) ?"bg-white text-gray-800 outline rounded" :"pointler-event-none"}`}
-                              disabled={!isEditMode && canWrite(book)}
+                              disabled={!isEditMode && !canWrite(book)}
                               placeholder="Inserisci l'autore"
                               value={book.author_name}
                               onChange={e =>BOOKS.update(book_i, "author_name", e)}
@@ -170,8 +174,6 @@ export default function BooksComponent() {
         </Frag>
         {/* LIBRI */}
       </section>
-      <Bottombar page={page} />
-
     </main>
   </>);
 }

@@ -4,12 +4,12 @@ import { Breadcrumb } from "../shareds/Breadcrumb"
 import Navigation from "../shareds/Navigation"
 import Field from "../shareds/Field"
 import Frag from "../shareds/Frag"
-import useAuth from "./useAuth"
+import useAuthComponent from "./useAuthComponent"
 import { useAuthContext } from "../data/AuthContext"
 
 
 export default function AuthComponent() {
-  const { FORM, CRUD, errors, checkedTargets } = useAuth()
+  const { FORM, CRUD, errors, checkedTargets } = useAuthComponent()
   const { permissions } = useAuthContext()
 
   return <>
@@ -46,6 +46,11 @@ export default function AuthComponent() {
     <main className="mx-auto container max-w-[800px]">
       <section className="p-3 min-h-dvh">
         {/* header */}
+        <p className="py-2 px-3 bg-sky-200 text-black text-sm italic outline rounded">
+          <i className="me-1 bi bi-info-circle"></i> 
+          Questi codici vengono memorizzati sul browser. Potrai visualizzare o modificare tutti i contenuti associati a questi codici.
+        </p>
+
         <div className="flex justify-between items-center">
           <h2 className="my-3 text-2xl font-bold">Permessi</h2>
           <button onClick={() => FORM.isVisible.set(prev=> !prev)} className="py-1 px-2 bg-indigo-600 text-white rounded">
@@ -56,17 +61,19 @@ export default function AuthComponent() {
           </button>
         </div>
 
+
         {/* NUOVO PERMESSO */}
         <Frag if={FORM.isVisible.get()} className="mx-auto max-w-max">
           <div className="outline outline-indigo-600 rounded">
             <div className="p-2 bg-indigo-600 flex gap-2">
               <h3>Aggiungi codice</h3>
             </div>
-            <form onSubmit={FORM.handleSubmit} className="p-2 flex flex-wrap gap-2 items-center bg-indigo-200">
+            <form onSubmit={FORM.handleSubmit} className="p-2 grid sm:grid-cols-2 gap-2 items-center bg-indigo-200">
               {FORM.state.get().map((item) => (
                 <div key={item.key} className="flex-auto bg-white text-black outline rounded">
                   <Field 
                     type="text" 
+                    label_class="pt-1 px-3 text-xs font-bold italic"
                     input_class="pb-2 px-3"
                     id={item.key}
                     label={item.label}
@@ -79,36 +86,44 @@ export default function AuthComponent() {
               ))}
 
               <div className="w-full">
-                <button className="py-1 px-2 bg-orange-600 rounded" type="submit">Aggiungi</button>
+                <button className="py-1 px-2 bg-orange-600 rounded" 
+                        type="submit"
+                        disabled={Object.keys(errors).length>0}
+                        >Aggiungi</button>
               </div>
             </form>
           </div>
         </Frag>
 
 
-
         {/* LISTA PERMESSI */}
         <h3 className="mt-5 mb-3">Lista codici</h3>
 
-        <ol>
-          <Frag if={!permissions.get().length} className="p-3 bg-sky-700 rounded flex gap-2">
+        <ol className="flex gap-2 flex-wrap">
+          <Frag if={!permissions.get().length} className="p-3 w-full bg-sky-700 rounded flex gap-2">
             <i className="bi bi-info-circle"></i>
             <span>Nessun permesso trovato</span>
           </Frag>
 
           {permissions.get().map((permession, i)=>
-            <li key={i + permession.title} className={`p-1 my-3 rounded ${checkedTargets.get().includes(i) ? 'bg-red-800 outline' : 'bg-indigo-800'}`}>
-              <div className="grid grid-cols-[auto_1fr] items-start">
-                <input
-                  type="checkbox"
-                  checked={checkedTargets.get().includes(i)}
-                  onChange={() => CRUD.toggleTarget(i)}
-                  className="block m-2 scale-150"
-                />
+            <li key={i + permession.title} className={`flex-1 min-w-[200px] p-1 rounded ${checkedTargets.get().includes(i) ? 'bg-red-200 outline' : 'bg-indigo-200'}`}>
+              <div className="grid grid-cols-[auto_1fr] gap-1">
+                <div className="flex flex-col justify-between">
+                  <input
+                    type="checkbox"
+                    checked={checkedTargets.get().includes(i)}
+                    onChange={() => CRUD.toggleTarget(i)}
+                    className="block my-2 scale-150"
+                  />
 
-                <div>
+                  <button onClick={() => CRUD.handleDelete(i)} className="px-1 text-red-700 outline rounded">
+                    <i className="bi bi-trash"></i>
+                  </button>
+                </div>
+
+                <div className="bg-white text-black outline rounded">
                   <Field
-                    input_class="py-1 px-5 bg-white text-black outline italic"
+                    input_class="py-1 px-2  italic font-bold text-sm"
                     id={permession.title}
                     hide_label label={permession.title}
                     type="text"
@@ -117,15 +132,8 @@ export default function AuthComponent() {
                     onChange={(e) => CRUD.handleUpdate(i, 'title', e.target.value)}
                     error_message={errors[`${i}>title`]}
                   />
-                </div>
-
-                <button onClick={() => CRUD.handleDelete(i)} className="p-1 text-red-400">
-                  <i className="bi bi-trash"></i>
-                </button>
-
-                <div>
                   <Field
-                    input_class="py-1 px-2 bg-white text-black outline font-bold"
+                    input_class="py-1 px-2"
                     id={permession.auth_code}
                     hide_label label={permession.auth_code}
                     type="text"

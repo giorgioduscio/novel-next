@@ -4,7 +4,7 @@ import { Breadcrumb } from "@/app/shareds/Breadcrumb";
 import Bottombar from "@/app/shareds/Bottombar";
 import Frag from "@/app/shareds/Frag";
 import { LoadingComponent } from "@/app/shareds/LoadingComponent";
-import { useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { Book } from "@/app/schemas/book_schema";
 import { useBookComponent } from "../useBookComponent";
 import Field from "@/app/shareds/Field";
@@ -12,6 +12,7 @@ import { BookNavbar } from "../structure/StructureComponent";
 import { useAuthContext } from "@/app/data/AuthContext";
 import { useCommonPagesContext } from "@/app/data/CommonPagesContext";
 import { useDot } from "@/app/tools/customStates";
+import handleArrowKeyFocus from "@/app/tools/handleArrowKeyFocus";
 
 interface UseBookComponentProps { id: string }
 
@@ -29,9 +30,9 @@ export default function SettingsComponent(props: UseBookComponentProps) {
     value: any;
     placeholder: string;
     asterisk?: boolean;
-    rows?: number;
     preLabel?: string;
     type?: string;
+    className?: string;
   };
 
   const fields = useMemo((): fieldType[] => {
@@ -42,24 +43,24 @@ export default function SettingsComponent(props: UseBookComponentProps) {
         key: "title",
         value: book.title,
         label: "Titolo",
-        placeholder: "Titolo",
+        placeholder: "Inserire il titolo del libro",
+        asterisk: true,
+      },
+      {
+        key: "author_name",
+        value: book.author_name,
+        label: "Autore",
+        placeholder: "Inserire il nome dell'autore",
         asterisk: true,
       },
       {
         key: "description",
         value: book.description,
         label: "Descrizione",
-        placeholder: "Descrizione",
+        placeholder: "Descrivi brevemente di cosa parla il libro",
         asterisk: true,
-        rows: 5,
         type:"textarea",
-      },
-      {
-        key: "author_name",
-        value: book.author_name,
-        label: "Autore",
-        placeholder: "Autore",
-        asterisk: true,
+        className: "w-full",
       },
       {
         preLabel: "Autorizzazioni",
@@ -87,7 +88,9 @@ export default function SettingsComponent(props: UseBookComponentProps) {
 
       <Breadcrumb />
 
-      <main id="StructureComponent" className="mx-auto container max-w-[800px]">
+      <main id="StructureComponent" 
+            className="mx-auto container max-w-[500px]"
+            onKeyDown={handleArrowKeyFocus}>
         <Frag if={!canRead}>
           <div className="p-3 py-8 text-center text-red-500">
             <i className="bi bi-exclamation-triangle text-2xl"></i>
@@ -97,34 +100,31 @@ export default function SettingsComponent(props: UseBookComponentProps) {
 
         <Frag if={!!canRead}>
           <section className="px-3 pb-10 min-h-dvh">
-            <ol>
-              {fields.map((field) => (
-                <li key={field.key}>
-                  {field.preLabel && (
-                    <div className="pt-3 font-bolder italic">{field.preLabel}</div>
-                  )}
-                  <div>
-                    <Field
-                      id={field.key}
-                      label={field.label}
-                      input_class={`p-2 rounded bg-white text-black outline`}
-                      asterisk={field.asterisk}
-                      type={field.type || "text"}
-                      rows={field.rows}
-                      placeholder={field.placeholder}
-                      value={field.value || ""}
-                      error_message={errors[field.key]}
-                      onChange={(_e) => handleUpdateBook(field.key, _e.target.value)}
-                    />
-                  </div>
+            <h2 className="text-xl font-bold my-4">Opsioni</h2>
+            <ol className="flex flex-wrap gap-2 items-start">
+              {fields.map((field) => <React.Fragment key={field.key}>
+                {field.preLabel && (
+                  <li className="w-full pt-3 font-bolder italic">{field.preLabel}</li>
+                )}
+                <li className={`bg-white outline rounded ${field.className || "flex-1 min-w-[150px]"}`}>
+                  <Field
+                    id={field.key}
+                    label={field.label}
+                    label_class="px-2 text-black text-sm font-bold italic"
+                    input_class="pb-2 px-3 text-black"
+                    asterisk={field.asterisk}
+                    type={field.type || "text"}
+                    placeholder={field.placeholder}
+                    value={field.value || ""}
+                    error_message={errors[field.key]}
+                    onChange={(_e) => handleUpdateBook(field.key, _e.target.value)}
+                  />
                 </li>
-              ))}
+              </React.Fragment>)}
             </ol>
           </section>
         </Frag>
       </main>
-
-      <Bottombar page={page} />
     </>
   );
 }

@@ -8,8 +8,7 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect, useMemo } from "react";
 import { safeParse } from "valibot";
 import { keyboardFeatures } from "./keyboardFeatures";
-import useAuth from "@/app/auth/useAuth";
-import { AuthContext, useAuthContext } from "@/app/data/AuthContext";
+import { useAuthContext } from "@/app/data/AuthContext";
 
 export interface UseSectionComponentProps {
   book_id: string;
@@ -20,7 +19,7 @@ export interface UseSectionComponentProps {
 export function useSectionComponent({ book_id, part_title, section_title }: UseSectionComponentProps) {
   // 1) DATI PRINCIPALI
   const router = useRouter();
-  const BookHook = useBookContext();
+  const bookContext = useBookContext();
   const agree = useAgreeWrapper();
   const page = useCommonPagesContext();
   const [book, setBook] = useState<Book | undefined>(undefined);
@@ -31,15 +30,16 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
     !!book && !!authContext.CONTROLS.canRead(book)
   , [book, authContext])
   
-  const canWrite =useMemo(
-    ()=> !!book && !!authContext.CONTROLS.canWrite(book) && page.isEditMode
+  const canWrite =useMemo(()=> 
+    !!book && !!authContext.CONTROLS.canWrite(book) && page.isEditMode
   , [book, authContext, page])
   
   
   useEffect(() => {
-    const foundBook = BookHook.getBookById(book_id);
+    const foundBook = bookContext.getBookById(book_id);
     setBook(foundBook);
-  }, [book_id, BookHook.getBookById]);
+    bookContext.setTarget(foundBook);
+  }, [book_id, bookContext.getBookById, bookContext.setTarget]);
 
   // restituisce la sezione corrente in base al libro
   function getSection(bookObj = book) :Section | undefined {
@@ -88,7 +88,7 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
       sec.title = trimmed;
       setBook(clone);
 
-      const newBook = BookHook.updateBook(book_id, clone, false);
+      const newBook = bookContext.updateBook(book_id, clone, false);
       if (!newBook) return toast.danger("Titolo non valido");
       toast.success("Titolo aggiornato");
 
@@ -109,7 +109,7 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
       sec.note = value.trim();
       setBook(clone);
 
-      const newBook = BookHook.updateBook(book_id, clone);
+      const newBook = bookContext.updateBook(book_id, clone);
       if (!newBook) return toast.danger("Errore nell'aggiornamento della nota");
       toast.success("Nota sezione aggiornata");
     },
@@ -161,7 +161,7 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
         section.paragraphs = newSection.paragraphs;
         setBook(clone);
 
-        const res = await BookHook.updateBook(book_id, clone);
+        const res = await bookContext.updateBook(book_id, clone);
         if (!res) return toast.danger("Errore nel salvataggio");
 
         toast.success("Sezione incollata con successo!");
@@ -189,7 +189,7 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
       else sec.paragraphs[index][key] += " "+value;
       setBook(clone);
       // aggiornamento backend e feedback
-      const res = BookHook.updateBook(book_id, clone)
+      const res = bookContext.updateBook(book_id, clone)
       if(!res) return toast.danger("Errore di validazione");
       toast.success("Paragrafo salvato!");
     },
@@ -203,7 +203,7 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
       if (!sec) return console.error("Sezione non trovata");
 
       const newParagraph: Paragraph = { 
-        id: BookHook.createId(),
+        id: bookContext.createId(),
         in_style: "", 
         text: paragraphText || "" 
       };
@@ -225,7 +225,7 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
       // aggiorna lo stato
       setBook(updated);
       // salvataggio condizionale
-      if(paragraphText) BookHook.updateBook(book_id, updated, false);
+      if(paragraphText) bookContext.updateBook(book_id, updated, false);
       // feedback
       toast.success("Paragrafo aggiunto");
     },
@@ -233,7 +233,7 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
     // gestisce alcune funzionalità speciali (es. Enter, Tab)
     handleKey(e: React.KeyboardEvent<HTMLTextAreaElement>){
       if(!book) return console.error("libro non disponibile");
-      return keyboardFeatures(book_id, getSection, e, book, setBook, AUTOCOMPLETE, SECTION, PARAG, BookHook)
+      return keyboardFeatures(book_id, getSection, e, book, setBook, AUTOCOMPLETE, SECTION, PARAG, bookContext)
     },
 
     // imposta il colore appropriato del testo
@@ -320,11 +320,26 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
       setBook(updated);
       
       // salva su db
-      const res = BookHook.updateBook(book_id, updated);
+      const res = bookContext.updateBook(book_id, updated);
       // feedback
       if (!res) return toast.danger("Errore nel salvataggio");
       toast.success("Paragrafo rimosso");
     },  
+    
+    // applica il focus sul testo del paragrafo
+    handleFocusText(e: any) {
+      if(!authContext.CONTROLS.canWrite(book!)) 
+        return console.error("Permesso negato");
+      
+      const textarea = (e.currentTarget as HTMLTextAreaElement).querySelector('textarea');
+      if(!textarea) return console.error("Textarea non trovata");
+      
+      if(!page.isEditMode) page.toggleEditMode();
+      
+      setTimeout(() => {
+        textarea.focus();
+      }, 200);
+    }
   }
 
   // 4) aggiunge dinamicamente glierrori dei paragrafi non validi

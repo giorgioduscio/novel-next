@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from
 
 interface FieldProps {
   // proprietà
-  input_class?: string;
   inline?: boolean;
   id: string;
   label: string;
@@ -13,6 +12,9 @@ interface FieldProps {
   disabled?: boolean;
   rows?: number;
   message?: string;
+  // stile
+  input_class?: string;
+  label_class?: string;
   // eventi
   onChange?: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => any;
   onInput?: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => any;
@@ -151,6 +153,7 @@ export default function Field({
   onBlur,
   hide_label,
   input_class,
+  label_class,
   inline,
   disabled,
   rows,
@@ -174,7 +177,7 @@ export default function Field({
       {/* LABEL */}
       <label
         htmlFor={id}
-        className={hide_label ? "sr-only" : "block py-1 px-2 text-sm truncate"}
+        className={`${hide_label ? "sr-only" : label_class || "py-1 px-2 text-sm truncate"} block`}
       >
         <span className="truncate">{label}</span>
         {asterisk && (

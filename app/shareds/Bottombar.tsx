@@ -2,20 +2,26 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useMemo } from "react";
+import { useCommonPagesContext } from "../data/CommonPagesContext";
+import { useAuthContext } from "../data/AuthContext";
+import { useBookContext } from "../data/BookContext";
 
-interface BottombarProps {
-  page?: {
-    isEditMode: boolean;
-    toggleEditMode: () => void;
-  }
-}
-
-export default function Bottombar({ page }: BottombarProps) {
+export default function Bottombar() {
   const pathname = usePathname();
-
+  const page = useCommonPagesContext();
+  const authContext = useAuthContext();
+  const bookContext = useBookContext();
+  
   const isVisible = useMemo(()=>{
     return pathname !== "/auth";
   }, [pathname])
+  
+  const book = bookContext.target
+  const showEditmode = useMemo(()=>{
+    if(pathname==="/books") return true
+    if(pathname.includes("settings")) return false
+    return authContext.CONTROLS.canWrite(book)
+  }, [authContext, book])
 
   if(!isVisible) return null
   return (
@@ -25,7 +31,7 @@ export default function Bottombar({ page }: BottombarProps) {
           <i className="bi bi-person-vcard-fill text-2xl"></i>
         </Link>
 
-        {page && (
+        {(page && showEditmode) && (
           <button
             onClick={page.toggleEditMode}
             title={page.isEditMode ? "Modalità editing" : "Modalità lettura"}

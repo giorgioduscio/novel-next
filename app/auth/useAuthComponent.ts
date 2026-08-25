@@ -5,20 +5,22 @@ import { useMemo } from "react";
 import { useAuthContext } from "../data/AuthContext";
 import { Book, Permission, permission_schema } from "../schemas/book_schema";
 import { useDot } from "../tools/customStates";
-import { toast, agree } from "../tools/feedbacksUI";
+import { toast } from "../tools/feedbacksUI";
 import * as v from "valibot";
+import { useAgreeWrapper } from "../shareds/Agree";
 
 
-export default function useAuth() {
+export default function useAuthComponent() {
   const { LOCAL, permissions, CONTROLS} = useAuthContext();
+  const agree = useAgreeWrapper();
   const canRead =(book:Book)=> !!book && !!CONTROLS.canRead(book);
   const canWrite =(book:Book)=> !!book && !!CONTROLS.canWrite(book);
 
   const FORM = {
     isVisible: useDot(false),
     state: useDot<{ key: keyof Permission; value: string; placeholder: string; label: string }[]>([
-      { key: "title", value: "", placeholder: "Inserire titolo", label: "Titolo" },
-      { key: "auth_code", value: "", placeholder: "Inserire codice", label: "Codice" },
+      { key: "title", value: "", placeholder: "Es: Signore degli anelli", label: "Titolo" },
+      { key: "auth_code", value: "", placeholder: "Es: qk49-384i-gnd3-1h48", label: "Codice" },
     ]),
 
     reset() {
@@ -27,11 +29,14 @@ export default function useAuth() {
 
     handleSubmit(e: React.FormEvent) {
       e.preventDefault();
-
+      
       if (!newPermission.success) {
-        console.error("Errore nella validazione:", newPermission.issues[0].message);
+        console.error("Errore nella validazione:", newPermission.issues);
         return;
       }
+
+      if(!newPermission.output.auth_code.length) 
+        return toast.danger("Codice non valido");
 
       // se ci sono due codici con lo stesso title
       const existing = permissions.get().find((perm) => perm.title === newPermission.output.title);
@@ -56,9 +61,9 @@ export default function useAuth() {
     FORM.state.get().forEach((item) => {
       formValues[item.key] = item.value;
     });
-
+    
     return v.safeParse(permission_schema, formValues);
-  }, [JSON.stringify(FORM.state.get())]);
+  }, [FORM.state.get()]);
 
   const errors = useMemo(() => {
     const result: Record<string, string> = {};
