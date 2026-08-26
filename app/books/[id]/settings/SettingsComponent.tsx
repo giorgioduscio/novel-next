@@ -1,25 +1,32 @@
 "use client";
 
 import { Breadcrumb } from "@/app/shareds/Breadcrumb";
-import Bottombar from "@/app/shareds/Bottombar";
 import Frag from "@/app/shareds/Frag";
 import { LoadingComponent } from "@/app/shareds/LoadingComponent";
-import React, { useMemo, useState } from "react";
+import React, { useMemo } from "react";
 import { Book } from "@/app/schemas/book_schema";
 import { useBookComponent } from "../useBookComponent";
 import Field from "@/app/shareds/Field";
 import { BookNavbar } from "../structure/StructureComponent";
 import { useAuthContext } from "@/app/data/AuthContext";
 import { useCommonPagesContext } from "@/app/data/CommonPagesContext";
-import { useDot } from "@/app/tools/customStates";
 import handleArrowKeyFocus from "@/app/tools/handleArrowKeyFocus";
+import AuthFormComponent from "./AuthFormComponent";
+import { useBookContext } from "@/app/data/BookContext";
+import { useRouter } from "next/navigation";
+import { useAgreeWrapper } from "@/app/shareds/Agree";
+
+export const settings_label_class="px-3 text-black text-sm font-bold italic translate-y-1/2"
+export const settings_input_class="py-2 px-3 text-black"
 
 interface UseBookComponentProps { id: string }
-
 export default function SettingsComponent(props: UseBookComponentProps) {
   const { book, errors, handleUpdateBook } = useBookComponent(props);
   const authContext = useAuthContext();
   const page = useCommonPagesContext();
+  const bookContext = useBookContext();
+  const route = useRouter();
+  const agree = useAgreeWrapper();
 
   const canRead = useMemo(() => !!book && !!authContext.CONTROLS.canRead(book), [book, authContext]);
   const canWrite = useMemo(() => !!book && !!authContext.CONTROLS.canWrite(book), [book, authContext]);
@@ -35,7 +42,7 @@ export default function SettingsComponent(props: UseBookComponentProps) {
     className?: string;
   };
 
-  const fields = useMemo((): fieldType[] => {
+  const generalFields = useMemo((): fieldType[] => {
     if (!book) return [];
     return [
       {
@@ -62,24 +69,17 @@ export default function SettingsComponent(props: UseBookComponentProps) {
         type:"textarea",
         className: "w-full",
       },
-      {
-        preLabel: "Autorizzazioni",
-        key: "auth_read",
-        value: book.auth_read,
-        label: "Codice di lettura",
-        placeholder: "Codice di lettura",
-        type: "password"
-      },
-      {
-        key: "auth_write",
-        value: book.auth_write,
-        label: "Codice di scrittura",
-        placeholder: "Codice di scrittura",
-        type: "password"
-      },
     ];
   }, [book]);
 
+  async function handleDelete() {
+    if(!book) return console.error("Libro non disponibile");
+    if(!(await agree.danger(`Rimuovere l'intero libro '${book?.author_name}'?`, "Rimuovi"))) return;
+    const res = bookContext.deleteBook(book.id)
+
+    if(!res) return console.error("Eliminazione fallita");
+    route.push("/books")
+  }
 
   if (!page.isPageLoaded) return <LoadingComponent />;
   return (
@@ -100,18 +100,19 @@ export default function SettingsComponent(props: UseBookComponentProps) {
 
         <Frag if={!!canRead}>
           <section className="px-3 pb-10 min-h-dvh">
-            <h2 className="text-xl font-bold my-4">Opsioni</h2>
+            <h2 className="text-xl font-bold my-4">Opzioni</h2>
+            
             <ol className="flex flex-wrap gap-2 items-start">
-              {fields.map((field) => <React.Fragment key={field.key}>
+              {generalFields.map((field) => <React.Fragment key={field.key}>
                 {field.preLabel && (
                   <li className="w-full pt-3 font-bolder italic">{field.preLabel}</li>
                 )}
-                <li className={`bg-white outline rounded ${field.className || "flex-1 min-w-[150px]"}`}>
+                <li className={`bg-white outline rounded ${field.className || "flex-1 min-w-[200px]"}`}>
                   <Field
                     id={field.key}
                     label={field.label}
-                    label_class="px-2 text-black text-sm font-bold italic"
-                    input_class="pb-2 px-3 text-black"
+                    label_class={settings_label_class}
+                    input_class={settings_input_class}
                     asterisk={field.asterisk}
                     type={field.type || "text"}
                     placeholder={field.placeholder}
@@ -122,6 +123,25 @@ export default function SettingsComponent(props: UseBookComponentProps) {
                 </li>
               </React.Fragment>)}
             </ol>
+
+            <h3 className="my-3 text-red-400 font-bold">
+              <i className="bi bi-exclamation-triangle"></i> Danger zone
+            </h3>
+            <h4 className="pt-2 text-red-400">Codice per la lettura</h4>
+            <AuthFormComponent labelParam={"Codice lettura"} attributeKey="auth_read" book={book!} />
+            
+            <h4 className="pt-2 text-red-400">Codice per la scrittura</h4>
+            <AuthFormComponent labelParam={"Codice scrittura"} attributeKey="auth_write" book={book!} />
+
+
+            {/* elimina */}
+            <div className="p-2 my-2 outline outline-red-400 rounded">
+              <div className="flex justify-between items-center">
+                <strong className="text-red-400">Rimuovi questo libro</strong>
+                <button onClick={handleDelete} className="px-3 py-2 bg-red-600 rounded">Elimina</button>
+              </div>
+            </div>
+
           </section>
         </Frag>
       </main>

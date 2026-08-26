@@ -14,7 +14,7 @@ export function keyboardFeatures(
   AUTOCOMPLETE: Main['AUTOCOMPLETE'],
   SECTION: Main['SECTION'],
   PARAG: Main['PARAG'],
-  BookHook: BookHookProps
+  bookContext: BookHookProps
 ){
   const gesturesKeys = [
     "Enter", "Tab", "Backspace", "Delete", 
@@ -34,7 +34,7 @@ export function keyboardFeatures(
 
 
   // CHANGEFOCUS helper per cambiare il focus
-  function _changeFocus(direction: "up" | "down" | "this", from: "|__" | "__|" | number) {
+  function _changeFocus(direction: "up" | "down" | "this", from: "|__" | "__|" | number) {  
     
     const walk = direction === "up" ? -1 
                 : direction === "down" ? 1 
@@ -52,6 +52,7 @@ export function keyboardFeatures(
   }
 
 
+  
   // FEATURES
   const FEATURES :[boolean, ()=> any][] =[
     [
@@ -96,7 +97,7 @@ export function keyboardFeatures(
           sec.paragraphs[index].text = before; 
           // inserisce il nuovo paragrafo dopo quello corrente
           sec.paragraphs.splice(index + 1, 0, { 
-            id: BookHook.createId(),
+            id: bookContext.createId(),
             text: after, 
             in_style:"" 
           } as Paragraph);
@@ -145,7 +146,7 @@ export function keyboardFeatures(
           prevElement.focus();
 
           // Salva su DB
-          BookHook.updateBook(book_id, updatedBook, false);
+          bookContext.updateBook(book_id, updatedBook, false);
         }, 10);
 
       }
@@ -179,7 +180,7 @@ export function keyboardFeatures(
           // sposta cursore sull'indice 
           setTimeout(() => {
             target.setSelectionRange(cursorPosition, cursorPosition); 
-            BookHook.updateBook(updatedBook.id, updatedBook);
+            bookContext.updateBook(updatedBook.id, updatedBook);
           }, 10);
         }
       }

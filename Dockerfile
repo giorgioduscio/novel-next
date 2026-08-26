@@ -1,6 +1,9 @@
 # Usa un'immagine ufficiale Node.js basata su Alpine (leggera)
 FROM node:20-alpine
 
+# Installa gli strumenti di compilazione necessari per moduli nativi C++ come argon2
+RUN apk add --no-cache python3 make g++
+
 # Imposta la directory di lavoro all'interno del container
 WORKDIR /app
 
@@ -9,6 +12,9 @@ COPY package*.json ./
 
 # Installa le dipendenze
 RUN npm install
+
+# Copia il resto dell'applicazione
+COPY . .
 
 # Espone la porta dell'applicazione (es. 3000)
 EXPOSE 3000

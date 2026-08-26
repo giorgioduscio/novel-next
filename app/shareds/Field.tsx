@@ -10,6 +10,7 @@ interface FieldProps {
   placeholder: string;
   value: string | boolean;
   disabled?: boolean;
+  readOnly?: boolean;
   rows?: number;
   message?: string;
   // stile
@@ -20,6 +21,7 @@ interface FieldProps {
   onInput?: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => any;
   onFocus?: (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => any;
   onBlur?: (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => any;
+  onClick?: (e: React.MouseEvent<HTMLInputElement | HTMLTextAreaElement>) => any;
 
   // validazione
   error_message?: string;
@@ -151,11 +153,13 @@ export default function Field({
   onInput,
   onFocus,
   onBlur,
+  onClick,
   hide_label,
   input_class,
   label_class,
   inline,
   disabled,
+  readOnly,
   rows,
   id,
   error_message,
@@ -197,6 +201,7 @@ export default function Field({
           placeholder={placeholder}
           value={EVENTS.localValue as string}
           disabled={disabled}
+          readOnly={readOnly}
           rows={rows || 1}
           required={asterisk}
           aria-required={asterisk || undefined}
@@ -209,6 +214,7 @@ export default function Field({
           }}
           onChange={EVENTS.handleLocalChange}
           onBlur={EVENTS.handleBlur}
+          onClick={onClick}
           onFocus={(e) => {
             EVENTS.handleFocus(e);
             MOBILE.handleFocus();
@@ -224,12 +230,14 @@ export default function Field({
           id={id}
           name={id}
           disabled={disabled}
+          readOnly={readOnly}
           required={asterisk}
           aria-required={asterisk || undefined}
           aria-invalid={!!error_message}
           aria-describedby={error_message ? errorId : undefined}
           className={`block w-full ${input_class} ${error_message ? "border border-red-500" : ""}`}
           onChange={onChange}
+          onClick={onClick}
           {...rest}
         />
 
@@ -244,6 +252,7 @@ export default function Field({
             id={id}
             name={id}
             disabled={disabled}
+            readOnly={readOnly}
             required={asterisk}
             aria-required={asterisk || undefined}
             aria-invalid={!!error_message}
@@ -251,6 +260,7 @@ export default function Field({
             className={`block w-full ${input_class} ${error_message ? "border border-red-500" : ""}`}
             onChange={EVENTS.handleLocalChange}
             onBlur={EVENTS.handleBlur}
+            onClick={onClick}
             onKeyDown={EVENTS.handleKeyDown}
             onFocus={(e) => {
               EVENTS.handleFocus(e);
@@ -262,7 +272,7 @@ export default function Field({
           {/* pulsanti */}
           {/* se premuto mostra la password */}
           {type==="password" && (
-            <div className="h-full absolute right-0 top-0  flex items-center justify-center">
+            <div className="h-full absolute right-0 bottom-0  flex items-center justify-center">
               <button type="button" onClick={EVENTS.togglePassword} 
                       className="me-1 py-1 px-2 bg-gray-800/80 rounded-full text-xl block">
                 {EVENTS.showPassword 

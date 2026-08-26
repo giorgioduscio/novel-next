@@ -6,6 +6,7 @@ import Field from "../shareds/Field"
 import Frag from "../shareds/Frag"
 import useAuthComponent from "./useAuthComponent"
 import { useAuthContext } from "../data/AuthContext"
+import Link from "next/link"
 
 
 export default function AuthComponent() {
@@ -14,7 +15,9 @@ export default function AuthComponent() {
 
   return <>
     <Frag if={checkedTargets.get().length === 0}>
-      <Navigation page_title="Permessi" back_btn={{ href:'/' }} />
+      <Navigation page_title="Permessi" back_btn={{ href:'/' }}>
+        <Link href={"/books"} className="py-1 px-2 bg-orange-700 rounded">Libri</Link>
+      </Navigation>
     </Frag>
 
     {/* AZIONI MULTIPLE */}
@@ -46,10 +49,12 @@ export default function AuthComponent() {
     <main className="mx-auto container max-w-[800px]">
       <section className="p-3 min-h-dvh">
         {/* header */}
-        <p className="py-2 px-3 bg-sky-200 text-black text-sm italic outline rounded">
-          <i className="me-1 bi bi-info-circle"></i> 
-          Questi codici vengono memorizzati sul browser. Potrai visualizzare o modificare tutti i contenuti associati a questi codici.
-        </p>
+        <div className="mx-auto max-w-[400px]">
+          <p className="py-2 px-3 bg-sky-200 text-black text-sm italic outline rounded">
+            <i className="me-1 bi bi-info-circle"></i> 
+            Questi codici vengono memorizzati sul browser. Potrai visualizzare o modificare tutti i contenuti associati a questi codici.
+          </p>
+        </div>
 
         <div className="flex justify-between items-center">
           <h2 className="my-3 text-2xl font-bold">Permessi</h2>

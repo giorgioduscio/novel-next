@@ -183,7 +183,7 @@ function validateStyle(v:string){
 }
 
 export const paragraph_schema = v.object({
-  id: v.pipe(v.string(), v.uuid()),
+  id: v.pipe(v.string(), v.minLength(1, "id: L'id è obbligatorio")),
   in_style: v.pipe(v.string(), 
     v.check((v) => validateStyle(v), "in_style: Solo stili standard o ornamentali")
   ),
@@ -191,21 +191,21 @@ export const paragraph_schema = v.object({
 });
 
 export const section_schema = v.object({
-  id: v.pipe(v.string(), v.uuid()),
+  id: v.pipe(v.string(), v.minLength(1, "id: L'id è obbligatorio")),
   title: v.string(),
   note: v.string(),
   paragraphs: v.optional(v.array(paragraph_schema)),
 });
 
 export const parts_schema = v.object({
-  id: v.pipe(v.string(), v.uuid()),
+  id: v.pipe(v.string(), v.minLength(1, "id: L'id è obbligatorio")),
   title: v.string(),
   note: v.string(),
   sections: v.array(section_schema),
 });
 
 export const book_schema = v.object({
-  id: v.pipe(v.string(), v.uuid()),
+  id: v.pipe(v.string(), v.minLength(1, "id: L'id è obbligatorio")),
   title: v.pipe(v.string(), v.minLength(2, "title: Il titolo deve contenere almeno 2 caratteri")),
   description: v.string(),
   author_name: v.pipe(v.string(), v.minLength(2, "author_name: Il nome deve contenere almeno 2 caratteri")),

@@ -3,7 +3,6 @@
 import { useBookComponent } from "../useBookComponent";
 import Navigation from "@/app/shareds/Navigation";
 import { Breadcrumb } from "@/app/shareds/Breadcrumb";
-import Bottombar from "@/app/shareds/Bottombar";
 import Frag from "@/app/shareds/Frag";
 import { Dropdown, DropdownContent, DropdownSummary } from "@/app/shareds/Dropdown";
 import { LoadingComponent } from "@/app/shareds/LoadingComponent";
@@ -53,7 +52,7 @@ export function BookNavbar({book, canRead, canWrite}: BookNavbarProps) {
 interface UseBookComponentProps { id: string }
 export default function StructureComponent(props: UseBookComponentProps) {
   const page = useCommonPagesContext();
-  const {PART, SECTION, SORT, BookHook, errors, book} = useBookComponent(props);
+  const {PART, SECTION, SORT, bookContext, errors, book} = useBookComponent(props);
   const authContext = useAuthContext();
   
 
@@ -62,6 +61,10 @@ export default function StructureComponent(props: UseBookComponentProps) {
   , [book, authContext, page])
 
   const canWrite =useMemo(()=> 
+    !!book && !!authContext.CONTROLS.canWrite(book)
+  , [book, authContext, page])
+  
+  const canEdit =useMemo(()=> 
     !!page.isEditMode && !!book && !!authContext.CONTROLS.canWrite(book)
   , [book, authContext, page])
 
@@ -118,9 +121,9 @@ export default function StructureComponent(props: UseBookComponentProps) {
                         <DropdownSummary className="">
                           <Field  id={part_i.toString()} 
                                   hide_label label={"Titolo della parte"} 
-                                  input_class={`py-2 px-5 font-bold ${canWrite ? "bg-white text-black outline rounded" : ""}`}
+                                  input_class={`py-2 px-5 font-bold ${canEdit ? "bg-white text-black outline rounded" : ""}`}
                                   type={"text"} 
-                                  disabled={!canWrite}
+                                  disabled={!canEdit}
                                   placeholder={"Modifica il titolo della parte"} 
                                   value={part.title || ""} 
                                   error_message={errors[`${part_i}>title`]}
@@ -133,7 +136,7 @@ export default function StructureComponent(props: UseBookComponentProps) {
                                   label={"Nota della parte"} 
                                   input_class={`pb-2 px-3 text-sm`}
                                   type={"textarea"} 
-                                  disabled={!canWrite}
+                                  disabled={!canEdit}
                                   placeholder={"Inserisci descrizione o cose da fare"} 
                                   value={part.note || ""} 
                                   onInput={(e) => PART.update(part_i, "note", e.target.value)}
@@ -153,7 +156,7 @@ export default function StructureComponent(props: UseBookComponentProps) {
                             <div className="flex">
 
                               {/* DROPDOWN */}
-                              <Frag if={canWrite} className="relative">
+                              <Frag if={canEdit} className="relative">
                                 <Dropdown>
                                   <DropdownSummary className="py-3 px-2">
                                     <i className="bi bi-three-dots"></i>
@@ -190,15 +193,15 @@ export default function StructureComponent(props: UseBookComponentProps) {
                               </Frag>
 
                               {/* input */}
-                              <Frag if={canWrite}>
+                              <Frag if={canEdit}>
                                 <div className={`py-2 px-1 flex-1`}>
                                   <Field  id={"section-" + section_i} 
                                           hide_label label={"Sezione " + (section_i + 1)} 
-                                          input_class={`py-1 px-2 ${canWrite ?'bg-white text-black outline rounded' : ''}`}
+                                          input_class={`py-1 px-2 ${canEdit ?'bg-white text-black outline rounded' : ''}`}
                                           type={"text"} 
                                           placeholder={"Nome della sezione"} 
                                           value={section.title} 
-                                          disabled={!canWrite}
+                                          disabled={!canEdit}
                                           error_message={errors[`section_title_${section.title}`]}
                                           onChange={(e) => SECTION.updateTitle(part_i, section_i, e.target.value)} 
                                   />
@@ -212,7 +215,7 @@ export default function StructureComponent(props: UseBookComponentProps) {
                               </Frag>
 
                               {/* link */}
-                              <Frag if={!canWrite} className="flex-1">
+                              <Frag if={!canEdit} className="flex-1">
                                 <Link className={`p-3 flex items-center justify-between bg-indigo-800`} 
                                         href={SECTION.writeHref(book?.id!, part.title, section.title)}>
                                   <span className="flex-1">{section.title}</span>
@@ -232,7 +235,7 @@ export default function StructureComponent(props: UseBookComponentProps) {
           </Frag>
 
           {/* pulsante aggiunta */}
-          <Frag if={canWrite}>
+          <Frag if={canEdit}>
             <button onClick={() => PART.create()}
                     className="py-2 px-3 mx-auto my-3 block bg-green-600 rounded">
               <i className="bi bi-plus-lg"></i>
@@ -245,7 +248,7 @@ export default function StructureComponent(props: UseBookComponentProps) {
           <div className="my-10 border-t border-gray-500">
             <h4 className="p-2 text-xl text-gray-400">Azioni</h4>
             <div className="grid sm:grid-cols-3 sm:gap-2">
-              {Object.values(BookHook.download).filter(a => typeof a === 'object').map((action, i) => (
+              {Object.values(bookContext.download).filter(a => typeof a === 'object').map((action, i) => (
                 <button key={i}  onClick={() => action.execute(book?.id!)}
                         className="py-2 px-3 bg-indigo-800" >
                   <div className="flex justify-between items-center">

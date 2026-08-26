@@ -9,15 +9,15 @@ import { safeParse } from "valibot";
 interface UseBookComponentProps { id: string }
 export function useBookComponent({ id }: UseBookComponentProps) {
   const [book, setBook] = useState<Book | undefined>(undefined);
-  const BookHook = useBookContext();
+  const bookContext = useBookContext();
   const agree = useAgreeWrapper();
   const auth = useAuthComponent();
 
   useEffect(() => {
-    const bookFromStore = BookHook.getBookById(id);
+    const bookFromStore = bookContext.getBookById(id);
     setBook(bookFromStore ? structuredClone(bookFromStore) : undefined);
-    BookHook.setTarget(bookFromStore);
-  }, [id, BookHook.getBookById, BookHook.setTarget]);
+    bookContext.setTarget(bookFromStore);
+  }, [id, bookContext.getBookById, bookContext.setTarget]);
 
 
   // 1) ERRORI
@@ -56,7 +56,7 @@ export function useBookComponent({ id }: UseBookComponentProps) {
     // stato
     setBook(validatedBook);
     // api
-    BookHook.updateBook(id, validatedBook);
+    bookContext.updateBook(id, validatedBook);
     // feedback
     toast.success("Libro aggiornato");
   }
@@ -70,12 +70,12 @@ export function useBookComponent({ id }: UseBookComponentProps) {
       const newBook = structuredClone({ ...book, parts: [...(book.parts || [])] });
 
       newBook.parts.push({
-        id: BookHook.createId(),
+        id: bookContext.createId(),
         title: "Parte" + Date.now(),
         note: "",
         sections: [
           {
-            id: BookHook.createId(),
+            id: bookContext.createId(),
             title: "Sezione" + Date.now(),
             note: "",
           },
@@ -83,7 +83,7 @@ export function useBookComponent({ id }: UseBookComponentProps) {
       });
 
       // api
-      const updatedBook = BookHook.updateBook(id, newBook);
+      const updatedBook = bookContext.updateBook(id, newBook);
       if (!updatedBook) {
         toast.danger("Errore nell'aggiunta della parte");
         return;
@@ -106,7 +106,7 @@ export function useBookComponent({ id }: UseBookComponentProps) {
       const validatedBook = toggleErrors(errorKey, newBook);
       if (!validatedBook) return toast.danger("Titolo parte non valido");
       // api
-      const updatedBook = BookHook.updateBook(id, validatedBook);
+      const updatedBook = bookContext.updateBook(id, validatedBook);
       if (!updatedBook) return toast.danger("Errore nell'aggiornamento della parte");
       // feedback
       toast.success("Titolo parte aggiornato");
@@ -122,7 +122,7 @@ export function useBookComponent({ id }: UseBookComponentProps) {
       // aggiunge una sezione vuota nella sezione selezionata
       if (!newBook.parts || newBook.parts.length === 0) newBook.parts = [];
       newBook.parts[part_i].sections.push({
-        id: BookHook.createId(),
+        id: bookContext.createId(),
         title: "Sezione" + Date.now(),
         note: "",
       });
@@ -130,7 +130,7 @@ export function useBookComponent({ id }: UseBookComponentProps) {
       // stato
       setBook(newBook);
       // api
-      const updatedBook = BookHook.updateBook(id, newBook);
+      const updatedBook = bookContext.updateBook(id, newBook);
       if (!updatedBook) return toast.danger("Errore nell'aggiunta della sezione");
       // feedback
       toast.success("Sezione aggiunta");
@@ -154,7 +154,7 @@ export function useBookComponent({ id }: UseBookComponentProps) {
       const validatedBook = toggleErrors(errorKey, newBook);
       if (!validatedBook) return;
       // api
-      const updatedBook = BookHook.updateBook(id, validatedBook);
+      const updatedBook = bookContext.updateBook(id, validatedBook);
       if (!updatedBook) return toast.danger("Errore nell'aggiornamento della sezione");
       // feedback
       toast.success("Titolo sezione aggiornato");
@@ -175,7 +175,7 @@ export function useBookComponent({ id }: UseBookComponentProps) {
       setBook(newBook);
 
       // api
-      const updatedBook = BookHook.updateBook(id, newBook);
+      const updatedBook = bookContext.updateBook(id, newBook);
       // feedback
       if (!updatedBook) return toast.danger("Errore nell'eliminazione della sezione");
       toast.success("Sezione rimossa");
@@ -274,7 +274,7 @@ export function useBookComponent({ id }: UseBookComponentProps) {
       // stato
       setBook(newBook);
       // api
-      const updatedBook = BookHook.updateBook(id, newBook);
+      const updatedBook = bookContext.updateBook(id, newBook);
       // feedback
       if (!updatedBook) return toast.danger("Errore nello spostamento della sezione");
       toast.success("Sezione spostata");  
@@ -290,7 +290,7 @@ export function useBookComponent({ id }: UseBookComponentProps) {
     PART,
     SECTION,
     SORT,
-    BookHook,
+    bookContext,
     auth,
   };
 }

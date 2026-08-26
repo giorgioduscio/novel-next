@@ -7,7 +7,8 @@
         &.invalid
             box-shadow: 0 0 10px red !important
 
-    // SPAZIATURA
+
+    // 1) SPAZIATURA
     .destra 
         width: fit-content
         max-width: 100%
@@ -26,26 +27,28 @@
     div:has(.spazio-schermo)
         padding-bottom: 40dvh
 
-    // FUMETTO DESCRIZIONE
+    // 2) FUMETTO DESCRIZIONE
     .descrizione
+        padding: 0.2rem 0.4rem
         border-width: 0.2rem 
         border-style: solid 
         
-    // FUMETTO DIALOGO
+    // 3) FUMETTO DIALOGO
     .dialogo
+        padding: 0.2rem 0.4rem
         border-width: 0.1rem 
-        border-radius: 40rem
+        border-radius: 50px
         &.sinistra
-            border-top-left-radius: 0
+            border-top-left-radius: 0 !important
         &.destra
-            border-top-right-radius: 0
+            border-top-right-radius: 0 !important
 
-    // FUMETTO SUSSURRO
+    // 4) FUMETTO SUSSURRO
     .sussurro
         @extend .dialogo
         border-style: dashed !important
 
-    // FUMETTO ESCLAMAZIONE
+    // 5) FUMETTO ESCLAMAZIONE
     .esclamazione
         padding: 3rem 2rem
         display: flex

@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  serverExternalPackages: ['argon2'],
   turbopack: {},
   // Turbopack is disabled via --webpack flag in dev script
   webpack: (config) => {

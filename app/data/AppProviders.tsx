@@ -11,13 +11,13 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
   return (
     <AgreeProvider>
       <CommonPagesProvider>
-        <AuthProvider>
-          <BookProvider>
+        <BookProvider>
+          <AuthProvider>
             <ContextProvider>
               {children}
             </ContextProvider>
-          </BookProvider>
-        </AuthProvider>
+          </AuthProvider>
+        </BookProvider>
       </CommonPagesProvider>
     </AgreeProvider>
   );

@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react";
 import { Book, book_schema } from "../schemas/book_schema";
 import * as v from "valibot";
+import { nanoid } from "nanoid";
 import { ui_upload, ui_download, debounce, toast } from "../tools/feedbacksUI";
 
 const FIREBASE_URL = "https://books-3e4c3-default-rtdb.europe-west1.firebasedatabase.app/books";
@@ -54,7 +55,6 @@ export interface BookContextType {
   books: Book[];
   loading: boolean;
   createId: () => string;
-  migrateBook: (book: any) => Book;
   validateBook: (book: unknown) => Book | null;
   addBook: (book: Book) => Book | null;
   createBook: (book: Omit<Book, "id">) => Book | null;
@@ -120,38 +120,16 @@ export const BookProvider: React.FC<{ children: React.ReactNode }> = ({ children
     API.loadBooks();
   }, [API]);
 
-  // crea l'id univoco (UUID v4)
+  // crea l'id univoco (nanoid)
   const createId = useCallback((): string => {
-    return crypto.randomUUID();
-  }, []);
-
-  // Migra i dati per garantire che i campi note siano presenti
-  const migrateBook = useCallback((book: any): Book => {
-    const migrated = structuredClone(book);
-
-    // Migra le parti
-    if (migrated.parts && Array.isArray(migrated.parts)) {
-      migrated.parts = migrated.parts.map((part: any) => ({
-        ...part,
-        note: part.note ?? "",
-        // Migra le sezioni
-        sections:
-          part.sections?.map((section: any) => ({
-            ...section,
-            note: section.note ?? "",
-          })) || [],
-      }));
-    }
-
-    return migrated;
+    return nanoid();
   }, []);
 
   // Valida un libro usando valibot
   const validateBook = useCallback(
     (book: unknown): Book | null => {
-      try {
-        const migratedBook = migrateBook(book as any);
-        const result = v.safeParse(book_schema, migratedBook);
+      try {        
+        const result = v.safeParse(book_schema, book);
 
         if (!result.success) {
           console.error("Validation error:", result.issues);
@@ -162,8 +140,7 @@ export const BookProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.error("Validation error:", error);
         return null;
       }
-    },
-    [migrateBook]
+    },[]
   );
 
   // Restituisce tutti i libri
@@ -366,7 +343,6 @@ export const BookProvider: React.FC<{ children: React.ReactNode }> = ({ children
       books,
       loading,
       createId,
-      migrateBook,
       validateBook,
       addBook,
       createBook,
@@ -384,7 +360,6 @@ export const BookProvider: React.FC<{ children: React.ReactNode }> = ({ children
       books,
       loading,
       createId,
-      migrateBook,
       validateBook,
       addBook,
       createBook,
