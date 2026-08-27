@@ -164,7 +164,7 @@ export default function SectionComponent(props: UseSectionComponentProps) {
 
                   {/* TESTO PARAGRAFO */}
                   <div onClick={PARAG.handleFocusText} data-focus-text
-                        className={`block py-3 ${PARAG.getExternalStyle(p)}`}>
+                        className={`block py-3 ${(p as any).ex_style}`}>
                     <div onClick={PARAG.handleFocusText} data-focus-text
                           className={`block p-1 ${PARAG.parseStyle(p) || ""}`}>
                       <div className={canWrite && PARAG.styleInput().index === paragraph_i ? 'outline-3 outline-dashed outline-black' : ''}>
@@ -193,16 +193,22 @@ export default function SectionComponent(props: UseSectionComponentProps) {
                         <div className="p-1 bg-white text-black outline rounded">
                           {/* CONSIGLIATI */}
                           <div className="flex flex-wrap items-center gap-1">
-                            {AUTOCOMPLETE.suggestions.get().map((className, index) => (
-                              <button key={index}
-                                      onClick={_e=> PARAG.update(paragraph_i, "in_style", className, {replaceLastWord:true})}
-                                      className={`px-2 rounded-full text-sm outline bg-blue-300 font-bold`}
-                                      aria-label={`Applica stile: ${className}`}
-                                      >{className}</button>
+                            {AUTOCOMPLETE.suggestions.get().map((className, _i) => (
+                              <button key={_i}
+                                      onClick={_e=> AUTOCOMPLETE.handleClick(_e, p, paragraph_i)}
+                                      className={`px-2 rounded-full text-sm outline font-bold ${_i ?"bg-blue-300" :"bg-red-300"}`}
+                                      aria-label={`Applica stile: ${className}`}>
+
+                                <Frag if={!_i}>
+                                  <i className="px-1 me-1 bi bi-arrow-return-left bg-black/60 text-white rounded"></i>
+                                </Frag>
+                                
+                                {className}
+                              </button>
                             ))}
                           </div>
 
-                          <div className="pt-2 grid gap-1 grid-cols-[auto_1fr] items-start relative">
+                          <div className="pt-2 grid gap-1 grid-cols-[auto_1fr] items-start">
                             {/* ICONA PALETTE */}
                             {p.in_style
                               ?<button onClick={_=> PARAG.update(paragraph_i, "in_style", "")}
@@ -235,10 +241,6 @@ export default function SectionComponent(props: UseSectionComponentProps) {
                               />
                             </div>
 
-                            {/* autocomplete */}
-                            <div className="p-1  absolute top-0 right-2 italic text-gray-500 pointler-event-none">
-                              <i>{AUTOCOMPLETE.repeatingStyle(p.in_style || '').label}</i>
-                            </div>
                           </div>
                         </div>
                       </div>
@@ -249,7 +251,7 @@ export default function SectionComponent(props: UseSectionComponentProps) {
                   <Frag if={canWrite} className="pr-1 pt-3 absolute top-0 end-0 z-1">
                     <button
                       type="button"
-                      onClick={() => PARAG.handleRemove(paragraph_i, p)}
+                      onClick={() => PARAG.handleRemove(paragraph_i)}
                       className="px-2 py-1 bg-red-700 text-white outline rounded-full"
                     >
                       <i className="bi bi-trash"></i>

@@ -7,7 +7,7 @@ import { toast } from "@/app/tools/feedbacksUI";
 import { useRouter } from "next/navigation";
 import { useState, useEffect, useMemo, useRef } from "react";
 import { safeParse } from "valibot";
-import { keyboardFeatures } from "./keyboardFeatures";
+import { useKeyboardFeatures } from "./keyboardFeatures";
 import { useAuthContext } from "@/app/data/AuthContext";
 
 export interface UseSectionComponentProps {
@@ -52,11 +52,26 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
   const [SECTION_title, SECTION_setTitle] = useState(section_title);
   const SECTION = {
 
-    // Restituisce la sezione corrente
+    /* Restituisce la sezione corrente
+    * title
+    * paragraphs [
+      * text 
+      * in_style (con tutte le classi)
+      * ex_style (solo le classi che cominciano per 'ex:')
+      ] 
+    */ 
     bookSection: useMemo(() :Section |undefined => {
       const result = getSection();
       if (!result) return undefined;
       if (!result.paragraphs) result.paragraphs = [];
+      
+      // recupera solo le classi che cominciano per 'ex:'
+      for (const paragraph of result.paragraphs){
+        (paragraph as any).ex_style = paragraph.in_style?.split(" ") 
+          .filter(cls => cls.startsWith("ex:"))
+          .join(" ") .replaceAll("ex:", "");
+      }
+      
       return result;
     }, [book, part_title, SECTION_title]),
 
@@ -206,7 +221,9 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
     };
   }, [showParagraphs]);
   
+
   const PARAG = {
+
     // aggiorna paragrafo e salva
     update(index:number, key: keyof Paragraph, value:string, 
       options?:{addOnEnd?:boolean, noSafe?:boolean, replaceLastWord?:boolean}
@@ -282,7 +299,7 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
       if(!book) return console.error("libro non disponibile");
       
       // funzionalità da tastiera
-      return keyboardFeatures(book_id, getSection, e, book, setBook, AUTOCOMPLETE, SECTION, PARAG)
+      return handleKeyboardFeature(e);
     },
 
     // imposta il colore appropriato del testo
@@ -302,15 +319,6 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
       const textColor = gradiant <= 400 ?" text-black" :" text-white";
       
       return paragraph.in_style + textColor;
-    },
-
-    // recupera le classi che cominciano per 'ex:'
-    getExternalStyle(paragraph: Paragraph) {
-      // divide le classi
-      const classes = paragraph.in_style?.split(" ") || [];
-      // recupera solo quelle che cominciano per 'ex:'
-      const filtered = classes.filter(cls => cls.startsWith("ex:"));
-      return filtered.join(" ") .replaceAll("ex:", "");
     },
 
     // input di stile
@@ -340,6 +348,7 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
       }));
     },
 
+    // attraverso <main> chiude l'input di stile
     closeTemplateInputStyle(e: React.MouseEvent) {
       e.stopPropagation();
       const textarea = (e.target as HTMLElement).closest("textarea");
@@ -347,12 +356,8 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
       if(!dropdown && !textarea) PARAG.setStyleInput()
     },
 
-
-    async handleRemove(index: number, paragraph: Paragraph, skipCpnfirm = false) {
-      if (paragraph.text.length && !skipCpnfirm && !(await agree.danger(
-          `Rimuovere il paragrafo "${paragraph.text}"?`,"Rimuovi"))
-      ) return;
-  
+    // rimuove un paragrafo
+    async handleRemove(index: number) {  
       if (!book) {
         throw new Error("Libro non disponibile");
       }
@@ -432,19 +437,9 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
   }, [book])
 
   // 5) AUTOCOMPLETE PER STILI RIPETUTI
-  type suggestionType = {tailwindClass:string, color:string, handleClick:(i:number)=>void}
   const AUTOCOMPLETE = {
     standardStyles: useDot<string[]>([]),
-
-    usedStyles: useMemo(() => {
-      const paragraphs = SECTION.bookSection?.paragraphs;
-      if (!paragraphs) return [];
-      return paragraphs
-        .map(p => p.in_style?.trim() || "")
-        .filter(Boolean);
-    }, [SECTION.bookSection?.paragraphs]),
-
-    loadSuggestedstyles() {
+    loadStandardStyles() {
       useEffect(() => {
         fetch("/Section.sass")
           .then(res => res.text())
@@ -462,9 +457,17 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
       }, []);
     },
 
-    
-    suggestions: useDot<string[]>([]),
+    usedStyles: useMemo(() => {
+      const paragraphs = SECTION.bookSection?.paragraphs;
+      if (!paragraphs) return [];
+      return paragraphs
+        .map(p => p.in_style?.trim() || "")
+        .filter(Boolean);
+    }, [SECTION.bookSection?.paragraphs]),
 
+
+    // classi suggerite
+    suggestions: useDot<string[]>([]),
     setSuggestions(e:React.ChangeEvent<HTMLTextAreaElement>){
       // 1) risorse
       const target =e.target as HTMLTextAreaElement
@@ -485,116 +488,45 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
       // classi che assomigliano all'input
       const filtered = merged.filter(mergedStyle => // controlla ogni merge
         // almeno una classe del paragrafo
-        paragraphClasses.some(ic=> 
+        paragraphClasses.some(paragraphClass=> 
           // il merge assomiglia all'input ma non è uguale
-          mergedStyle.includes(ic)
-          && mergedStyle !== ic
+          mergedStyle.includes(paragraphClass)
+          && mergedStyle !== paragraphClass
         )
       )
 
-      // 3) mostra 5 suggerimenti senza ripetizioni
-      const result = [...new Set(filtered)].splice(0, 5)
+      // 3) aggiunge la classe ripetuta più simile
+      const similInput = AUTOCOMPLETE.usedStyles.find(usedStyle=> 
+        usedStyle.includes(inputValue) 
+        && usedStyle !== inputValue
+      ) || "";
+
+
+      // 4) mostra 5 suggerimenti senza ripetizioni
+      const result = [...new Set([similInput, ...filtered])]
+        .filter(Boolean).splice(0, 5)
+      
       AUTOCOMPLETE.suggestions.set(result)
     },
 
+    handleClick(e:React.MouseEvent<HTMLButtonElement>, p:Paragraph, index:number){
+      const newClass =(e.target as HTMLDivElement).innerText;
+      const actualClasses =p.in_style.toLowerCase().split(" ");
 
-    // mostra classi standard o usate
-    values: useMemo(() => (paragraphIndex: number) => {
-      const paragraphs = SECTION.bookSection?.paragraphs;
-      const paragraph = paragraphs?.[paragraphIndex];
-      if (!paragraphs || !paragraph) return [];
-
-      const standardColor = "bg-orange-200";
-      const repeatColor = "bg-indigo-200";
-      const input = (paragraph.in_style || "").trim().toLowerCase();
-
-      // Stili standard + stili già utilizzati
-      let allStyles: string[] = [
-        ...AUTOCOMPLETE.standardStyles.get(),
-        ...AUTOCOMPLETE.usedStyles,
-      ];
-
-      // Elimina duplicati
-      const uniqueStyles = [...new Set(allStyles)];
-
-      // Filtra in base a ciò che l'utente ha digitato 
-      // (mostra solo stili che includono l'input)
-      const filteredStyles = uniqueStyles.filter(style => {
-        const tailwindClass = style.toLowerCase();
-        return tailwindClass.includes(input) && tailwindClass!==input;
-      });
-
-      // Separare stili standard e stili personalizzati
-      const standardStyles = filteredStyles.filter(style =>
-        AUTOCOMPLETE.standardStyles.get().includes(style)
-      );
-      const usedStyles = filteredStyles.filter(style =>
-        !AUTOCOMPLETE.standardStyles.get().includes(style)
-      );
-
-      // Limita a 5 stili personalizzati
-      const maxUsedStyles = 5;
-      const limitedUsedStyles = usedStyles.slice(0, maxUsedStyles);
-
-      // Nascondi gli stili standard se ci sono già 5 stili personalizzati
-      const showStandardStyles = usedStyles.length < maxUsedStyles;
-
-      // Costruisci il risultato finale
-      const result: { tailwindClass: string; color: string; handleClick: (i: number) => void }[] = [];
-
-      // Aggiungi stili personalizzati (fino a 5)
-      limitedUsedStyles.forEach(style => {
-        const tailwindClass = style.toLowerCase();
-        const color = repeatColor;
-        const handleClick = (i: number) => {
-          PARAG.update(i, "in_style", tailwindClass, {addOnEnd:true});
-        };
-        result.push({ tailwindClass, color, handleClick });
-      });
-
-      // Aggiungi stili standard solo se non ci sono già 5 stili personalizzati
-      if (showStandardStyles) {
-        standardStyles.forEach(style => {
-          const tailwindClass = style.toLowerCase();
-          const color = standardColor;
-          function handleClick (i: number){
-            PARAG.update(i, "in_style", tailwindClass, {addOnEnd:true});
-          }
-          result.push({ tailwindClass, color, handleClick });
-        });
-      }
-
-      return result
-    }, [SECTION.bookSection, SECTION.bookSection?.paragraphs]
-    ),
-
-    repeatingStyle(styleInput:string) :{label:string, value:string} {
-      const voidResult = {label:"", value:""};
-      const paragraphs = SECTION.bookSection?.paragraphs;
-      if (!paragraphs || !paragraphs.length || !styleInput) return voidResult;
-
-      // Estrai tutti gli stili (escludendo vuoti o null)
-      const allStyles = paragraphs
-        .map(p => p.in_style?.trim() || "")
-        .filter(s => s !== "");
-
-      // verifica quale degli stili inizia con l'input (autocomplete)
-      const clone = styleInput.toLowerCase();
-      const matches = allStyles.filter(style => 
-        style.toLowerCase().startsWith(clone) && style.toLowerCase() !== clone
-      );
-
-      if(matches.length === 0) return voidResult;
-      
-      // Prendi il primo match o quello più comune
-      const match = matches[0];    
-      return {label: match?.substring(clone.length) || "", value: match || ""};
-    }
+      // aggiornamento
+      const update = actualClasses.map((cls, _i)=> 
+        newClass.includes(cls) ? newClass : cls
+      ).join(" ");
+      PARAG.update(index, "in_style", update)
+      AUTOCOMPLETE.suggestions.set([]) 
+    },
 
   };
 
-  AUTOCOMPLETE.loadSuggestedstyles();
-  
+  AUTOCOMPLETE.loadStandardStyles();
+
+  // 5.5) KEYBOARD FEATURES
+  const handleKeyboardFeature = useKeyboardFeatures(book_id, getSection, book, setBook, AUTOCOMPLETE, SECTION, PARAG);
 
   // 6) STORICO AZIONI
   const HISTORY = {
