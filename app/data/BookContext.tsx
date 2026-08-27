@@ -1,85 +1,15 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { Book, book_schema } from "../schemas/book_schema";
 import * as v from "valibot";
 import { nanoid } from "nanoid";
 import { ui_upload, ui_download, debounce, toast } from "../tools/feedbacksUI";
+import { generateContext } from "../tools/generateContext";
 
 const FIREBASE_URL = "https://books-3e4c3-default-rtdb.europe-west1.firebasedatabase.app/books";
 
-// Servizio API separato dal ciclo di vita del hook:
-// Mantiene l'istanza di debouncing (timer closure) stabile tra i re-render del componente.
-const API_SERVICE = {
-  // Salva un singolo libro su Firebase (PUT per ID)
-  async saveSingleBook(book: Book) {
-    try {
-      const response = await fetch(`${FIREBASE_URL}/${book.id}.json`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(book),
-      });
-      if (!response.ok) {
-        console.error("Salvataggio non riuscito:", response.statusText);
-      }
-      return response;
-    } catch (error) {
-      console.error("Errore nel salvataggio delle api:", error);
-      throw error;
-    }
-  },
-
-  saveDebounced: debounce(async (book: Book) => {
-    console.warn("debounce");
-    await API_SERVICE.saveSingleBook(book);
-  }, 1000),
-
-  // Elimina un singolo libro da Firebase (DELETE per ID)
-  async deleteSingleBook(id: string) {
-    try {
-      const response = await fetch(`${FIREBASE_URL}/${id}.json`, {
-        method: "DELETE",
-      });
-      if (!response.ok) {
-        console.error("Eliminazione non riuscita:", response.statusText);
-      }
-      return response.body;
-    } catch (error) {
-      console.error("Errore nell'eliminazione delle api:", error);
-      throw error;
-    }
-  },
-};
-
-export interface BookContextType {
-  books: Book[];
-  loading: boolean;
-  createId: () => string;
-  validateBook: (book: unknown) => Book | null;
-  addBook: (book: Book) => Book | null;
-  createBook: (book: Omit<Book, "id">) => Book | null;
-  readAll: () => Book[];
-  getBookById: (id: string) => Book | undefined;
-  updateBook: (id: string, updatedBook: Partial<Book>, validation?: boolean) => Book | null;
-  deleteBook: (id: string) => boolean;
-  target: Book | undefined;
-  setTarget: (book: Book | undefined) => void;
-  download: {
-    _json_to_text: (data: Book, isMarkdownFormat?: boolean) => string;
-    json: { label: string; icon: string; execute: (id: string) => void };
-    txt: { label: string; icon: string; execute: (id: string) => void };
-    md: { label: string; icon: string; execute: (id: string) => void };
-  };
-  upload: {
-    json: { label: string; icon: string; execute: () => Promise<void> };
-    markdown: { label: string; icon: string; execute: () => Promise<void> };
-  };
-  findFirsted: (book: Book) => { part: string; section: string };
-}
-
-export const BookContext = createContext<BookContextType | null>(null);
-
-export const BookProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+function bookContextValue() {
   const [books, setBooks] = useState<Book[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -339,49 +269,69 @@ export const BookProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, []);
 
-  const value = useMemo(() => ({
-      books,
-      loading,
-      createId,
-      validateBook,
-      addBook,
-      createBook,
-      readAll,
-      getBookById,
-      updateBook,
-      deleteBook,
-      download,
-      upload,
-      findFirsted,
-      target,
-      setTarget,
-    }),
-    [
-      books,
-      loading,
-      createId,
-      validateBook,
-      addBook,
-      createBook,
-      readAll,
-      getBookById,
-      updateBook,
-      deleteBook,
-      download,
-      upload,
-      findFirsted,
-      target,
-      setTarget,
-    ]
-  );
-
-  return <BookContext.Provider value={value}>{children}</BookContext.Provider>;
-};
-
-export const useBookContext = (): BookContextType => {
-  const context = useContext(BookContext);
-  if (!context) {
-    throw new Error("useBookContext must be used within a BookProvider");
+  return {
+    books,
+    loading,
+    createId,
+    validateBook,
+    addBook,
+    createBook,
+    readAll,
+    getBookById,
+    updateBook,
+    deleteBook,
+    download,
+    upload,
+    findFirsted,
+    target,
+    setTarget,
   }
-  return context;
+}
+
+
+export const {
+  provider: BookProvider,
+  context: useBookContext
+} = generateContext(bookContextValue);
+
+// Servizio API separato dal ciclo di vita del hook:
+const API_SERVICE = {
+  // Salva un singolo libro su Firebase (PUT per ID)
+  async saveSingleBook(book: Book) {
+    try {
+      const response = await fetch(`${FIREBASE_URL}/${book.id}.json`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(book),
+      });
+      if (!response.ok) {
+        console.error("Salvataggio non riuscito:", response.statusText);
+      }
+      return response;
+    } catch (error) {
+      console.error("Errore nel salvataggio delle api:", error);
+      throw error;
+    }
+  },
+
+  saveDebounced: debounce(async (book: Book) => {
+    console.warn("debounce");
+    await API_SERVICE.saveSingleBook(book);
+  }, 1000),
+
+  // Elimina un singolo libro da Firebase (DELETE per ID)
+  async deleteSingleBook(id: string) {
+    try {
+      const response = await fetch(`${FIREBASE_URL}/${id}.json`, {
+        method: "DELETE",
+      });
+      if (!response.ok) {
+        console.error("Eliminazione non riuscita:", response.statusText);
+      }
+      return response.body;
+    } catch (error) {
+      console.error("Errore nell'eliminazione delle api:", error);
+      throw error;
+    }
+  },
 };

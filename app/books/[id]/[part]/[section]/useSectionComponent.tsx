@@ -282,7 +282,7 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
       if(!book) return console.error("libro non disponibile");
       
       // funzionalità da tastiera
-      return keyboardFeatures(book_id, getSection, e, book, setBook, AUTOCOMPLETE, SECTION, PARAG, bookContext)
+      return keyboardFeatures(book_id, getSection, e, book, setBook, AUTOCOMPLETE, SECTION, PARAG)
     },
 
     // imposta il colore appropriato del testo

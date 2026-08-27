@@ -5,21 +5,17 @@ import { AgreeProvider } from "@/app/shareds/Agree";
 import { BookProvider } from "@/app/data/BookContext";
 import { CommonPagesProvider } from "@/app/data/CommonPagesContext";
 import { AuthProvider } from "@/app/data/AuthContext";
-import { ContextProvider } from "@/app/data/contextRegistry";
+
+const providers = [
+  AgreeProvider,
+  CommonPagesProvider,
+  BookProvider,
+  AuthProvider,
+];
 
 export function AppProviders({ children }: { children: React.ReactNode }) {
-  return (
-    <AgreeProvider>
-      <CommonPagesProvider>
-        <BookProvider>
-          <AuthProvider>
-            <ContextProvider>
-              {children}
-            </ContextProvider>
-          </AuthProvider>
-        </BookProvider>
-      </CommonPagesProvider>
-    </AgreeProvider>
+  return providers.reduceRight(
+    (acc, Provider) => <Provider>{acc}</Provider>,
+    children
   );
 }
-

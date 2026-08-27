@@ -1,27 +1,22 @@
 "use client";
 
-import React, { useState, useEffect, useMemo, createContext, useContext } from "react";
+import { useState, useEffect, useMemo } from "react";
+import { generateContext } from "../tools/generateContext";
 
-export interface CommonPagesContextType {
-  isEditMode: boolean;
-  toggleEditMode: () => void;
-  setIsEditMode: React.Dispatch<React.SetStateAction<boolean>>;
-  isPageLoaded: boolean;
-  screenWidth: number;
-  screenHeight: number;
-}
+export const {
+  provider: CommonPagesProvider,
+  context: useCommonPagesContext,
+} = generateContext(useCommonPagesContextLogic);
 
-export const CommonPagesContext = createContext<CommonPagesContextType | null>(null);
-
-export const CommonPagesProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Modalità editing o view - letta da localStorage
-  const [isEditMode, setIsEditMode] = useState(false);
+function useCommonPagesContextLogic() {
   // Stato di caricamento della pagina
   const [isPageLoaded, setIsPageLoaded] = useState(false);
   // Larghezza e altezza schermo
   const [screenWidth, setScreenWidth] = useState(400);
   const [screenHeight, setScreenHeight] = useState(400);
-
+  
+  // Modalità editing o view - letta da localStorage
+  const [isEditMode, setIsEditMode] = useState(false);
   function toggleEditMode() {
     setIsEditMode((prev) => {
       const newEditMode = !prev;
@@ -55,29 +50,12 @@ export const CommonPagesProvider: React.FC<{ children: React.ReactNode }> = ({ c
     };
   }, []);
 
-  const value = useMemo(
-    () => ({
+  return {
       isEditMode,
       toggleEditMode,
       setIsEditMode,
       isPageLoaded,
       screenWidth,
       screenHeight,
-    }),
-    [isEditMode, isPageLoaded, screenWidth, screenHeight]
-  );
-
-  return (
-    <CommonPagesContext.Provider value={value}>
-      {children}
-    </CommonPagesContext.Provider>
-  );
-};
-
-export const useCommonPagesContext = (): CommonPagesContextType => {
-  const context = useContext(CommonPagesContext);
-  if (!context) {
-    throw new Error("useCommonPagesContext must be used within CommonPagesProvider");
-  }
-  return context;
-};
+    };
+}

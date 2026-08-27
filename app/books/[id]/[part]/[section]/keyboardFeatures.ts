@@ -1,9 +1,8 @@
 import { Book, Paragraph } from "@/app/schemas/book_schema";
-import { BookContextType } from "@/app/data/BookContext";
 import { useSectionComponent } from "./useSectionComponent";
+import { useBookContext } from "@/app/data/BookContext";
 
 type Main = ReturnType<typeof useSectionComponent>;
-type BookHookProps = BookContextType;
 
 export function keyboardFeatures(
   book_id: string,
@@ -14,16 +13,16 @@ export function keyboardFeatures(
   AUTOCOMPLETE: Main['AUTOCOMPLETE'],
   SECTION: Main['SECTION'],
   PARAG: Main['PARAG'],
-  bookContext: BookHookProps
 ){
+  // controllo iniziale
   const gesturesKeys = [
     "Enter", "Tab", "Backspace", "Delete", 
     "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"
   ];
   if(!gesturesKeys.includes(e.key)) return;
 
-
   // 1) dati
+  const bookContext = useBookContext()
   const {value, id} = e.target as HTMLTextAreaElement;
   const [_index, key] = id.split(">") as [string, keyof Paragraph];
   const index = parseInt(_index);

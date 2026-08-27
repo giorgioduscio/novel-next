@@ -1,28 +1,18 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useDot } from "../tools/customStates";
 import { Permission, Book } from "../schemas/book_schema";
 import { useBookContext } from "./BookContext";
 import { hashWithArgon2, verifyWithArgon2, checkAccessWithArgon2 } from "../actions/argonActions";
+import { generateContext } from "../tools/generateContext";
 
-export interface AuthContextType {
-  permissions: ReturnType<typeof useDot<Permission[]>>;
-  CONTROLS: {
-    canRead: (book: Book | undefined) => boolean;
-    canWrite: (book: Book | undefined) => boolean;
-    updateCode: (key: keyof Book, book: Book, newCode?: string) => Promise<Book | null>;
-    verify: (code: string, hash: string) => Promise<boolean>;
-    hash: (code: string) => Promise<string>;
-  };
-  LOCAL: {
-    permissions_title: string;
-    get(): Permission[];
-    set(permissions: Permission[]): void;
-  };
-}
 
-export function useAuthState(): AuthContextType {
+export const {
+  provider: AuthProvider,
+  context: useAuthContext,
+  
+} = generateContext(() => {
   const bookContext = useBookContext();
   const permissions = useDot<Permission[]>([]);
   const [allowedReadIds, setAllowedReadIds] = useState<string[]>([]);
@@ -128,19 +118,4 @@ export function useAuthState(): AuthContextType {
     permissions,
     CONTROLS,
   };
-}
-
-export const AuthContext = createContext<AuthContextType | null>(null);
-
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const value = useAuthState();
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-};
-
-export const useAuthContext = (): AuthContextType => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error("useAuthContext must be used within an AuthProvider");
-  }
-  return context;
-};
+});
