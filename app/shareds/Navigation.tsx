@@ -38,7 +38,7 @@ export default function Navigation(props: NavigationProps) {
             )}
 
             {title && (
-              <h1 className="p-2 text-bold text-orange-500">{title || 'NovelNext'}</h1>
+              <h1 className="p-2 text-bold text-orange-500 truncate">{title || 'NovelNext'}</h1>
             )}
             <div className="flex-1"></div>
 

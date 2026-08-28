@@ -25,6 +25,7 @@ function AddParagraphButton({ if: show, handleCreate, className = "" }: AddParag
   </Frag>
 }
 
+
 export default function SectionComponent(props: UseSectionComponentProps) {
   const {
     book_id,  section_title,  page,  SECTION_title,
@@ -32,6 +33,8 @@ export default function SectionComponent(props: UseSectionComponentProps) {
     errors,
     AUTOCOMPLETE,
     HISTORY,
+    FIND_REPLACE,
+    foundIndices,
     canRead, canWrite,
     olRef,
     olHeight,
@@ -67,17 +70,120 @@ export default function SectionComponent(props: UseSectionComponentProps) {
 
     <Breadcrumb />
 
-    {/* UNDO / REDO */}
-    <div className={`pt-1 sticky top-[calc(45px+env(safe-area-inset-top))] z-20 ${canWrite ?"" :"pointer-events-none invisible"}`}>
-      <div className="flex justify-center gap-2">
+    {/* STRUMENTI */}
+    <div className={`sticky top-[calc(45px+env(safe-area-inset-top))] z-20 ${canWrite ?"" :"pointer-events-none invisible"}`}>
+      {/* UNDO / REDO */} 
+      <Frag if={canWrite && !FIND_REPLACE.isVisible.get()} className="pt-1 flex justify-center gap-2">
         <button onClick={HISTORY.undo} className="px-2 py-1 bg-indigo-800 rounded truncate">
           <i className="me-1 bi bi-arrow-left"></i> Indietro
         </button>
         <button onClick={HISTORY.redo} className="px-2 py-1 bg-orange-800 rounded truncate">
           <i className="me-1 bi bi-arrow-right"></i> Ripeti
         </button>
-      </div>
+        <button onClick={FIND_REPLACE.toggle} 
+                className={`px-2 py-1 rounded-full ${FIND_REPLACE.isVisible.get() ?"bg-blue-800" :"bg-gray-800"}`}>
+          <i className="bi bi-search"></i> 
+          <span className="ms-1 hidden sm:inline">Trova</span>
+        </button>
+      </Frag>
+
+
+      {/* TROVA E SOSTITUISCI */}
+      <Frag if={canWrite && FIND_REPLACE.isVisible.get()}>
+        <div className="p-1 mx-auto max-w-[400px]">
+          <div className="bg-gray-700 outline rounded shadow-lg">
+            {/* generali */}
+            <div className="grid grid-cols-[1fr_auto]">
+              <h4 className="py-1 px-2 font-bold text-sm">
+                {foundIndices.length > 0 ?(
+                  <span>
+                    {FIND_REPLACE.currentIndex.get() + 1} / {foundIndices.length} occorrenze trovate
+                  </span>
+                ):(
+                  <span>Cerca e sostituisci</span>
+                )}
+              </h4>
+              <button type="button" onClick={FIND_REPLACE.toggle} 
+                      className="py-1 px-2 bg-gray-700"
+                      title="Chiudi">
+                <i className="bi bi-x-lg"></i>
+              </button>
+            </div>
+
+            {/* cerca */}
+            <div className="flex flex-safe bg-blue-100 text-black">
+              <div className="flex-1">
+                <Field
+                  input_class="w-[100px] py-1 px-2"
+                  hide_label
+                  label="Trova"
+                  value={FIND_REPLACE.search.get().value}
+                  disabled={!canWrite}
+                  onInput={(e) => FIND_REPLACE.search.set(p=> ({ ...p, value: e.target.value }))}
+                  error_message={""}
+                  id={"find-search"}
+                  type={"text"}
+                  placeholder={"Testo da trovare"}
+                  onKeyUp={(_e:any)=> _e.key==="Enter" ?FIND_REPLACE.executeSearch() :null} 
+                />
+              </div>
+                
+              <button onClick={(e) => FIND_REPLACE.search.set(prev => ({ ...prev, caseSensitive: !prev.caseSensitive }))}
+                      className={`px-1 ${FIND_REPLACE.search.get().caseSensitive ? 'bg-blue-200/80' : ''}`}
+                      title="Maiuscole/minuscole">
+                <i className="bi bi-alphabet-uppercase"></i>
+              </button>
+              <button onClick={(e) => FIND_REPLACE.search.set(prev => ({ ...prev, wholeWord: !prev.wholeWord }))}
+                      className={`px-1 ${FIND_REPLACE.search.get().wholeWord ? 'bg-blue-200/80' : ''}`}
+                      title="Parola intera">
+                <i className="bi bi-fonts"></i>
+              </button>
+              <button type="button" onClick={FIND_REPLACE.previous} 
+                      className="py-1 px-2 bg-gray-700 text-white"
+                      title="Precedente">
+                <i className="bi bi-arrow-up"></i>
+              </button>
+            </div>
+
+
+            {/* rinomina */}
+            <div className="grid grid-cols-[1fr_auto_auto]">
+              <div>
+                <Field
+                  input_class="w-[100px] py-1 px-2 bg-green-100 text-black"
+                  hide_label
+                  label="Sostituisci"
+                  value={FIND_REPLACE.replaceQuery.get()}
+                  disabled={!canWrite}
+                  onInput={(e) => FIND_REPLACE.replaceQuery.set(e.target.value)}
+                  error_message={""}
+                  id={"find-replace"}
+                  type={"text"}
+                  placeholder={"Sostituisci con..."}
+                  onKeyUp={(_e:any)=> _e.key==="Enter" ?FIND_REPLACE.replace() :null} 
+                />
+              </div>
+
+              <button onClick={_=> FIND_REPLACE.replaceAll()} 
+                      className="px-2 bg-green-200 text-black relative"
+                      title="Sostituisci tutto">
+                <i className="bi bi-alphabet absolute -top-1"></i>
+                <i className="bi bi-back absolute top-2"></i>
+                <i className="bi bi-back invisible"></i>
+              </button>
+              <button type="button" onClick={FIND_REPLACE.next} 
+                      className="py-1 px-2 bg-gray-700 truncate"
+                      title="Prossimo">
+                <i className="bi bi-arrow-down"></i>
+              </button>
+
+            </div>
+          </div>
+        </div>      
+      </Frag>
     </div>
+
+
 
     <main id="SectionComponent" onClick={PARAG.closeTemplateInputStyle} className="mx-auto container max-w-[400px]">
       {/* Contenitore principale */}
@@ -89,6 +195,8 @@ export default function SectionComponent(props: UseSectionComponentProps) {
             Sezione non trovata
           </div>
         </Frag>
+
+
 
         {/* SEZIONE TROVATA */}
         <Frag if={!!SECTION.bookSection}>
@@ -167,9 +275,9 @@ export default function SectionComponent(props: UseSectionComponentProps) {
                         className={`block py-3 ${(p as any).ex_style}`}>
                     <div onClick={PARAG.handleFocusText} data-focus-text
                           className={`block p-1 ${PARAG.parseStyle(p) || ""}`}>
-                      <div className={canWrite && PARAG.styleInput().index === paragraph_i ? 'outline-3 outline-dashed outline-black' : ''}>
+                      <div className={canWrite && PARAG.styleInput.get().index === paragraph_i ? 'outline-3 outline-dashed outline-black' : ''}>
                         <Field
-                          input_class={`p-1 text-center ${canWrite && PARAG.styleInput().index === paragraph_i ? 'outline-3 outline-white' : ''}`}
+                          input_class={`p-1 text-center ${canWrite && PARAG.styleInput.get().index === paragraph_i ? 'outline-3 outline-white' : ''}`}
                           placeholder="Testo del paragrafo"
                           value={p.text}
                           readOnly={!canWrite}
@@ -188,7 +296,7 @@ export default function SectionComponent(props: UseSectionComponentProps) {
                     </div>
 
                     {/* STILE PARAGRAFO */}
-                    <Frag if={canWrite && PARAG.styleInput().index === paragraph_i} className="mx-8 relative">
+                    <Frag if={canWrite && PARAG.styleInput.get().index === paragraph_i} className="mx-8 relative">
                       <div className='absolute top-0 z-2 w-full' data-dropdown>
                         <div className="p-1 bg-white text-black outline rounded">
                           {/* CONSIGLIATI */}

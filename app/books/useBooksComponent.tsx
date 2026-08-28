@@ -5,6 +5,7 @@ import { useCommonPagesContext } from "../data/CommonPagesContext";
 import { Book, book_schema } from "../schemas/book_schema";
 import { toast } from "../tools/feedbacksUI";
 import { useAuthContext } from "../data/AuthContext";
+import { useDot } from "../tools/customStates";
 
 export function useBooksComponent() {
   const bookContext = useBookContext();
@@ -14,11 +15,23 @@ export function useBooksComponent() {
 
   // 1) LIBRI
   const [books, setBooks] = useState<Book[]>([]);
+  const searchQuery = useDot("");
+  
   useEffect(() => {
     // Trova tutti i libri per cui ha un codice di lettura
     const booksMatch = bookContext.readAll().filter(_book => canRead(_book));
     setBooks(booksMatch);
   }, [bookContext.books, canRead]);
+
+  // Filtra i libri in base alla ricerca
+  const filteredBooks = useMemo(() => {
+    if (!searchQuery.get().trim()) return books;
+    const query = searchQuery.get().toLowerCase();
+    return books.filter(book => 
+      book.title.toLowerCase().includes(query) || 
+      book.author_name.toLowerCase().includes(query)
+    );
+  }, [books, searchQuery]);
 
   const BOOKS = {
     // Crea un nuovo libro con valori predefiniti
@@ -40,21 +53,21 @@ export function useBooksComponent() {
     },
 
     // Aggiorna un libro esistente
-    update(index: number, key: keyof Book, e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
+    update(bookId: string, key: keyof Book, e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
       // Validazione
-      const book = books[index];
+      const book = books.find(b => b.id === bookId);
       if (!book) throw new Error("Libro non valido");
 
       // Crea una copia del libro con il campo aggiornato
       const newBook = structuredClone({ ...book, [key]: e.currentTarget.value });
 
       // Aggiorna il libro nello stato locale
-      setBooks(prev => prev.map(_book => _book.id === book.id ? newBook : _book));
+      setBooks(prev => prev.map(_book => _book.id === bookId ? newBook : _book));
 
       // Aggiorna database (se non esiste, crea, altrimenti aggiorna)
-      const isPresent = bookContext.books.find(_book => _book.id === book.id);
+      const isPresent = bookContext.books.find(_book => _book.id === bookId);
       const result = isPresent
-        ? bookContext.updateBook(book.id, newBook)
+        ? bookContext.updateBook(bookId, newBook)
         : bookContext.addBook(newBook);
 
       // Feedback utente
@@ -85,6 +98,8 @@ export function useBooksComponent() {
   // Restituisce i dati e le funzionalità per il template
   return {
     books,
+    filteredBooks,
+    searchQuery,
     errors,
     page,
     bookContext,

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 // usa i metodi get e set per gestire allo stato
 export function useDot<T>(initialValue: T) {
@@ -14,24 +14,13 @@ export function useDot<T>(initialValue: T) {
   return result;
 }
 
-
-// usa parentesi per gestire lo stato
-export function useBracket<T>(initialValue: T) {
+export function useDotNotation<T>(initialValue: T) {
   const [state, setState] = useState<T>(initialValue);
+  // const reference = useMemo(()=> state, [state])
 
-  const result = ((newValue?: T | ((prev: T) => T)) => {
-    // get
-    if (newValue === undefined) {
-      return state; 
-
-    // set
-    } else {
-      setState(newValue);
-    }
-    
-  }) as {
-    (): T;
-    (newValue: T | ((prev: T) => T)): void;
+  const result = {
+    get: state,
+    set: (newValue: T | ((prev: T) => T)) => setState(newValue),
   };
 
   return result;

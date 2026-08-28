@@ -7,6 +7,7 @@ import { useBookContext } from "../data/BookContext";
 export function Breadcrumb() {
   const pathname = usePathname();
   const bookStore = useBookContext();
+  if (!bookStore.loading) return null;
 
   // converte l'url nel breadcrumb
   function buildRoutes() {
@@ -36,13 +37,9 @@ export function Breadcrumb() {
   function convertLabel(segment: string): string {
     if (segment === "books") return "Libri";
 
-    // verifica se è un UUID (formato xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-    if (uuidRegex.test(segment)) {
-      // è un UUID, quindi è un book
-      const book = bookStore.getBookById(segment);
-      if(book) return book.title;
-    }
+    const book = bookStore.getBookById(segment);
+    if(book) return book.title;
+    
     return segment .replaceAll('-', ' ');
   }
 

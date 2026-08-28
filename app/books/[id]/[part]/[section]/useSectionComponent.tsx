@@ -2,7 +2,7 @@ import { useBookContext } from "@/app/data/BookContext";
 import { useCommonPagesContext } from "@/app/data/CommonPagesContext";
 import { Book, Section, Paragraph, paragraph_schema, section_schema } from "@/app/schemas/book_schema";
 import { useAgreeWrapper } from "@/app/shareds/Agree";
-import { useBracket, useDot } from "@/app/tools/customStates";
+import { useDot } from "@/app/tools/customStates";
 import { toast } from "@/app/tools/feedbacksUI";
 import { useRouter } from "next/navigation";
 import { useState, useEffect, useMemo, useRef } from "react";
@@ -52,14 +52,6 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
   const [SECTION_title, SECTION_setTitle] = useState(section_title);
   const SECTION = {
 
-    /* Restituisce la sezione corrente
-    * title
-    * paragraphs [
-      * text 
-      * in_style (con tutte le classi)
-      * ex_style (solo le classi che cominciano per 'ex:')
-      ] 
-    */ 
     bookSection: useMemo(() :Section |undefined => {
       const result = getSection();
       if (!result) return undefined;
@@ -322,7 +314,7 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
     },
 
     // input di stile
-    styleInput: useBracket({
+    styleInput: useDot({
       index:-1, isVisible:false, 
     }),
     setStyleInput(paragraph_i?:number){
@@ -330,7 +322,7 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
             
       // RESET
       if (paragraph_i === undefined){
-        this.styleInput(prev=> ({ 
+        this.styleInput.set(prev=> ({ 
           ...prev,
           isVisible: false,
           index: -1,
@@ -341,7 +333,7 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
       const target = SECTION.bookSection?.paragraphs?.[paragraph_i];
       if (!target) return console.error("Paragrafo non trovato");
       
-      this.styleInput(prev=> ({ 
+      this.styleInput.set(prev=> ({ 
         ...prev, 
         isVisible: true,
         index: paragraph_i,
@@ -520,10 +512,210 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
       PARAG.update(index, "in_style", update)
       AUTOCOMPLETE.suggestions.set([]) 
     },
-
   };
 
   AUTOCOMPLETE.loadStandardStyles();
+
+  // 7) TROVA E SOSTITUISCI
+  const searchState = useDot({ value:"", caseSensitive:false, wholeWord:false });
+  const paragraphs = SECTION.bookSection?.paragraphs || [];
+  
+  // Calcola gli indici trovati automaticamente con useMemo
+  const foundIndices = useMemo(() => {
+    const query = searchState.get();
+    if (!query || !query.value.trim()) return [];
+    
+    const indices: number[] = [];
+    paragraphs.forEach((p, index) => {
+      const text = p.text;
+      const searchText = query.caseSensitive ? text : text.toLowerCase();
+      
+      if (query.wholeWord) {
+        const regex = new RegExp(`\\b${query.value}\\b`, query.caseSensitive ? "" : "i");
+        if (regex.test(text)) {
+          indices.push(index);
+        }
+      } else {
+        if (searchText.includes(query.value.toLowerCase())) {
+          indices.push(index);
+        }
+      }
+    });
+    
+    return indices;
+  }, [searchState, paragraphs]);
+
+  const FIND_REPLACE = {
+    // mostra / nascondi sezione
+    isVisible: useDot(false),
+    toggle(){
+      FIND_REPLACE.isVisible.set(prev=> !prev)
+    },
+
+    // CERCA
+    previousQuery: useDot({ value:"", caseSensitive:false, wholeWord:false }),
+    search: searchState,
+    currentIndex: useDot(0),
+
+    // Resetta lo stato
+    reset() {
+      FIND_REPLACE.search.set(p=>({ ...p, value: "" }));
+      FIND_REPLACE.replaceQuery.set("");
+      FIND_REPLACE.currentIndex.set(0);
+    },
+
+    // Cerca tutte le occorrenze nei paragrafi
+    executeSearch() {      
+      const query = FIND_REPLACE.search.get();
+      if (!query) {
+        FIND_REPLACE.reset();
+        return;
+      }
+
+      const previousQuery = FIND_REPLACE.previousQuery.get();
+      const isSameQuery = previousQuery.value === query.value
+        && previousQuery.caseSensitive === query.caseSensitive
+        && previousQuery.wholeWord === query.wholeWord;
+
+      // Se la query è la stessa, vai semplicemente al prossimo indice
+      if (isSameQuery) {
+        const currentIndex = FIND_REPLACE.currentIndex.get();
+        
+        if (foundIndices.length === 0) return;
+        const newIndex = currentIndex < foundIndices.length - 1 ? currentIndex + 1 : 0;
+        FIND_REPLACE.currentIndex.set(newIndex);
+
+        setTimeout(() => {
+          const input = document.getElementById(`${foundIndices[newIndex]}>text`) as HTMLTextAreaElement;
+          if (!input) return; 
+          input.scrollIntoView({ behavior: "smooth", block: "center" });
+          PARAG.setStyleInput(foundIndices[newIndex]);
+        }, 100);
+        return;
+      }
+
+      // Nuova query: resetta e scrolla al primo elemento
+      FIND_REPLACE.currentIndex.set(0);
+      FIND_REPLACE.previousQuery.set(p=>({ ...p, value:query.value, caseSensitive:query.caseSensitive, wholeWord:query.wholeWord }));
+
+      // Sposta il focus sul primo input trovato
+      if (foundIndices.length > 0) {
+        setTimeout(() => {
+          const firstInput = document.getElementById(`${foundIndices[0]}>text`) as HTMLTextAreaElement;
+          if (!firstInput) return;
+          firstInput.scrollIntoView({ behavior: "smooth", block: "center" });
+          PARAG.setStyleInput(foundIndices[0]);
+        }, 100);
+      }
+    },
+
+    // Vai all'occorrenza precedente
+    previous() {
+      const currentIndex = FIND_REPLACE.currentIndex.get();
+
+      if (foundIndices.length === 0) return;
+      const newIndex = currentIndex > 0 ? currentIndex - 1 : foundIndices.length - 1;
+      FIND_REPLACE.currentIndex.set(newIndex);
+
+      setTimeout(() => {
+        const input = document.getElementById(`${foundIndices[newIndex]}>text`) as HTMLTextAreaElement;
+        if (input) input.focus();
+      }, 100);
+    },
+
+    // Vai all'occorrenza successiva
+    next() {
+      const currentIndex = FIND_REPLACE.currentIndex.get();
+
+      if (foundIndices.length === 0) return;
+      const newIndex = currentIndex < foundIndices.length - 1 ? currentIndex + 1 : 0;
+      FIND_REPLACE.currentIndex.set(newIndex);
+
+      setTimeout(() => {
+        const input = document.getElementById(`${foundIndices[newIndex]}>text`) as HTMLTextAreaElement;
+        if (input) input.focus();
+      }, 100);
+    },
+
+    // SOSTITUZIONE
+    replaceQuery: useDot(""),
+    replaceAll(targets: number[] = foundIndices) {
+      if (targets.length === 0) return;
+      const replaceText = FIND_REPLACE.replaceQuery.get();
+      const search = FIND_REPLACE.search.get();
+      if (!replaceText.trim()) return;
+      if (!book) return;
+
+      // Funzione per sfuggire i caratteri speciali in una stringa per RegExp
+      function escapeRegExp(string: string): string {
+        return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      }
+
+      // Clona il libro una volta sola
+      const bookClone = structuredClone(book);
+      const sec = getSection(bookClone);
+      if (!sec?.paragraphs) return;
+
+      // Itera su tutti i paragrafi target
+      targets.forEach((paragraphIndex) => {
+        const paragraph = sec.paragraphs?.[paragraphIndex];
+        if (!paragraph) return;
+
+        let text = paragraph.text;
+        const searchValue = search.caseSensitive ? search.value : search.value.toLowerCase();
+        const escapedSearchValue = escapeRegExp(searchValue);
+
+        // Crea una regex globale per sostituire TUTTE le occorrenze
+        let regex: RegExp;
+        if (search.wholeWord) {
+          regex = new RegExp(`\\b${escapedSearchValue}\\b`, search.caseSensitive ? "g" : "gi");
+        } else {
+          regex = new RegExp(
+            escapedSearchValue,
+            search.caseSensitive ? "g" : "gi"
+          );
+        }
+
+        // Sostituisci tutte le occorrenze nel paragrafo
+        const newText = text.replace(regex, replaceText);
+        paragraph.text = newText;
+        PARAG.update(paragraphIndex, "text", newText, { noSafe: true });
+      });
+
+      // Salva una volta sola su database
+      bookContext.updateBook(book_id, bookClone);
+      toast.success("Sostituite tutte le occorrenze");
+
+      // Reimposta la ricerca per aggiornare gli indici
+      FIND_REPLACE.executeSearch();
+    },
+
+    // Sostituisce la prima occorrenza nel paragrafo corrente
+    replace() {
+      const currentIndex = FIND_REPLACE.currentIndex.get();
+      const replaceText = FIND_REPLACE.replaceQuery.get();
+      const search = FIND_REPLACE.search.get();
+
+      if (foundIndices.length === 0 || currentIndex >= foundIndices.length) return;
+      if (!replaceText.trim()) return;
+
+      // Chiama replaceAll con un array contenente solo l'indice corrente
+      FIND_REPLACE.replaceAll([foundIndices[currentIndex]]);
+
+      // Scrolla verso il prossimo elemento e apri lo stile input
+      const updatedIndex = FIND_REPLACE.currentIndex.get();
+      if (foundIndices.length > 0 && updatedIndex < foundIndices.length) {
+        const nextIndex = foundIndices[updatedIndex];
+        setTimeout(() => {
+          const nextInput = document.getElementById(`${nextIndex}>text`) as HTMLTextAreaElement;
+          if (nextInput) {
+            nextInput.scrollIntoView({ behavior: "smooth", block: "center" });
+            PARAG.setStyleInput(nextIndex);
+          }
+        }, 100);
+      }
+    },
+  };
 
   // 5.5) KEYBOARD FEATURES
   const handleKeyboardFeature = useKeyboardFeatures(book_id, getSection, book, setBook, AUTOCOMPLETE, SECTION, PARAG);
@@ -618,6 +810,8 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
     showParagraphs,
     AUTOCOMPLETE,
     HISTORY, 
+    FIND_REPLACE,
+    foundIndices,
     canRead, canWrite,
     olRef, olHeight
   };

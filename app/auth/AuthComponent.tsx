@@ -128,7 +128,7 @@ export default function AuthComponent() {
 
                 <div className="bg-white text-black outline rounded">
                   <Field
-                    input_class="py-1 px-2  italic font-bold text-sm"
+                    input_class="pt-1 px-2  italic font-bold text-sm"
                     id={permession.title}
                     hide_label label={permession.title}
                     type="text"
@@ -138,10 +138,10 @@ export default function AuthComponent() {
                     error_message={errors[`${i}>title`]}
                   />
                   <Field
-                    input_class="py-1 px-2"
+                    input_class="pb-2 px-3"
                     id={permession.auth_code}
                     hide_label label={permession.auth_code}
-                    type="text"
+                    type="copy"
                     placeholder={permession.auth_code}
                     value={permession.auth_code}
                     onChange={(e) => CRUD.handleUpdate(i, 'auth_code', e.target.value)}

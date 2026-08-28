@@ -38,7 +38,43 @@ const useEvents = ({ value, onChange, onInput, onFocus, onBlur }: Partial<FieldP
   useEffect(() => {
     setLocalValue(value !== undefined && value !== null ? value : "");
   }, [value]);
-  
+
+  // Copia il valore negli appunti
+  const [copied, setCopied] = useState(false);
+  async function handleCopy() {
+    try {
+      const textToCopy = String(localValue);
+      
+      // Metodo moderno (funziona su HTTPS e contesti sicuri)
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(textToCopy);
+      } else {
+        // Fallback per dispositivi mobili e contesti non sicuri
+        const textArea = document.createElement('textarea');
+        textArea.value = textToCopy;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-999999px';
+        textArea.style.top = '-999999px';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        
+        try {
+          document.execCommand('copy');
+        } catch (err) {
+          console.error('Fallback copy failed:', err);
+          throw err;
+        }
+        
+        document.body.removeChild(textArea);
+      }
+      
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Errore durante la copia:', err);
+    }
+  };
 
   // Gestisce il cambiamento del valore locale (onInput - comportamento React onChange)
   function handleLocalChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>){
@@ -60,7 +96,11 @@ const useEvents = ({ value, onChange, onInput, onFocus, onBlur }: Partial<FieldP
   };
 
   // Gestisce la pressione di Enter (solo per input non textarea) - onChange HTML
-  function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+  function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) {
+    if (e.key === "Tab") {
+      // Permette la navigazione naturale del browser con Tab
+      return;
+    }
     if (e.key === "Enter") {
       const hasChanged = localValue !== value;
       if (!hasChanged) return;
@@ -81,7 +121,7 @@ const useEvents = ({ value, onChange, onInput, onFocus, onBlur }: Partial<FieldP
   }
 
   const [localValue, setLocalValue] = useState(value !== undefined && value !== null ? value : "");
-  return { localValue, setLocalValue, handleLocalChange, handleBlur, handleFocus, handleKeyDown, resetInput, showPassword, togglePassword };
+  return { localValue, setLocalValue, handleLocalChange, handleBlur, handleFocus, handleKeyDown, resetInput, showPassword, togglePassword, handleCopy, copied };
 };
 
 
@@ -215,6 +255,7 @@ export default function Field({
           onChange={EVENTS.handleLocalChange}
           onBlur={EVENTS.handleBlur}
           onClick={onClick}
+          onKeyDown={EVENTS.handleKeyDown}
           onFocus={(e) => {
             EVENTS.handleFocus(e);
             MOBILE.handleFocus();
@@ -243,10 +284,13 @@ export default function Field({
 
       /* DEFAULT */
       ) : (
-        <div className="relative">
+        <div className="flex items-center">
           <input
             ref={MOBILE.inputRefInternal}
-            type={type==='password' ? (EVENTS.showPassword ? 'text' : 'password') : type}
+            type={type==='password' 
+              ? (EVENTS.showPassword ?'text' :'password') 
+              : ["search","copy"].includes(type) ?'text' :type
+            }
             placeholder={placeholder}
             value={EVENTS.localValue as string}
             id={id}
@@ -257,7 +301,7 @@ export default function Field({
             aria-required={asterisk || undefined}
             aria-invalid={!!error_message}
             aria-describedby={error_message ? errorId : undefined}
-            className={`block w-full ${input_class} ${error_message ? "border border-red-500" : ""}`}
+            className={`block flex-1 ${input_class} ${error_message ? "border border-red-500" : ""}`}
             onChange={EVENTS.handleLocalChange}
             onBlur={EVENTS.handleBlur}
             onClick={onClick}
@@ -269,27 +313,35 @@ export default function Field({
             autoComplete={autoComplete}
             {...rest}
           />
+
           {/* pulsanti */}
           {/* se premuto mostra la password */}
           {type==="password" && (
-            <div className="h-full absolute right-0 bottom-0  flex items-center justify-center">
-              <button type="button" onClick={EVENTS.togglePassword} 
-                      className="me-1 py-1 px-2 bg-gray-800/80 rounded-full text-xl block">
-                {EVENTS.showPassword 
-                  ? <i className="bi bi-eye-slash" aria-hidden="true"></i>
-                  : <i className="bi bi-eye" aria-hidden="true"></i>
-                } 
-              </button>
-            </div>
+            <button type="button" onClick={EVENTS.togglePassword} 
+                    className="me-1 px-1 bg-gray-200/80 text-black rounded outline">
+              {EVENTS.showPassword 
+                ? <i className="bi bi-eye-slash" aria-hidden="true"></i>
+                : <i className="bi bi-eye" aria-hidden="true"></i>
+              } 
+            </button>
           )}
           {/* se premuto, resetta l'input */}
-          {type==="search" && (
-            <div className="absolute right-0 top-0">
-              <button type="button" onClick={EVENTS.resetInput} 
-                      className="m-1 px-1 bg-gray-800/80 rounded-full text-2xl block">
-                <i className="bi bi-x" aria-hidden="true"></i>
-              </button>
-            </div>
+          {(type==="search" && value.length > 0) && (
+            <button type="button" onClick={EVENTS.resetInput} 
+                    className="me-1 px-1 bg-gray-200/80 text-black rounded outline">
+              <i className="bi bi-x-lg" aria-hidden="true"></i>
+            </button>
+          )}
+          {/* se premuto, copia il valore */}
+          {type==="copy" && (
+            <button type="button" onClick={EVENTS.handleCopy} 
+                    className={`me-2 px-1 rounded outline bg-gray-200 text-black`}
+                    title={EVENTS.copied ? "Copiato!" : "Copia"}>
+              {EVENTS.copied 
+                ? <i className="bi bi-check-lg text-green-700" aria-hidden="true"></i>
+                : <i className="bi bi-clipboard" aria-hidden="true"></i>
+              } 
+            </button>
           )}
         </div>
       )}
@@ -309,6 +361,7 @@ export default function Field({
           </div>
         </div>
       )}
+
 
       {/* MESSAGGIO AGGIUNTIVO */}
       {message && (
