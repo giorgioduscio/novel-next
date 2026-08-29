@@ -16,6 +16,7 @@
 * pulsante in basso a destra
   * bookcomponent: impostazioni (convertire gli hook in context?)
   * sectioncomponent: copia e incolla
+* fix: structire component, gli input prendono troppa larghezza
 
 * [?] (2h) external_style: inserire uno sfondo comune tra più paragrafi
 * [5] (2h) opzione delle guide nell'editor

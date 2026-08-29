@@ -9,11 +9,13 @@ import Navigation from "../shareds/Navigation";
 import { useBooksComponent } from "./useBooksComponent";
 import handleArrowKeyFocus from "../tools/handleArrowKeyFocus";
 import { useBookContext } from "../data/BookContext";
+import useSharedText from "../data/sharedText";
 
 export default function BooksComponent() {
   const { page, books, filteredBooks, searchQuery, BOOKS, canWrite, errors } = useBooksComponent();
   const bookContext = useBookContext();
   const { isEditMode } = page;
+  const { upload } = useSharedText();
 
   // Mostra il componente di caricamento se la pagina non è pronta o è in corso il caricamento
   if (!page.isPageLoaded || bookContext.loading) {
@@ -29,19 +31,11 @@ export default function BooksComponent() {
       {/* UPLOAD */}
       <div className="py-2 flex justify-center items-center gap-2">
         <button
-          onClick={bookContext.upload.json.execute}
+          onClick={upload}
           className="py-2 px-3 text-sm rounded bg-green-800"
         >
-          <i className={`me-2 bi ${bookContext.upload.json.icon}`}></i>
-          <span>{bookContext.upload.json.label}</span>
-        </button>
-
-        <button
-          onClick={bookContext.upload.markdown.execute}
-          className="py-2 px-3 text-sm rounded bg-blue-800"
-        >
-          <i className={`me-2 bi ${bookContext.upload.markdown.icon}`}></i>
-          <span>{bookContext.upload.markdown.label}</span>
+          <i className="me-2 bi bi-upload"></i>
+          <span>Upload (.json / .md)</span>
         </button>
       </div>
       {/* UPLOAD */}

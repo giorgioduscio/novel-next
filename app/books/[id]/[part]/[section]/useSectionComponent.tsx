@@ -9,6 +9,7 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { safeParse } from "valibot";
 import { useKeyboardFeatures } from "./keyboardFeatures";
 import { useAuthContext } from "@/app/data/AuthContext";
+import useSharedText from "@/app/data/sharedText";
 
 export interface UseSectionComponentProps {
   book_id: string;
@@ -18,7 +19,7 @@ export interface UseSectionComponentProps {
 
 export function useSectionComponent({ book_id, part_id, section_id }: UseSectionComponentProps) {
   // 1) DATI PRINCIPALI
-  const router = useRouter();
+  const sharedText = useSharedText();
   const bookContext = useBookContext();
   const agree = useAgreeWrapper();
   const page = useCommonPagesContext();
@@ -155,29 +156,22 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
   
     // Incolla la struttura del libro dal sistema
     async paste(){
-      
       if (
         SECTION.bookSection?.paragraphs?.length &&
         !(await agree.warning("Sei sicuro di voler sostituire i paragrafi precedenti?","Incolla"))
       ) return;
 
       const input =await navigator.clipboard.readText();
-      // JSON
+      // controlli
       const isJson =["{","}","[","]"].every(char => input.includes(char));
       const isMarckdown =["###"].some(markdown => input.includes(markdown));
       
       if(isJson){
-        console.log("> JSON");
         return SHARED.paste_json(input);
-      }
-      else if(isMarckdown){
-        console.log("> Markdown");
+
+      } else if(isMarckdown){
         return SHARED.paste_markdown(input);
       }
-
-      // Testo
-      console.log("> Testo");
-      // return this.paste_text();
     },
 
     async paste_json(input:string) {
@@ -206,35 +200,7 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
     },
 
     async paste_markdown(input: string){
-      const newSection :Section = {
-        id: SECTION.bookSection?.id ||"",
-        title: SECTION.bookSection?.title ||"",
-        note: SECTION.bookSection?.note || "",
-        paragraphs: []
-      }
-      
-      // divide l'input per ogni 'a capo'
-      input.split(`\n`).forEach(_p=>{
-        const p = _p.trim()
-        if(!p) return;
-
-        // titolo segnato con ###
-        if(p.startsWith("### ")){ 
-          newSection.title = p.trim().replace("### ", "");
-        
-        // note segnate con parentesi
-        } else if(p.startsWith("(") && p.endsWith(")")) {
-          newSection.note = p.trim().replace("(", "").replace(")", "");
-        
-        // paragrafo
-        } else {
-          newSection.paragraphs?.push({
-            id: bookContext.createId(),
-            in_style: p.startsWith("* ") ?"dialogo sinistra" :"",
-            text: p.replace("* ","")
-          })
-        }
-      })
+      const newSection :Section = sharedText.md_to_section(input)
         
       // aggiornamento  componente
       const clone = structuredClone(book) as Book;

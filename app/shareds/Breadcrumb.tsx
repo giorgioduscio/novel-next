@@ -21,8 +21,6 @@ export function Breadcrumb({routes}: routerProp) {
     
     // aggiunge sempre la home
     res.unshift({label:"Home", url:"/", icon:"bi-house"})
-
-    console.log('res', res.map(i=> i.url));
     
     return res;
   }, [routes])

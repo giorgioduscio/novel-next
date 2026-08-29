@@ -52,7 +52,7 @@ export function BookNavbar({book, canRead, canWrite}: BookNavbarProps) {
 interface UseBookComponentProps { id: string }
 export default function StructureComponent(props: UseBookComponentProps) {
   const page = useCommonPagesContext();
-  const {PART, SECTION, SORT, bookContext, errors, book} = useBookComponent(props);
+  const {PART, SECTION, SORT, bookContext, errors, book, SHARE} = useBookComponent(props);
   const authContext = useAuthContext();
   
 
@@ -116,9 +116,9 @@ export default function StructureComponent(props: UseBookComponentProps) {
 
                     {/* TITOLO PARTE */}
                     <Frag if={!!part.sections?.length}>
-                      <h3 className="hidden">{part.title}</h3>
-                      <Dropdown>
-                        <DropdownSummary className="">
+                      <div className="grid grid-cols-[1fr_auto_auto]">
+                        <h3 className="hidden">{part.title}</h3>
+                        <div className="max-w-[150px]">
                           <Field  id={part_i.toString()} 
                                   hide_label label={"Titolo della parte"} 
                                   input_class={`py-2 px-5 font-bold ${canEdit ? "bg-white text-black outline rounded" : ""}`}
@@ -129,20 +129,11 @@ export default function StructureComponent(props: UseBookComponentProps) {
                                   error_message={errors[`${part_i}>title`]}
                                   onChange={(e) => PART.update(part_i,"title", e.target.value)}
                           />
-                        </DropdownSummary>
-
-                        <DropdownContent className="absolute z-2 w-full bg-white text-black outline rounded">
-                          <Field  id={`part-note-${part_i}`} 
-                                  label={"Nota della parte"} 
-                                  input_class={`pb-2 px-3 text-sm`}
-                                  type={"textarea"} 
-                                  disabled={!canEdit}
-                                  placeholder={"Inserisci descrizione o cose da fare"} 
-                                  value={part.note || ""} 
-                                  onInput={(e) => PART.update(part_i, "note", e.target.value)}
-                          />
-                        </DropdownContent>
-                      </Dropdown>
+                        </div>
+                        <button className="p-2 bg-green-700" onClick={_e=> SHARE.copy(part.id || "")}>
+                          <i className="bi bi-clipboard-plus-fill"></i>
+                        </button>
+                      </div>
                     </Frag>
 
 
@@ -197,7 +188,7 @@ export default function StructureComponent(props: UseBookComponentProps) {
                                 <div className={`py-2 px-1 flex-1`}>
                                   <Field  id={"section-" + section_i} 
                                           hide_label label={"Sezione " + (section_i + 1)} 
-                                          input_class={`py-1 px-2 ${canEdit ?'bg-white text-black outline rounded' : ''}`}
+                                          input_class={`max-w-[150px] py-1 px-2 ${canEdit ?'bg-white text-black outline rounded' : ''}`}
                                           type={"text"} 
                                           placeholder={"Nome della sezione"} 
                                           value={section.title} 
@@ -236,11 +227,20 @@ export default function StructureComponent(props: UseBookComponentProps) {
 
           {/* pulsante aggiunta */}
           <Frag if={canEdit}>
-            <button onClick={() => PART.create()}
-                    className="py-2 px-3 mx-auto my-3 block bg-green-600 rounded">
-              <i className="bi bi-plus-lg"></i>
-              <span>Aggiungi parte</span>
-            </button>
+            <div className="mx-auto max-w-fit">
+              <div className="flex flex-wrap outline rounded overflow-hidden">
+                <button onClick={() => PART.create()}
+                        className="py-2 px-3 bg-green-600">
+                  <i className="me-1 bi bi-plus-lg"></i>
+                  <span>Aggiungi parte</span>
+                </button>
+                <button onClick={() => SHARE.paste()}
+                        className="py-2 px-3 bg-indigo-600">
+                  <i className="me-1 bi bi-clipboard-plus-fill"></i>
+                  <span>Incolla</span>
+                </button>
+              </div>
+            </div>
           </Frag>
           
 
