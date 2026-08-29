@@ -28,8 +28,11 @@ function AddParagraphButton({ if: show, handleCreate, className = "" }: AddParag
 
 export default function SectionComponent(props: UseSectionComponentProps) {
   const {
-    book_id,  section_title,  page,  SECTION_title,
-    SECTION,  PARAG, showParagraphs,
+    book, part,
+    book_id,  section_id,  page,  SECTION_title,
+    SECTION,
+    SHARED,  
+    PARAG, showParagraphs,
     errors,
     AUTOCOMPLETE,
     HISTORY,
@@ -53,14 +56,14 @@ export default function SectionComponent(props: UseSectionComponentProps) {
 
   return (<>
     {/* NAVBAR */}
-    <Navigation back_btn={{ href: `/books/${book_id}` }} page_title={section_title}>
-      <button onClick={SECTION.copy}
+    <Navigation back_btn={{ href: `/books/${book_id}` }} page_title={SECTION_title}>
+      <button onClick={SHARED.copy}
               className="p-2 bg-blue-900 text-sm truncate">
         <i className="bi bi-copy"></i>
         <span className="pl-2">Copia</span>
       </button>
       <Frag if={canWrite}>
-        <button onClick={SECTION.paste}
+        <button onClick={SHARED.paste}
                 className="p-2 bg-green-900 text-sm truncate">
           <i className="bi bi-clipboard"></i>
           <span className="pl-2">Incolla</span>
@@ -68,7 +71,7 @@ export default function SectionComponent(props: UseSectionComponentProps) {
       </Frag>
     </Navigation>
 
-    <Breadcrumb />
+    <Breadcrumb routes={["Catalogo:/books", `${book?.title}:/${book?.id}`, `${part?.title}:/structure`, SECTION_title]} />
 
     {/* STRUMENTI */}
     <div className={`sticky top-[calc(45px+env(safe-area-inset-top))] z-20 ${canWrite ?"" :"pointer-events-none invisible"}`}>

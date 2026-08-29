@@ -136,12 +136,6 @@ export function useBookComponent({ id }: UseBookComponentProps) {
       toast.success("Sezione aggiunta");
     },
 
-    // sostituisce gli spazi vuoti con trattini
-    writeHref(book_id: string, part: string, section: string) {
-      part = part.replaceAll(" ", "-");
-      section = section.replaceAll(" ", "-");
-      return `/books/${book_id}/${part}/${section}`;
-    },
 
     updateTitle(part_i: number, section_i: number, value: string) {
       // stato

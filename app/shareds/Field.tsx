@@ -284,7 +284,7 @@ export default function Field({
 
       /* DEFAULT */
       ) : (
-        <div className="flex items-center">
+        <div className="pr-1 flex items-center">
           <input
             ref={MOBILE.inputRefInternal}
             type={type==='password' 
@@ -318,7 +318,7 @@ export default function Field({
           {/* se premuto mostra la password */}
           {type==="password" && (
             <button type="button" onClick={EVENTS.togglePassword} 
-                    className="me-1 px-1 bg-gray-200/80 text-black rounded outline">
+                    className="px-1 bg-gray-200/80 text-black rounded outline">
               {EVENTS.showPassword 
                 ? <i className="bi bi-eye-slash" aria-hidden="true"></i>
                 : <i className="bi bi-eye" aria-hidden="true"></i>
@@ -328,14 +328,14 @@ export default function Field({
           {/* se premuto, resetta l'input */}
           {(type==="search" && value.length > 0) && (
             <button type="button" onClick={EVENTS.resetInput} 
-                    className="me-1 px-1 bg-gray-200/80 text-black rounded outline">
+                    className="px-1 bg-gray-200/80 text-black rounded outline">
               <i className="bi bi-x-lg" aria-hidden="true"></i>
             </button>
           )}
           {/* se premuto, copia il valore */}
           {type==="copy" && (
             <button type="button" onClick={EVENTS.handleCopy} 
-                    className={`me-2 px-1 rounded outline bg-gray-200 text-black`}
+                    className={`px-1 rounded outline bg-gray-200 text-black`}
                     title={EVENTS.copied ? "Copiato!" : "Copia"}>
               {EVENTS.copied 
                 ? <i className="bi bi-check-lg text-green-700" aria-hidden="true"></i>

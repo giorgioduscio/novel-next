@@ -2,69 +2,55 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useBookContext } from "../data/BookContext";
+import { useMemo } from "react";
 
-export function Breadcrumb() {
+interface routerProp {
+  routes: string[]
+}
+export function Breadcrumb({routes}: routerProp) {
   const pathname = usePathname();
-  const bookStore = useBookContext();
-  if (!bookStore.loading) return null;
-
-  // converte l'url nel breadcrumb
-  function buildRoutes() {
-    const routes = [{ label:"Home", url:'/', icon:"bi-house" }];
+  
+  const routesParsed = useMemo(()=>{
+    let prev ="";
     
-    // aggiunge i segmenti dell'url
-    let url=''; // url crescente
+    const res = routes.map(route => {
+      const [label, url, icon] = route.split(":");
+      prev += url ||"";
+      return {label, url: url? prev.replace("//","/") :"", icon: icon || ""};
+    });
     
-    pathname.split("/").filter(Boolean).forEach((segment, segment_i) => {
+    // aggiunge sempre la home
+    res.unshift({label:"Home", url:"/", icon:"bi-house"})
 
-      // cliccare la parte rimanda al libro, 
-      // le pagine delle parti sono dedicate anche alle sezioni
-      const previousUrl = url; 
-      url += `/${segment}`;
-
-      routes.push({
-        label: convertLabel(segment),
-        url: segment_i===2 ?previousUrl :url,
-        icon: "",
-      })
-    })
+    console.log('res', res.map(i=> i.url));
     
-    return routes;
-  }
-
-  // converte parti dell'url in label comprensibili
-  function convertLabel(segment: string): string {
-    if (segment === "books") return "Libri";
-
-    const book = bookStore.getBookById(segment);
-    if(book) return book.title;
-    
-    return segment .replaceAll('-', ' ');
-  }
-
-  const routes = buildRoutes();
+    return res;
+  }, [routes])
 
   return (
     <nav aria-label="Breadcrumb" className="p-2 bg-indigo-900 text-sm">
       <ol className="mx-auto container max-w-[800px] flex items-center flex-wrap gap-2 text-gray-400">
-        {routes.map((route, index) => (
+        {routesParsed.map((route, index) => (
           <li key={index}>
             {index > 0 && 
               <i className="bi bi-chevron-right me-1"></i>
             }
-            
-            <Link
-              href={route.url}
-              className="active:text-white transition-colors truncate max-w-[110px]"
-              title={`Torma a ${route.label}`}
-              aria-disabled={route.url === pathname}
-            >
-              {route.icon && 
-                <i className={`me-2 bi ${route.icon}`}></i>
-              }
-              {route.label}
-            </Link>
+
+            {(!route.url || route.url === pathname) ?(
+              <span>{route.label}</span>
+
+            ):(
+              <Link
+                href={route.url || ""}
+                className="active:text-white transition-colors truncate max-w-[110px]"
+                title={route.url ?`Torma a ${route.label}`: ''}
+              >
+                {route.icon && 
+                  <i className={`me-2 bi ${route.icon}`}></i>
+                }
+                {route.label}
+              </Link>
+            )}            
           </li>
         ))}
       </ol>

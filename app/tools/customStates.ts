@@ -16,7 +16,7 @@ export function useDot<T>(initialValue: T) {
 
 export function useDotNotation<T>(initialValue: T) {
   const [state, setState] = useState<T>(initialValue);
-  // const reference = useMemo(()=> state, [state])
+  // const computed = useMemo(()=> state, [state])
 
   const result = {
     get: state,

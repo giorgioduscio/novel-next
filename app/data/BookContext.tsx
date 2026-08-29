@@ -154,8 +154,7 @@ function bookContextValue() {
   );
 
   // Download methods
-  const download = useMemo(
-    () => ({
+  const download = useMemo(() => ({
       _json_to_text(data: Book, isMarkdownFormat = false) {
         let result = `${isMarkdownFormat ? "# " : ""}${data.title}\n\n`;
         for (let part of data.parts || []) {
@@ -206,8 +205,7 @@ function bookContextValue() {
   );
 
   // Upload methods
-  const upload = useMemo(
-    () => ({
+  const upload = useMemo(() => ({
       json: {
         label: "Upload (.json)",
         icon: "bi-upload",

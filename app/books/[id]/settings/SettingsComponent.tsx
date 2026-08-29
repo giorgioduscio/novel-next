@@ -86,7 +86,7 @@ export default function SettingsComponent(props: UseBookComponentProps) {
     <>
       <BookNavbar book={book} canRead={canRead} canWrite={canWrite} />
 
-      <Breadcrumb />
+      <Breadcrumb routes={["Catalogo:/books", `${book?.title}:/${book?.id}/structure`, "Impostazioni"]} />
 
       <main id="StructureComponent" 
             className="mx-auto container max-w-[500px]"

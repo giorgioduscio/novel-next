@@ -16,8 +16,8 @@ import handleArrowKeyFocus from "@/app/tools/handleArrowKeyFocus";
 
 interface BookNavbarProps { book: Book | undefined, canRead: boolean, canWrite: boolean }
 export function BookNavbar({book, canRead, canWrite}: BookNavbarProps) {
-  const firstPart = book?.parts?.[0]?.title.replaceAll(" ", "-") || "";
-  const firstSection = book?.parts?.[0]?.sections?.[0]?.title.replaceAll(" ", "-") || "";
+  const firstPart = book?.parts?.[0]?.id;
+  const firstSection = book?.parts?.[0]?.sections?.[0]?.id;
 
   return <>
     <Navigation page_title={book?.title ||""} back_btn={{ href:"/books" }}>
@@ -83,7 +83,7 @@ export default function StructureComponent(props: UseBookComponentProps) {
   return <>
     <BookNavbar book={book} canRead={canRead} canWrite={canWrite} />
     
-    <Breadcrumb />
+    <Breadcrumb routes={["Catalogo:/books", book?.title || "Libro", "Struttura"]} />
 
     <main id="StructureComponent" 
           className="mx-auto container max-w-[800px]" 
@@ -209,7 +209,7 @@ export default function StructureComponent(props: UseBookComponentProps) {
                                 
                                 {/* freccia */}
                                 <Link className={`p-3 flex items-center bg-indigo-800`} 
-                                        href={SECTION.writeHref(book?.id!, part.title, section.title)}>
+                                        href={`/books/${book.id}/${part.id}/${section.id}`}>
                                   <i className="bi bi-chevron-right"></i>
                                 </Link>
                               </Frag>
@@ -217,7 +217,7 @@ export default function StructureComponent(props: UseBookComponentProps) {
                               {/* link */}
                               <Frag if={!canEdit} className="flex-1">
                                 <Link className={`p-3 flex items-center justify-between bg-indigo-800`} 
-                                        href={SECTION.writeHref(book?.id!, part.title, section.title)}>
+                                        href={`/books/${book?.id}/${part.id}/${section.id}`}>
                                   <span className="flex-1">{section.title}</span>
                                   <i className="bi bi-chevron-right"></i>
                                 </Link>

@@ -12,18 +12,20 @@ import { useAuthContext } from "@/app/data/AuthContext";
 
 export interface UseSectionComponentProps {
   book_id: string;
-  part_title: string;
-  section_title: string;
+  part_id: string;
+  section_id: string;
 }
 
-export function useSectionComponent({ book_id, part_title, section_title }: UseSectionComponentProps) {
+export function useSectionComponent({ book_id, part_id, section_id }: UseSectionComponentProps) {
   // 1) DATI PRINCIPALI
   const router = useRouter();
   const bookContext = useBookContext();
   const agree = useAgreeWrapper();
   const page = useCommonPagesContext();
   const [book, setBook] = useState<Book | undefined>(undefined);
+  const part = useMemo(()=> getPart(), [book])
   const authContext = useAuthContext()
+  const [SECTION_title, SECTION_setTitle] = useState("");
 
   // autorizzazioni
   const canRead =useMemo(()=> 
@@ -36,20 +38,31 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
   
   
   useEffect(() => {
+    // libro
     const foundBook = bookContext.getBookById(book_id);
+    if(!foundBook) return console.error("Libro non trovato");
     setBook(foundBook);
+    // sezione
+    const sec = getSection(foundBook)
+    if(!sec) return console.error("Sezione non trovata");
+    SECTION_setTitle(sec.title || "");
+    // condivide il target ad altri componenti
     bookContext.setTarget(foundBook);
   }, [book_id, bookContext.getBookById, bookContext.setTarget]);
 
   // restituisce la sezione corrente in base al libro
+  function getPart(bookObj = book) :Section | undefined {
+    return bookObj?.parts
+      ?.find((p) => p.id === part_id)
+  };
+
   function getSection(bookObj = book) :Section | undefined {
     return bookObj?.parts
-      ?.find((p) => p.title.toLowerCase() === part_title.toLowerCase())
-      ?.sections.find((s) => s.title.toLowerCase() === section_title.toLowerCase());
+      ?.find((p) => p.id === part_id)
+      ?.sections.find((s) => s.id === section_id);
   };
 
   // 2) SEZIONE
-  const [SECTION_title, SECTION_setTitle] = useState(section_title);
   const SECTION = {
 
     bookSection: useMemo(() :Section |undefined => {
@@ -65,7 +78,7 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
       }
       
       return result;
-    }, [book, part_title, SECTION_title]),
+    }, [book, part_id, SECTION_title]),
 
     // Numero di parole nella sezione
     words: useMemo(() :number => {
@@ -82,7 +95,7 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
     handleSubmit(e: React.FormEvent) {
       e.preventDefault();
       const trimmed = SECTION_title.trim();
-      if (!book || !trimmed || trimmed === section_title) {
+      if (!book || !trimmed || trimmed === section_id) {
         throw new Error("Titolo non modificato");
       }
 
@@ -98,12 +111,6 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
       const newBook = bookContext.updateBook(book_id, clone, false);
       if (!newBook) return toast.danger("Titolo non valido");
       toast.success("Titolo aggiornato");
-
-      setTimeout(() => {
-        const _part = part_title.replaceAll(" ", "-");
-        const _title = trimmed.replaceAll(" ", "-");
-        router.push(`/books/${book_id}/${_part}/${_title}`);
-      }, 1000);
     },
 
     // Aggiorna la nota della sezione
@@ -128,12 +135,15 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
         if (firstParagraph) firstParagraph.focus();
       }
     },
+  };
+
+  const SHARED ={
 
     // Copia nel sistema la struttura del libro
     async copy() {
       const section = getSection();
       if (!section) return console.error("Sezione non trovata");
-
+  
       try {
         const serializedSection = JSON.stringify(section, null, 4);
         await navigator.clipboard.writeText(serializedSection);
@@ -142,42 +152,105 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
         console.error("Errore nella copia:", err);
       }
     },
-
+  
     // Incolla la struttura del libro dal sistema
-    async paste() {
+    async paste(){
+      
+      if (
+        SECTION.bookSection?.paragraphs?.length &&
+        !(await agree.warning("Sei sicuro di voler sostituire i paragrafi precedenti?","Incolla"))
+      ) return;
+
+      const input =await navigator.clipboard.readText();
+      // JSON
+      const isJson =["{","}","[","]"].every(char => input.includes(char));
+      const isMarckdown =["###"].some(markdown => input.includes(markdown));
+      
+      if(isJson){
+        console.log("> JSON");
+        return SHARED.paste_json(input);
+      }
+      else if(isMarckdown){
+        console.log("> Markdown");
+        return SHARED.paste_markdown(input);
+      }
+
+      // Testo
+      console.log("> Testo");
+      // return this.paste_text();
+    },
+
+    async paste_json(input:string) {
       try {
         const clone = structuredClone(book);
         if (!clone) return console.error("Libro non trovato");
-
+  
         const section = getSection(clone);
         if (!section) return console.error("Sezione non trovata");
-        if (
-          section.paragraphs?.length &&
-          !(await agree.warning(
-            "Sei sicuro di voler sostituire i paragrafi precedenti?",
-            "Incolla"
-          ))
-        )
-          return;
-
-        const serializedSection = await navigator.clipboard.readText();
-        const newSection: Section = JSON.parse(serializedSection);
+  
+        const newSection: Section = JSON.parse(input);
         if (!newSection || !newSection.paragraphs)
           return console.error("Sezione non valida");
-
+  
         section.paragraphs = newSection.paragraphs;
         setBook(clone);
-
+  
         const res = await bookContext.updateBook(book_id, clone);
         if (!res) return toast.danger("Errore nel salvataggio");
-
+  
         toast.success("Sezione incollata con successo!");
       } catch (err) {
         console.error("Errore nell'incollaggio:", err);
         toast.danger("Errore nell'incollaggio");
       }
     },
-  };
+
+    async paste_markdown(input: string){
+      const newSection :Section = {
+        id: SECTION.bookSection?.id ||"",
+        title: SECTION.bookSection?.title ||"",
+        note: SECTION.bookSection?.note || "",
+        paragraphs: []
+      }
+      
+      // divide l'input per ogni 'a capo'
+      input.split(`\n`).forEach(_p=>{
+        const p = _p.trim()
+        if(!p) return;
+
+        // titolo segnato con ###
+        if(p.startsWith("### ")){ 
+          newSection.title = p.trim().replace("### ", "");
+        
+        // note segnate con parentesi
+        } else if(p.startsWith("(") && p.endsWith(")")) {
+          newSection.note = p.trim().replace("(", "").replace(")", "");
+        
+        // paragrafo
+        } else {
+          newSection.paragraphs?.push({
+            id: bookContext.createId(),
+            in_style: p.startsWith("* ") ?"dialogo sinistra" :"",
+            text: p.replace("* ","")
+          })
+        }
+      })
+        
+      // aggiornamento  componente
+      const clone = structuredClone(book) as Book;
+      const sec = getSection(clone);
+      if(!book || !sec) return console.error("Libro non valido");
+      
+      sec.title = newSection.title;
+      sec.note = newSection.note;
+      sec.paragraphs = newSection.paragraphs;
+
+      setBook(clone)
+      const res = bookContext.updateBook(book_id, clone)
+      if(!res) return toast.danger("Incollaggio fallito")
+      toast.success("Sezione copiata")
+    }
+  }
   
   // 4) PARAGRAFI
   const showParagraphs = useMemo(() => 
@@ -797,15 +870,16 @@ export function useSectionComponent({ book_id, part_title, section_title }: UseS
   };
   HISTORY.onChangeBook();
 
-
   return {
     book,
+    part,
     errors,
     page,
     book_id,
-    section_title,
+    section_id,
     SECTION_title,
     SECTION,
+    SHARED,
     PARAG,
     showParagraphs,
     AUTOCOMPLETE,

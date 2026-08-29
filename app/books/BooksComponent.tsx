@@ -22,9 +22,9 @@ export default function BooksComponent() {
 
   return (
     <>
-      <Navigation page_title="Libri" />
+      <Navigation page_title="Catalogo" />
 
-      <Breadcrumb />
+      <Breadcrumb routes={["Catalogo"]} />
 
       {/* UPLOAD */}
       <div className="py-2 flex justify-center items-center gap-2">
@@ -55,13 +55,13 @@ export default function BooksComponent() {
           {/* HEAD */}
           <div className="mx-auto max-w-[400px]">
             <div className="my-3 flex gap-2 justify-between items-center">
-              <h1 className="text-2xl font-bold truncate text-orange-500">Gestione Libri</h1>
+              <h1 className="text-2xl font-bold truncate text-orange-500">Gestione Catalogo</h1>
 
               <Frag
                 if={!isEditMode && books.length > 0}
                 className="py-1 px-2 rounded outline rounded-full text-xs text-gray-300"
               >
-                Libri: {filteredBooks.length}
+                Catalogo: {filteredBooks.length}
               </Frag>
               {/* NUOVO LIBRO */}
               <Frag if={isEditMode}>

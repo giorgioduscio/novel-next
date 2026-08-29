@@ -16,7 +16,7 @@ export default function AuthComponent() {
   return <>
     <Frag if={checkedTargets.get().length === 0}>
       <Navigation page_title="Permessi" back_btn={{ href:'/' }}>
-        <Link href={"/books"} className="py-1 px-2 bg-orange-700 rounded">Libri</Link>
+        <Link href={"/books"} className="py-1 px-2 bg-orange-700 rounded">Catalogo</Link>
       </Navigation>
     </Frag>
 
@@ -43,7 +43,7 @@ export default function AuthComponent() {
       </div>
     </Frag>
 
-    <Breadcrumb />
+    <Breadcrumb routes={["Codici"]} />
 
 
     <main className="mx-auto container max-w-[800px]">
