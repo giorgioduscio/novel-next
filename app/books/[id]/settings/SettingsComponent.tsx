@@ -7,7 +7,6 @@ import React, { useMemo } from "react";
 import { Book } from "@/app/schemas/book_schema";
 import { useBookComponent } from "../useBookComponent";
 import Field from "@/app/shareds/Field";
-import { BookNavbar } from "../structure/StructureComponent";
 import { useAuthContext } from "@/app/data/AuthContext";
 import { useCommonPagesContext } from "@/app/data/CommonPagesContext";
 import handleArrowKeyFocus from "@/app/tools/handleArrowKeyFocus";
@@ -15,9 +14,10 @@ import AuthFormComponent from "./AuthFormComponent";
 import { useBookContext } from "@/app/data/BookContext";
 import { useRouter } from "next/navigation";
 import { useAgreeWrapper } from "@/app/shareds/Agree";
+import Navigation from "@/app/shareds/Navigation";
 
-export const settings_label_class="px-3 text-black text-sm font-bold italic translate-y-1/2"
-export const settings_input_class="py-2 px-3 text-black"
+export const settings_component_label_class="px-3 text-black text-sm font-bold italic"
+export const settings_component_input_class="pb-2 px-3 text-black w-full"
 
 interface UseBookComponentProps { id: string }
 export default function SettingsComponent(props: UseBookComponentProps) {
@@ -84,7 +84,7 @@ export default function SettingsComponent(props: UseBookComponentProps) {
   if (!page.isPageLoaded) return <LoadingComponent />;
   return (
     <>
-      <BookNavbar book={book} canRead={canRead} canWrite={canWrite} />
+      <Navigation page_title={book?.title ||""} back_btn={{ href:"/books" }} />    
 
       <Breadcrumb routes={["Catalogo:/books", `${book?.title}:/${book?.id}/structure`, "Impostazioni"]} />
 
@@ -111,8 +111,8 @@ export default function SettingsComponent(props: UseBookComponentProps) {
                   <Field
                     id={field.key}
                     label={field.label}
-                    label_class={settings_label_class}
-                    input_class={settings_input_class}
+                    label_class={settings_component_label_class}
+                    input_class={settings_component_input_class}
                     asterisk={field.asterisk}
                     type={field.type || "text"}
                     placeholder={field.placeholder}

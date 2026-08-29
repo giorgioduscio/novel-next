@@ -4,7 +4,7 @@ import Field from "@/app/shareds/Field";
 import { useDot } from "@/app/tools/customStates";
 import { toast } from "@/app/tools/feedbacksUI";
 import * as v from "valibot";
-import { settings_input_class, settings_label_class } from "./SettingsComponent";
+import { settings_component_input_class, settings_component_label_class } from "./SettingsComponent";
 import { useAgreeWrapper } from "@/app/shareds/Agree";
 
 interface Props {
@@ -80,10 +80,10 @@ export default function AuthFormComponent({ labelParam, book, attributeKey }: Pr
     <div className="p-1 outline rounded outline-red-500 bg-red-900">
       <form onSubmit={handleSubmit} className="flex flex-wrap gap-2">
         {Object.entries(fields.get()).map(([key, field]) => (
-          <div key={key} className="flex-1 min-w-[200px] bg-white outline rounded">
+          <div key={key} className="relative flex-1 min-w-[200px] bg-white outline rounded">
             <Field
-              label_class={settings_label_class}
-              input_class={settings_input_class}
+              label_class={settings_component_label_class}
+              input_class={settings_component_input_class}
               id={key}
               label={field.label}
               type="password"

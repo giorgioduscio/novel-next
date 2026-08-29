@@ -30,39 +30,28 @@ export default function BooksComponent() {
 
       {/* UPLOAD */}
       <div className="py-2 flex justify-center items-center gap-2">
-        <button
-          onClick={upload}
-          className="py-2 px-3 text-sm rounded bg-green-800"
-        >
+        <button onClick={upload} className="py-2 px-3 text-sm rounded bg-green-800">
           <i className="me-2 bi bi-upload"></i>
           <span>Upload (.json / .md)</span>
         </button>
       </div>
       {/* UPLOAD */}
 
-      <main
-        id="BooksTemplate"
-        className="mx-auto container max-w-[800px]"
-        onKeyDown={handleArrowKeyFocus}
-      >
+      <main id="BooksTemplate" className="mx-auto container max-w-[800px]">
         <section className="p-2 min-h-dvh">
           {/* HEAD */}
           <div className="mx-auto max-w-[400px]">
             <div className="my-3 flex gap-2 justify-between items-center">
               <h1 className="text-2xl font-bold truncate text-orange-500">Gestione Catalogo</h1>
 
-              <Frag
-                if={!isEditMode && books.length > 0}
-                className="py-1 px-2 rounded outline rounded-full text-xs text-gray-300"
-              >
-                Catalogo: {filteredBooks.length}
+              <Frag if={!isEditMode && books.length > 0}>
+                <div className="py-1 px-2 rounded outline rounded-full text-xs text-gray-300 text-nowrap">
+                  Catalogo: {filteredBooks.length}
+                </div>
               </Frag>
               {/* NUOVO LIBRO */}
               <Frag if={isEditMode}>
-                <button
-                  onClick={BOOKS.create}
-                  className="py-1 px-2 rounded bg-blue-800 whitespace-nowrap"
-                >
+                <button onClick={BOOKS.create} className="py-1 px-2 rounded bg-blue-800 whitespace-nowrap">
                   <i className="me-2 bi bi-plus-lg"></i>
                   Crea Libro
                 </button>
@@ -70,13 +59,14 @@ export default function BooksComponent() {
             </div>
             
             {/* SEARCH INPUT */}
-            <div className="my-3 bg-white text-black outline-2 rounded">
+            <div className="relative my-3">
+              <label htmlFor="search" className="bi bi-search absolute bottom-1 left-3 text-gray-600"></label>
               <Field
                 id="search"
                 label="Cerca libri"
                 type="search"
-                label_class="px-2 pt-1 text-sm font-bold italic"
-                input_class="pb-2 px-3"
+                label_class="px-2 pt-1 text-sm  font-bold italic"
+                input_class="pl-8 px-3 py-1 bg-white text-black outline rounded-full"
                 placeholder="Cerca per titolo o autore..."
                 value={searchQuery.get()}
                 onChange={(e) => searchQuery.set(e.target.value)}

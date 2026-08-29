@@ -137,16 +137,18 @@ export default function AuthComponent() {
                     onChange={(e) => CRUD.handleUpdate(i, 'title', e.target.value)}
                     error_message={errors[`${i}>title`]}
                   />
-                  <Field
-                    input_class="pb-2 px-3"
-                    id={permession.auth_code}
-                    hide_label label={permession.auth_code}
-                    type="copy"
-                    placeholder={permession.auth_code}
-                    value={permession.auth_code}
-                    onChange={(e) => CRUD.handleUpdate(i, 'auth_code', e.target.value)}
-                    error_message={errors[`${i}>auth_code`]}
-                  />
+                  <div className="relative">
+                    <Field
+                      input_class="pb-2 px-3"
+                      id={permession.auth_code}
+                      hide_label label={permession.auth_code}
+                      type="copy"
+                      placeholder={permession.auth_code}
+                      value={permession.auth_code}
+                      onChange={(e) => CRUD.handleUpdate(i, 'auth_code', e.target.value)}
+                      error_message={errors[`${i}>auth_code`]}
+                    />
+                  </div>
                 </div>
 
               </div>

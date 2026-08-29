@@ -14,41 +14,6 @@ import { useAuthContext } from "@/app/data/AuthContext";
 import { useCommonPagesContext } from "@/app/data/CommonPagesContext";
 import handleArrowKeyFocus from "@/app/tools/handleArrowKeyFocus";
 
-interface BookNavbarProps { book: Book | undefined, canRead: boolean, canWrite: boolean }
-export function BookNavbar({book, canRead, canWrite}: BookNavbarProps) {
-  const firstPart = book?.parts?.[0]?.id;
-  const firstSection = book?.parts?.[0]?.sections?.[0]?.id;
-
-  return <>
-    <Navigation page_title={book?.title ||""} back_btn={{ href:"/books" }}>
-      <Dropdown>
-
-        <DropdownSummary className="py-2 px-3 bg-indigo-900">
-          <i className="bi bi-three-dots"></i>
-        </DropdownSummary>
-
-        <DropdownContent className="absolute right-0 z-2 bg-indigo-700 rounded">
-          <Frag if={canRead && canWrite}>
-            <Link href={`/books/${book?.id || ''}/settings`} className="p-2 w-max block"> 
-              <i className="bi bi-info-circle"></i> Opzioni
-            </Link>
-          </Frag>
-
-          <Link href={`/books/${book?.id || ''}/structure`} className="p-2 w-max block"> 
-            <i className="bi bi-bar-chart-steps"></i> Struttura
-          </Link>
-
-          <Link href={`/books/${book?.id || ''}/${firstPart}/${firstSection}`} className="p-2 w-max block"> 
-            <i className="bi bi-chat-dots-fill"></i> Libro  
-          </Link>
-        </DropdownContent>
-
-      </Dropdown>
-    </Navigation>
-  </>
-}
-
-
 interface UseBookComponentProps { id: string }
 export default function StructureComponent(props: UseBookComponentProps) {
   const page = useCommonPagesContext();
@@ -81,7 +46,7 @@ export default function StructureComponent(props: UseBookComponentProps) {
   )
   
   return <>
-    <BookNavbar book={book} canRead={canRead} canWrite={canWrite} />
+    <Navigation page_title={book?.title ||""} back_btn={{ href:"/books" }} />    
     
     <Breadcrumb routes={["Catalogo:/books", book?.title || "Libro", "Struttura"]} />
 
@@ -116,9 +81,9 @@ export default function StructureComponent(props: UseBookComponentProps) {
 
                     {/* TITOLO PARTE */}
                     <Frag if={!!part.sections?.length}>
-                      <div className="grid grid-cols-[1fr_auto_auto]">
+                      <div className="grid grid-cols-[1fr_auto]">
                         <h3 className="hidden">{part.title}</h3>
-                        <div className="max-w-[150px]">
+                        <div>
                           <Field  id={part_i.toString()} 
                                   hide_label label={"Titolo della parte"} 
                                   input_class={`py-2 px-5 font-bold ${canEdit ? "bg-white text-black outline rounded" : ""}`}
@@ -130,9 +95,13 @@ export default function StructureComponent(props: UseBookComponentProps) {
                                   onChange={(e) => PART.update(part_i,"title", e.target.value)}
                           />
                         </div>
-                        <button className="p-2 bg-green-700" onClick={_e=> SHARE.copy(part.id || "")}>
-                          <i className="bi bi-clipboard-plus-fill"></i>
-                        </button>
+                        <div className="p-2">
+                          <button className="px-1 bg-gray-200 text-black outline rounded" 
+                                  onClick={_e=> SHARE.copy(part.id || "")}
+                                  title="Copia parte come json">
+                            <i className="bi bi-clipboard"></i>
+                          </button>
+                        </div>
                       </div>
                     </Frag>
 
@@ -188,7 +157,7 @@ export default function StructureComponent(props: UseBookComponentProps) {
                                 <div className={`py-2 px-1 flex-1`}>
                                   <Field  id={"section-" + section_i} 
                                           hide_label label={"Sezione " + (section_i + 1)} 
-                                          input_class={`max-w-[150px] py-1 px-2 ${canEdit ?'bg-white text-black outline rounded' : ''}`}
+                                          input_class={`py-1 px-2 ${canEdit ?'bg-white text-black outline rounded' : ''}`}
                                           type={"text"} 
                                           placeholder={"Nome della sezione"} 
                                           value={section.title} 

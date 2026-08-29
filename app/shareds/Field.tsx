@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import Frag from "./Frag";
 
 interface FieldProps {
   // proprietà
@@ -301,7 +302,7 @@ export default function Field({
             aria-required={asterisk || undefined}
             aria-invalid={!!error_message}
             aria-describedby={error_message ? errorId : undefined}
-            className={`block flex-1 ${input_class} ${error_message ? "border border-red-500" : ""}`}
+            className={`block w-full ${input_class} ${error_message ? "border border-red-500" : ""}`}
             onChange={EVENTS.handleLocalChange}
             onBlur={EVENTS.handleBlur}
             onClick={onClick}
@@ -315,34 +316,37 @@ export default function Field({
           />
 
           {/* pulsanti */}
-          {/* se premuto mostra la password */}
-          {type==="password" && (
-            <button type="button" onClick={EVENTS.togglePassword} 
-                    className="px-1 bg-gray-200/80 text-black rounded outline">
-              {EVENTS.showPassword 
-                ? <i className="bi bi-eye-slash" aria-hidden="true"></i>
-                : <i className="bi bi-eye" aria-hidden="true"></i>
-              } 
-            </button>
-          )}
-          {/* se premuto, resetta l'input */}
-          {(type==="search" && value.length > 0) && (
-            <button type="button" onClick={EVENTS.resetInput} 
-                    className="px-1 bg-gray-200/80 text-black rounded outline">
-              <i className="bi bi-x-lg" aria-hidden="true"></i>
-            </button>
-          )}
-          {/* se premuto, copia il valore */}
-          {type==="copy" && (
-            <button type="button" onClick={EVENTS.handleCopy} 
-                    className={`px-1 rounded outline bg-gray-200 text-black`}
-                    title={EVENTS.copied ? "Copiato!" : "Copia"}>
-              {EVENTS.copied 
-                ? <i className="bi bi-check-lg text-green-700" aria-hidden="true"></i>
-                : <i className="bi bi-clipboard" aria-hidden="true"></i>
-              } 
-            </button>
-          )}
+          <Frag if={["password","search","copy"].includes(type)} 
+                className="absolute right-1 bottom-1 z-1">
+            {/* se premuto mostra la password */}
+            {type==="password" && (
+              <button type="button" onClick={EVENTS.togglePassword} 
+                      className="px-1 bg-gray-200/80 text-black rounded outline">
+                {EVENTS.showPassword 
+                  ? <i className="bi bi-eye-slash" aria-hidden="true"></i>
+                  : <i className="bi bi-eye" aria-hidden="true"></i>
+                } 
+              </button>
+            )}
+            {/* se premuto, resetta l'input */}
+            {(type==="search" && value.length > 0) && (
+              <button type="button" onClick={EVENTS.resetInput} 
+                      className="px-1 bg-gray-200/80 text-black rounded-full outline">
+                <i className="bi bi-x-lg" aria-hidden="true"></i>
+              </button>
+            )}
+            {/* se premuto, copia il valore */}
+            {type==="copy" && (
+              <button type="button" onClick={EVENTS.handleCopy} 
+                      className={`px-1 rounded outline bg-gray-200 text-black`}
+                      title={EVENTS.copied ? "Copiato!" : "Copia"}>
+                {EVENTS.copied 
+                  ? <i className="bi bi-check-lg text-green-700" aria-hidden="true"></i>
+                  : <i className="bi bi-clipboard" aria-hidden="true"></i>
+                } 
+              </button>
+            )}
+          </Frag>
         </>
       )}
 
