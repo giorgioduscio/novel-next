@@ -13,10 +13,12 @@
         width: fit-content
         max-width: 100%
         margin-left: auto
+        margin-right: 1rem
 
     .sinistra 
         width: fit-content
         max-width: 100%
+        margin-left: 1rem
         margin-right: auto
 
     .centro
@@ -29,7 +31,7 @@
         padding-bottom: 40dvh
 
     // 2) FUMETTO DESCRIZIONE
-    .descrizione
+    .desc, .descrizione
         padding: 0.2rem 0.4rem
         border-width: 0.2rem 
         border-style: solid 
@@ -50,13 +52,23 @@
         border-style: dashed !important
 
     // 5) FUMETTO ESCLAMAZIONE
-    .esclamazione
+    .escl, .esclamazione
         padding: 3rem 2rem
         display: flex
         align-items: center
         font-weight: bold
         clip-path: polygon(50% 0%, 58% 18%, 72% 5%, 73% 22%, 92% 14%, 82% 32%, 100% 35%, 82% 45%, 96% 58%, 78% 58%, 88% 80%, 68% 70%, 65% 100%, 50% 82%, 35% 100%, 32% 78%, 12% 86%, 20% 64%, 0% 60%, 18% 45%, 3% 32%, 23% 28%, 14% 8%, 40% 18%)
     
-    // 6) sfondo
-    .bg-gradiant-black
-        background: linear-gradient(180deg, transparent, #000 )
+    // 6) Sfondo gradiente
+    .bg-black-b 
+        background: linear-gradient(180deg, transparent 0%, #000 100%)
+    .bg-black-t 
+        background: linear-gradient(180deg, #000 0%, transparent 100%)
+
+    .bg-radial-black 
+        background: radial-gradient(circle, #000 0%, transparent 100%)
+
+    // sfondo gradiente per step
+    @for $i from 1 through 10
+        .bg-fade-#{$i * 10}
+            background: linear-gradient(to bottom, oklab(0 0 0 / #{$i * 0.1 - 0.1}), oklab(0 0 0 / #{$i * 0.1}))

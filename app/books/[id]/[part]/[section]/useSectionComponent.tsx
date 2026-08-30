@@ -76,9 +76,8 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
       
       // recupera solo le classi che cominciano per 'ex:'
       for (const paragraph of result.paragraphs){
-        (paragraph as any).ex_style = paragraph.in_style?.split(" ") 
-          .filter(cls => cls.startsWith("ex:"))
-          .join(" ") .replaceAll("ex:", "");
+        const [in_, ex_] = paragraph.in_style.split(",,");
+        (paragraph as any).ex_style = ex_ || "";
       }
       
       return result;
@@ -220,7 +219,7 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
     ){
       const clone = structuredClone(book!);
       const sec = getSection(clone);
-      if (!sec || !sec.paragraphs?.length) return;
+      if (!sec || !sec.paragraphs?.length) return;      
 
       // aggiornamento stato
       // una sola classe -> aggiunge il valore alla fine
@@ -245,7 +244,7 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
       if(options?.noSafe) return;
       const res = bookContext.updateBook(book_id, clone)
       if(!res) return toast.danger("Errore di validazione");
-      toast.success("Paragrafo salvato!");
+      // toast.success("Paragrafo salvato!");
     },
 
     // crea nuovo paragrafo senza salvarlo
@@ -294,21 +293,24 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
 
     // imposta il colore appropriato del testo
     parseStyle(paragraph:Paragraph) :string{
+      // Estrai solo la parte prima di ',,' per lo stile principale
+      const [in_style] = paragraph.in_style.split(",,");
+
       // sfondo bianco
-      if(paragraph.in_style?.includes("bg-white")){
-        return paragraph.in_style + " text-black";
+      if(in_style?.includes("bg-white")){
+        return in_style + " text-black";
       }
 
-      const backgroundPattern = /bg-[a-zA-Z]+-[0-9]+/; 
-      const match = paragraph.in_style?.match(backgroundPattern);
+      const backgroundPattern = /bg-[a-zA-Z]+-[0-9]+/;
+      const match = in_style?.match(backgroundPattern);
       // non si specifica lo sfondo
       if(!match){
-        return paragraph.in_style || "";
+        return in_style || "";
       }
       const gradiant = parseInt(match[0].split('-')[2] || "0");
       const textColor = gradiant <= 400 ?" text-black" :" text-white";
-      
-      return paragraph.in_style + textColor;
+
+      return in_style + textColor;
     },
 
     // input di stile
@@ -377,8 +379,6 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
       
       // seleziona textarea del testo del paragrafo
       const element = e.target as HTMLElement;
-      if(!element.hasAttribute("data-focus-text")) return;
-      
       const isSelected = element.tagName === "TEXTAREA";
       const textarea = (
         isSelected 
@@ -390,8 +390,9 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
       
       if(!textarea) return console.error("Textarea non trovata");
       
+      // fa tornare editmode
       if(!page.isEditMode) page.toggleEditMode();
-      
+      // applica il focus
       setTimeout(() => {
         const targetTextarea = (document.getElementById(textarea.id) as HTMLTextAreaElement) || textarea;
         targetTextarea?.focus();

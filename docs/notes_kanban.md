@@ -12,7 +12,6 @@
 # Kanban - Novel Writer (Next.js)
 ## 📌 To Do
 
-* [?] (2h) external_style: inserire uno sfondo comune tra più paragrafi
 * [5] (2h) opzione delle guide nell'editor
 * [5] elementi angolati
 * [?] layout mobile
@@ -59,3 +58,4 @@
 * implementazione per uso pratico
 * inserire note e id per parti, sezioni e paragrafi
 * Sistema di autenticazione minimale
+* gradiante nero: inserire uno sfondo nero lineare gradiante, dall'alto verso il basso, tra più paragrafi

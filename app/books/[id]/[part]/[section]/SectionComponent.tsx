@@ -20,7 +20,7 @@ function AddParagraphButton({ if: show, handleCreate, className = "" }: AddParag
       >
         <i className="bi bi-plus-lg"></i>
       </button>
-      <div className="absolute w-full pointer-events-none border-y border-dashed border-blue-300"></div>
+      <div className="absolute w-full pointer-events-none border-y border-dashed border-blue-700"></div>
     </div>
   </Frag>
 }
@@ -264,7 +264,6 @@ export default function SectionComponent(props: UseSectionComponentProps) {
                 </Frag>
               </Frag.Else>
 
-              {/* target: voglio sapere quanto è alto questo elemento */}
               <ol ref={olRef}>
                 {SECTION.bookSection?.paragraphs?.map((p, paragraph_i) => (
                   <li key={paragraph_i} className="relative">
@@ -276,27 +275,28 @@ export default function SectionComponent(props: UseSectionComponentProps) {
                     />
 
                     {/* TESTO PARAGRAFO */}
-                    <div onClick={PARAG.handleFocusText} data-focus-text
+                    <div onClick={PARAG.handleFocusText}
                           className={`block py-3 ${(p as any).ex_style}`}>
-                      <div onClick={PARAG.handleFocusText} data-focus-text
-                            className={`block p-1 ${PARAG.parseStyle(p) || ""}`}>
-                        <div className={canWrite && PARAG.styleInput.get().index === paragraph_i ? 'outline-3 outline-dashed outline-black' : ''}>
-                          <Field
-                            input_class={`p-1 text-center ${canWrite && PARAG.styleInput.get().index === paragraph_i ? 'outline-3 outline-white' : ''}`}
-                            placeholder="Testo del paragrafo"
-                            value={p.text}
-                            readOnly={!canWrite}
-                            hide_label
-                            label="Descrivi la scena"
-                            asterisk
-                            type="textarea"
-                            id={paragraph_i + ">text"}
-                            onInput={(_e) => PARAG.update(paragraph_i, "text", _e.target.value)}
-                            onKeyDown={(_e: any) => PARAG.handleKey(_e)}
-                            error_message={errors[`${paragraph_i}>text`]}
-                            onFocus={() => PARAG.setStyleInput(paragraph_i)}
-                            onClick={PARAG.handleFocusText} data-focus-text
-                          />
+                      <div onClick={PARAG.handleFocusText}>
+                        <div  className={canWrite && PARAG.styleInput.get().index === paragraph_i ? 'outline-3 outline-dashed outline-black' : ''}>
+                          <div  onClick={PARAG.handleFocusText} className={`${canWrite && PARAG.styleInput.get().index === paragraph_i ? 'outline-3 outline-white' : ''}`}>
+                            <Field
+                              input_class={`text-center ${PARAG.parseStyle(p) || ""}`}
+                              placeholder="Testo del paragrafo"
+                              value={p.text}
+                              readOnly={!canWrite}
+                              hide_label
+                              label="Descrivi la scena"
+                              asterisk
+                              type="textarea"
+                              id={paragraph_i + ">text"}
+                              onInput={(_e) => PARAG.update(paragraph_i, "text", _e.target.value)}
+                              onKeyDown={(_e: any) => PARAG.handleKey(_e)}
+                              error_message={errors[`${paragraph_i}>text`]}
+                              onFocus={() => PARAG.setStyleInput(paragraph_i)}
+                              onClick={PARAG.handleFocusText} data-focus-text
+                            />
+                          </div>
                         </div>
                       </div>
 
