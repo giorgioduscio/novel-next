@@ -80,10 +80,14 @@ export default function SectionComponent(props: UseSectionComponentProps) {
         {/* UNDO / REDO */} 
         <Frag if={canWrite && !FIND_REPLACE.isVisible.get()}>
           <div className="flex items-center">
-            <button onClick={HISTORY.undo} className="px-3 py-2 bg-indigo-900" title="Annulla">
+            <button onClick={HISTORY.undo} 
+                    className="px-3 py-2 bg-indigo-900" 
+                    title="Annulla">
               <i className="bi bi-arrow-left"></i> 
             </button>
-            <button onClick={HISTORY.redo} className="px-3 py-2 bg-indigo-900" title="Ripeti">
+            <button onClick={HISTORY.redo} 
+                    className="px-3 py-2 bg-indigo-900" 
+                    title="Ripeti">
               <i className="bi bi-arrow-right"></i> 
             </button>
             <button onClick={FIND_REPLACE.toggle} 
@@ -215,8 +219,8 @@ export default function SectionComponent(props: UseSectionComponentProps) {
                 disabled={!canWrite}
                 asterisk
                 onInput={(_e) => SECTION.handleChange(_e.target.value)}
-                error_message={errors["section>title"]}
-                id={"title"}
+                error_message={errors["section>section-title"]}
+                id={"section-title"}
                 type={"text"}
                 placeholder={"Titolo della sezione"}
                 onKeyDown={SECTION.titleKeyDown}
