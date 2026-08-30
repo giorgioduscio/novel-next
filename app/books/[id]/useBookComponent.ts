@@ -283,48 +283,17 @@ export function useBookComponent({ id }: UseBookComponentProps) {
     async paste(){
       if(!(await agree.warning("Aggiungere le nuove sezioni?", "incolla"))) return;
 
-      const input =await navigator.clipboard.readText();
-      // controlli
-      const isJson =["{","}","[","]"].every(char => input.includes(char));
-      const isMarckdown =["###"].some(markdown => input.includes(markdown));
-      
-      if(isJson){
-        try {
-          const clone = structuredClone(book);
-          if (!clone) return console.error("Libro non trovato");
-        
-          const newPart: Part = JSON.parse(input);
-          if (!newPart || !newPart?.sections)
-            return console.error("Sezione non valida");
-    
-          clone.parts?.push(newPart);
-          setBook(clone);
-    
-          const res = await bookContext.updateBook(id, clone);
-          if (!res) return toast.danger("Errore nel salvataggio");
-    
-          toast.success("Sezione incollata con successo!");
-        } catch (err) {
-          console.error("Errore nell'incollaggio:", err);
-          toast.danger("Errore nell'incollaggio");
-        }
+      const newPart = await shareText.paste_part();
+      if (!newPart) return;
 
-      } else if(isMarckdown){
-        const newPart =shareText.md_to_part(input);
-        if (!newPart || !newPart?.sections)
-          return console.error("Sezione non valida");
-        
-        const clone = structuredClone(book);
-        if (!clone) return console.error("Libro non trovato");
-        
-        clone.parts?.push(newPart);
-        setBook(clone);
-        
-        const res = await bookContext.updateBook(id, clone);
-        if (!res) return toast.danger("Errore nel salvataggio");
-        
-        toast.success("Sezione incollata con successo!");
-      }
+      const clone = structuredClone(book);
+      if (!clone) return console.error("Libro non trovato");
+
+      clone.parts?.push(newPart);
+      setBook(clone);
+
+      const res = await bookContext.updateBook(id, clone);
+      if (!res) return toast.danger("Errore nel salvataggio");
     },
 
     // incolla nel dispositivo i dati in formato json
@@ -333,7 +302,7 @@ export function useBookComponent({ id }: UseBookComponentProps) {
       const prevClass = icon?.className;
 
       SHARE.copy(part_id);
-      
+
       icon!.className="bi bi-check-lg text-green-600";
       setTimeout(() => {
         icon!.className=prevClass!;
@@ -344,9 +313,7 @@ export function useBookComponent({ id }: UseBookComponentProps) {
       const part = book?.parts?.find(p => p.id === part_id);
       if (!part) return console.error("Part non trovata");
 
-      const json = JSON.stringify(part, null, 4);
-      await navigator.clipboard.writeText(json);
-      toast.success("Dati copiati con successo!");
+      await shareText.copy_part(part);
     },
   }
 

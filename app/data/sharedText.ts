@@ -5,6 +5,78 @@ import { ui_upload, toast } from "../tools/feedbacksUI";
 export default function useSharedText() {
   const bookContext = useBookContext();
 
+  // Helper: Copy text to clipboard with fallback for browser compatibility
+  async function copyToClipboard(text: string): Promise<boolean> {
+    // Try modern Clipboard API first
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      try {
+        await navigator.clipboard.writeText(text);
+        return true;
+      } catch (err) {
+        console.warn("Clipboard API failed, trying fallback:", err);
+      }
+    }
+
+    // Fallback for browsers that don't support Clipboard API
+    try {
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.style.position = 'fixed';
+      textarea.style.left = '-999999px';
+      textarea.style.top = '-999999px';
+      document.body.appendChild(textarea);
+      textarea.select();
+      const successful = document.execCommand('copy');
+      document.body.removeChild(textarea);
+      return successful;
+    } catch (err) {
+      console.error("Fallback copy failed:", err);
+      return false;
+    }
+  }
+
+  // Helper: Read text from clipboard with fallback for browser compatibility
+  async function readFromClipboard(): Promise<string | null> {
+    // Try modern Clipboard API first
+    if (navigator.clipboard && navigator.clipboard.readText) {
+      try {
+        return await navigator.clipboard.readText();
+      } catch (err) {
+        console.warn("Clipboard API read failed, trying fallback:", err);
+      }
+    }
+
+    // Fallback for browsers that don't support Clipboard API
+    try {
+      const textarea = document.createElement('textarea');
+      textarea.style.position = 'fixed';
+      textarea.style.left = '-999999px';
+      textarea.style.top = '-999999px';
+      document.body.appendChild(textarea);
+      textarea.select();
+      const successful = document.execCommand('paste');
+      document.body.removeChild(textarea);
+
+      if (successful) {
+        return textarea.value;
+      }
+      return null;
+    } catch (err) {
+      console.error("Fallback paste failed:", err);
+      return null;
+    }
+  }
+
+  // Helper: Detect content type (JSON or Markdown)
+  function detectContentType(input: string): 'json' | 'markdown' | 'unknown' {
+    const isJson = ["{", "}", "[", "]"].every(char => input.includes(char));
+    const isMarkdown = ["###"].some(markdown => input.includes(markdown));
+
+    if (isJson) return 'json';
+    if (isMarkdown) return 'markdown';
+    return 'unknown';
+  }
+
   // Funzione per convertire un libro in testo (Markdown o normale)
   function book_to_text(data: Book, isMarkdownFormat = false) {
     let result = `${isMarkdownFormat ? "# " : ""}${data.title}\n\n`;
@@ -197,15 +269,15 @@ export default function useSharedText() {
 
         const file = files[0];
         console.log("[UPLOAD] File selezionato:", file.name, file.type);
-        
+
         const text = await file.text();
         console.log("[UPLOAD] Contenuto del file (prime 200 caratteri):", text.substring(0, 200));
 
         // Rileva il tipo di file dall'estensione o dal contenuto
-        const isJson = file.name.endsWith('.json') || file.name.endsWith('.json') || 
+        const isJson = file.name.endsWith('.json') || file.name.endsWith('.json') ||
                        (file.type === 'application/json') ||
                        (text.trim().startsWith('{') && text.trim().endsWith('}'));
-        
+
         console.log("[UPLOAD] Rilevato come JSON:", isJson);
 
         let book: Book;
@@ -232,7 +304,7 @@ export default function useSharedText() {
         console.log("[UPLOAD] Validazione del libro...");
         const validatedBook = bookContext.validateBook(book);
         console.log("[UPLOAD] Libro validato:", validatedBook);
-        
+
         if (!validatedBook) {
           console.error("[UPLOAD] Validazione fallita per il book:", book);
           toast.danger("Formato del libro non valido");
@@ -250,7 +322,7 @@ export default function useSharedText() {
         console.log("[UPLOAD] Aggiunta del libro alla lista...");
         const result = bookContext.addBook(validatedBook);
         console.log("[UPLOAD] Risultato addBook:", result);
-        
+
         if (!result) {
           console.error("[UPLOAD] Errore durante addBook");
           toast.danger("Errore durante il caricamento del libro");
@@ -267,11 +339,131 @@ export default function useSharedText() {
     }
   }
 
+  // Copy a part to clipboard
+  async function copy_part(part: Part): Promise<boolean> {
+    try {
+      const json = JSON.stringify(part, null, 4);
+      const successful = await copyToClipboard(json);
+      if (successful) {
+        toast.success("Parte copiata con successo!");
+      } else {
+        toast.danger("Impossibile copiare. Il browser potrebbe non supportare questa funzione.");
+      }
+      return successful;
+    } catch (err) {
+      console.error("Errore nella copia della parte:", err);
+      toast.danger("Errore nella copia della parte");
+      return false;
+    }
+  }
+
+  // Copy a section to clipboard
+  async function copy_section(section: Section): Promise<boolean> {
+    try {
+      const json = JSON.stringify(section, null, 4);
+      const successful = await copyToClipboard(json);
+      if (successful) {
+        toast.success("Sezione copiata con successo!");
+      } else {
+        toast.danger("Impossibile copiare. Il browser potrebbe non supportare questa funzione.");
+      }
+      return successful;
+    } catch (err) {
+      console.error("Errore nella copia della sezione:", err);
+      toast.danger("Errore nella copia della sezione");
+      return false;
+    }
+  }
+
+  // Paste content and convert to Part
+  async function paste_part(): Promise<Part | null> {
+    const input = await readFromClipboard();
+    if (!input) {
+      toast.danger("Impossibile incollare. Il browser potrebbe non supportare questa funzione.");
+      return null;
+    }
+
+    const contentType = detectContentType(input);
+
+    if (contentType === 'json') {
+      try {
+        const newPart: Part = JSON.parse(input);
+        if (!newPart || !newPart.sections) {
+          console.error("Parte non valida");
+          toast.danger("Parte non valida");
+          return null;
+        }
+        toast.success("Parte incollata con successo!");
+        return newPart;
+      } catch (err) {
+        console.error("Errore nell'incollaggio JSON:", err);
+        toast.danger("Errore nell'incollaggio");
+        return null;
+      }
+    } else if (contentType === 'markdown') {
+      const newPart = md_to_part(input);
+      if (!newPart || !newPart.sections) {
+        console.error("Parte non valida");
+        toast.danger("Parte non valida");
+        return null;
+      }
+      toast.success("Parte incollata con successo!");
+      return newPart;
+    } else {
+      toast.danger("Formato non riconosciuto. Usa JSON o Markdown.");
+      return null;
+    }
+  }
+
+  // Paste content and convert to Section
+  async function paste_section(): Promise<Section | null> {
+    const input = await readFromClipboard();
+    if (!input) {
+      toast.danger("Impossibile incollare. Il browser potrebbe non supportare questa funzione.");
+      return null;
+    }
+
+    const contentType = detectContentType(input);
+
+    if (contentType === 'json') {
+      try {
+        const newSection: Section = JSON.parse(input);
+        if (!newSection || !newSection.paragraphs) {
+          console.error("Sezione non valida");
+          toast.danger("Sezione non valida");
+          return null;
+        }
+        toast.success("Sezione incollata con successo!");
+        return newSection;
+      } catch (err) {
+        console.error("Errore nell'incollaggio JSON:", err);
+        toast.danger("Errore nell'incollaggio");
+        return null;
+      }
+    } else if (contentType === 'markdown') {
+      const newSection = md_to_section(input);
+      if (!newSection) {
+        console.error("Sezione non valida");
+        toast.danger("Sezione non valida");
+        return null;
+      }
+      toast.success("Sezione incollata con successo!");
+      return newSection;
+    } else {
+      toast.danger("Formato non riconosciuto. Usa JSON o Markdown.");
+      return null;
+    }
+  }
+
   return {
     book_to_text,
     md_to_book,
     md_to_part,
     md_to_section,
     upload,
+    copy_part,
+    copy_section,
+    paste_part,
+    paste_section,
   };
 }

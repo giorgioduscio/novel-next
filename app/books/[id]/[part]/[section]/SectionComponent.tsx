@@ -71,316 +71,318 @@ export default function SectionComponent(props: UseSectionComponentProps) {
       </Frag>
     </Navigation>
 
+    {/* BREADCRUMB */}
     <Breadcrumb routes={["Catalogo:/books", `${book?.title}:/${book?.id}`, `${part?.title}:/structure`, SECTION_title]} />
 
     {/* STRUMENTI */}
-    <div className={`sticky top-[calc(45px+env(safe-area-inset-top))] z-20 ${canWrite ?"" :"pointer-events-none invisible"}`}>
-      {/* UNDO / REDO */} 
-      <Frag if={canWrite && !FIND_REPLACE.isVisible.get()} className="pt-1 flex justify-center gap-2">
-        <button onClick={HISTORY.undo} className="px-2 py-1 bg-indigo-800 rounded truncate">
-          <i className="me-1 bi bi-arrow-left"></i> Indietro
-        </button>
-        <button onClick={HISTORY.redo} className="px-2 py-1 bg-orange-800 rounded truncate">
-          <i className="me-1 bi bi-arrow-right"></i> Ripeti
-        </button>
-        <button onClick={FIND_REPLACE.toggle} 
-                className={`px-2 py-1 rounded-full ${FIND_REPLACE.isVisible.get() ?"bg-blue-800" :"bg-gray-800"}`}>
-          <i className="bi bi-search"></i> 
-          <span className="ms-1 hidden sm:inline">Trova</span>
-        </button>
-      </Frag>
-
-
-      {/* TROVA E SOSTITUISCI */}
-      <Frag if={canWrite && FIND_REPLACE.isVisible.get()}>
-        <div className="p-1 mx-auto max-w-[400px]">
-          <div className="bg-gray-700 outline rounded shadow-lg">
-            {/* generali */}
-            <div className="grid grid-cols-[1fr_auto]">
-              <h4 className="py-1 px-2 font-bold text-sm">
-                {foundIndices.length > 0 ?(
-                  <span>
-                    {FIND_REPLACE.currentIndex.get() + 1} / {foundIndices.length} occorrenze trovate
-                  </span>
-                ):(
-                  <span>Cerca e sostituisci</span>
-                )}
-              </h4>
-              <button type="button" onClick={FIND_REPLACE.toggle} 
-                      className="py-1 px-2 bg-gray-700"
-                      title="Chiudi">
-                <i className="bi bi-x-lg"></i>
-              </button>
-            </div>
-
-            {/* cerca */}
-            <div className="flex flex-safe bg-blue-100 text-black">
-              <div className="flex-1">
-                <Field
-                  input_class="w-[100px] py-1 px-2"
-                  hide_label
-                  label="Trova"
-                  value={FIND_REPLACE.search.get().value}
-                  disabled={!canWrite}
-                  onInput={(e) => FIND_REPLACE.search.set(p=> ({ ...p, value: e.target.value }))}
-                  error_message={""}
-                  id={"find-search"}
-                  type={"text"}
-                  placeholder={"Testo da trovare"}
-                  onKeyUp={(_e:any)=> _e.key==="Enter" ?FIND_REPLACE.executeSearch() :null} 
-                />
-              </div>
-                
-              <button onClick={(e) => FIND_REPLACE.search.set(prev => ({ ...prev, caseSensitive: !prev.caseSensitive }))}
-                      className={`px-1 ${FIND_REPLACE.search.get().caseSensitive ? 'bg-blue-200/80' : ''}`}
-                      title="Maiuscole/minuscole">
-                <i className="bi bi-alphabet-uppercase"></i>
-              </button>
-              <button onClick={(e) => FIND_REPLACE.search.set(prev => ({ ...prev, wholeWord: !prev.wholeWord }))}
-                      className={`px-1 ${FIND_REPLACE.search.get().wholeWord ? 'bg-blue-200/80' : ''}`}
-                      title="Parola intera">
-                <i className="bi bi-fonts"></i>
-              </button>
-              <button type="button" onClick={FIND_REPLACE.previous} 
-                      className="py-1 px-2 bg-gray-700 text-white"
-                      title="Precedente">
-                <i className="bi bi-arrow-up"></i>
-              </button>
-            </div>
-
-
-            {/* rinomina */}
-            <div className="grid grid-cols-[1fr_auto_auto]">
-              <div>
-                <Field
-                  input_class="w-[100px] py-1 px-2 bg-green-100 text-black"
-                  hide_label
-                  label="Sostituisci"
-                  value={FIND_REPLACE.replaceQuery.get()}
-                  disabled={!canWrite}
-                  onInput={(e) => FIND_REPLACE.replaceQuery.set(e.target.value)}
-                  error_message={""}
-                  id={"find-replace"}
-                  type={"text"}
-                  placeholder={"Sostituisci con..."}
-                  onKeyUp={(_e:any)=> _e.key==="Enter" ?FIND_REPLACE.replace() :null} 
-                />
-              </div>
-
-              <button onClick={_=> FIND_REPLACE.replaceAll()} 
-                      className="px-2 bg-green-200 text-black relative"
-                      title="Sostituisci tutto">
-                <i className="bi bi-alphabet absolute -top-1"></i>
-                <i className="bi bi-back absolute top-2"></i>
-                <i className="bi bi-back invisible"></i>
-              </button>
-              <button type="button" onClick={FIND_REPLACE.next} 
-                      className="py-1 px-2 bg-gray-700 truncate"
-                      title="Prossimo">
-                <i className="bi bi-arrow-down"></i>
-              </button>
-
-            </div>
+    <div className={`sticky top-[calc(45px+env(safe-area-inset-top))] z-20 mx-auto w-fit max-w-[800px] ${canWrite ?"" :"pointer-events-none invisible"}`}>
+      <div className="bg-indigo-900 rounded-b-lg overflow-hidden">
+        {/* UNDO / REDO */} 
+        <Frag if={canWrite && !FIND_REPLACE.isVisible.get()}>
+          <div className="flex items-center">
+            <button onClick={HISTORY.undo} className="px-3 py-2 bg-indigo-900" title="Annulla">
+              <i className="bi bi-arrow-left"></i> 
+            </button>
+            <button onClick={HISTORY.redo} className="px-3 py-2 bg-indigo-900" title="Ripeti">
+              <i className="bi bi-arrow-right"></i> 
+            </button>
+            <button onClick={FIND_REPLACE.toggle} 
+                    className={`px-3 py-2 ${FIND_REPLACE.isVisible.get() ?"bg-blue-800" :"bg-gray-800"}`}>
+              <i className="bi bi-search"></i> 
+              <span className="ms-1 hidden sm:inline">Trova</span>
+            </button>
           </div>
-        </div>      
-      </Frag>
+        </Frag>
+
+        {/* TROVA E SOSTITUISCI */}
+        <Frag if={canWrite && FIND_REPLACE.isVisible.get()} className="p-1">
+          {/* generali */}
+          <div className="grid grid-cols-[1fr_auto] items-center">
+            <h4 className="p-3 font-bold text-sm">
+              {foundIndices.length > 0 ?(
+                <span>
+                  {FIND_REPLACE.currentIndex.get() + 1} / {foundIndices.length} occorrenze trovate
+                </span>
+              ):(
+                <span>Cerca e sostituisci</span>
+              )}
+            </h4>
+            <button type="button" onClick={FIND_REPLACE.toggle} 
+                    className="py-2 px-3 bg-indigo-900"
+                    title="Chiudi">
+              <i className="bi bi-x-lg"></i>
+            </button>
+          </div>
+
+
+          {/* cerca */}
+          <div className="flex flex-safe bg-blue-100 text-black items-center">
+            <div className="flex-1">
+              <Field
+                input_class="w-[100px] py-2 px-3"
+                hide_label
+                label="Trova"
+                value={FIND_REPLACE.search.get().value}
+                disabled={!canWrite}
+                onInput={(e) => FIND_REPLACE.search.set(p=> ({ ...p, value: e.target.value }))}
+                error_message={""}
+                id={"find-search"}
+                type={"text"}
+                placeholder={"Testo da trovare"}
+                onKeyUp={(_e:any)=> _e.key==="Enter" ?FIND_REPLACE.executeSearch() :null} 
+              />
+            </div>
+              
+            <button onClick={(e) => FIND_REPLACE.search.set(prev => ({ ...prev, caseSensitive: !prev.caseSensitive }))}
+                    className={`p-2 ${FIND_REPLACE.search.get().caseSensitive ? 'bg-blue-200/80' : ''}`}
+                    title="Maiuscole/minuscole">
+              <i className="bi bi-alphabet-uppercase"></i>
+            </button>
+            <button onClick={(e) => FIND_REPLACE.search.set(prev => ({ ...prev, wholeWord: !prev.wholeWord }))}
+                    className={`p-2 ${FIND_REPLACE.search.get().wholeWord ? 'bg-blue-200/80' : ''}`}
+                    title="Parola intera">
+              <i className="bi bi-fonts"></i>
+            </button>
+            <button type="button" onClick={FIND_REPLACE.previous} 
+                    className="py-2 px-3 bg-indigo-900 text-white"
+                    title="Precedente">
+              <i className="bi bi-arrow-up"></i>
+            </button>
+          </div>
+
+
+          {/* rinomina */}
+          <div className="grid grid-cols-[1fr_auto_auto]">
+            <div className="bg-green-100 text-black">
+              <Field
+                input_class="py-2 px-3"
+                hide_label
+                label="Sostituisci"
+                value={FIND_REPLACE.replaceQuery.get()}
+                disabled={!canWrite}
+                onInput={(e) => FIND_REPLACE.replaceQuery.set(e.target.value)}
+                error_message={""}
+                id={"find-replace"}
+                type={"text"}
+                placeholder={"Sostituisci con..."}
+                onKeyUp={(_e:any)=> _e.key==="Enter" ?FIND_REPLACE.replace() :null} 
+              />
+            </div>
+
+            <button onClick={_=> FIND_REPLACE.replaceAll()} 
+                    className="p-2 bg-green-200 text-black relative"
+                    title="Sostituisci tutto">
+              <i className="bi bi-alphabet absolute -top-1"></i>
+              <i className="bi bi-back absolute top-2"></i>
+              <i className="bi bi-back invisible"></i>
+            </button>
+            <button type="button" onClick={FIND_REPLACE.next} 
+                    className="py-2 px-3 bg-indigo-900"
+                    title="Prossimo">
+              <i className="bi bi-arrow-down"></i>
+            </button>
+
+          </div>
+        </Frag>
+      </div>
     </div>
 
 
 
-    <main id="SectionComponent" onClick={PARAG.closeTemplateInputStyle} className="mx-auto container max-w-[400px]">
-      {/* Contenitore principale */}
-      <section className="pb-50 min-h-dvh flex-1">
-        {/* SEZIONE NON TROVATA */}
-        <Frag if={!SECTION.bookSection}>
-          <div className="py-10 text-center text-red-500">
-            <i className="me-1 bi bi-exclamation-triangle"></i>
-            Sezione non trovata
-          </div>
-        </Frag>
+    <main id="SectionComponent" onClick={PARAG.closeTemplateInputStyle}>
+      <div className="mx-auto container max-w-[400px]">
 
-
-
-        {/* SEZIONE TROVATA */}
-        <Frag if={!!SECTION.bookSection}>
-          {/* TITOLO SEZIONE */}
-          <form onSubmit={SECTION.handleSubmit} className="p-3 pb-60 text-center">
-            <Field
-              input_class="text-3xl font-bold text-center text-orange-500"
-              hide_label
-              label="Titolo della sezione"
-              value={SECTION_title}
-              disabled={!canWrite}
-              asterisk
-              onInput={(_e) => SECTION.handleChange(_e.target.value)}
-              error_message={errors["section>title"]}
-              id={"title"}
-              type={"text"}
-              placeholder={"Titolo della sezione"}
-              onKeyDown={SECTION.titleKeyDown}
-            />
-            <div className="mt-5 border-t border-gray-500 relative">
-              <Frag if={canWrite} className="absolute z-2">
-                <div className="py-1 flex flex-wrap gap-1 justify-around">
-                  <b className="px-2 bg-blue-300 text-sm text-black outline rounded-full">Paragrafi: {SECTION.bookSection?.paragraphs?.length}</b>
-                  <b className="px-2 bg-green-300 text-sm text-black outline rounded-full">Lettere: {SECTION.words}</b>
-                  <b className="px-2 bg-indigo-300 text-sm text-black outline rounded-full">Lunghezza pagina: {Math.floor(olHeight)}px</b>
-                </div>
-                <div className="p-1 bg-white text-black outline rounded">
-                  <Field
-                    input_class={`p-2 text-sm`}
-                    label_class="px-2 text-sm font-bold italic"
-                    id={"section-note"}
-                    label="Nota della sezione"
-                    value={SECTION.bookSection?.note || ""}
-                    disabled={!canWrite}
-                    type={"textarea"}
-                    rows={4}
-                    placeholder={"Visualizzato solo dagli scrittori. Inserire sintesi o modifiche da implementare"}
-                    onInput={(_e) => SECTION.updateNote(_e.target.value)}
-                  />
-                </div>
-              </Frag>
+        <section className="pb-50 min-h-dvh flex-1">
+          {/* SEZIONE NON TROVATA */}
+          <Frag if={!SECTION.bookSection}>
+            <div className="py-10 text-center text-red-500">
+              <i className="me-1 bi bi-exclamation-triangle"></i>
+              Sezione non trovata
             </div>
-          </form>
+          </Frag>
 
-          {/* WRAPPER PARAGRAFI */}
-          <Frag if={showParagraphs} className="pb-10">
-            <Frag.Else>
-              <div className="py-10 text-center">
-                <i className="me-1 bi bi-file-text"></i>
-                Nessun paragrafo
+
+
+          {/* SEZIONE TROVATA */}
+          <Frag if={!!SECTION.bookSection}>
+            {/* TITOLO SEZIONE */}
+            <form onSubmit={SECTION.handleSubmit} className="p-3 pb-60 text-center">
+              <Field
+                input_class="text-3xl font-bold text-center text-orange-500"
+                hide_label
+                label="Titolo della sezione"
+                value={SECTION_title}
+                disabled={!canWrite}
+                asterisk
+                onInput={(_e) => SECTION.handleChange(_e.target.value)}
+                error_message={errors["section>title"]}
+                id={"title"}
+                type={"text"}
+                placeholder={"Titolo della sezione"}
+                onKeyDown={SECTION.titleKeyDown}
+              />
+              <div className="mt-5 border-t border-gray-500 relative">
+                <Frag if={canWrite} className="absolute z-2">
+                  <div className="py-1 flex flex-wrap gap-1 justify-around">
+                    <b className="px-2 bg-blue-300 text-sm text-black outline rounded-full">Paragrafi: {SECTION.bookSection?.paragraphs?.length}</b>
+                    <b className="px-2 bg-green-300 text-sm text-black outline rounded-full">Lettere: {SECTION.words}</b>
+                    <b className="px-2 bg-indigo-300 text-sm text-black outline rounded-full">Lunghezza pagina: {Math.floor(olHeight)}px</b>
+                  </div>
+                  <div className="p-1 bg-white text-black outline rounded">
+                    <Field
+                      input_class={`p-2 text-sm`}
+                      label_class="px-2 text-sm font-bold italic"
+                      id={"section-note"}
+                      label="Nota della sezione"
+                      value={SECTION.bookSection?.note || ""}
+                      disabled={!canWrite}
+                      type={"textarea"}
+                      rows={4}
+                      placeholder={"Visualizzato solo dagli scrittori. Inserire sintesi o modifiche da implementare"}
+                      onInput={(_e) => SECTION.updateNote(_e.target.value)}
+                    />
+                  </div>
+                </Frag>
               </div>
-              <Frag if={!!canWrite} className="flex justify-center">
-                <button
-                  onClick={() => PARAG.handleCreate()}
-                  className="py-2 px-3 border rounded bg-blue-500/30 text-blue-300"
-                >
-                  <i className="bi bi-plus-lg"></i>
-                  Aggiungi paragrafo
-                </button>
-              </Frag>
-            </Frag.Else>
+            </form>
 
-            {/* target: voglio sapere quanto è alto questo elemento */}
-            <ol ref={olRef}>
-              {SECTION.bookSection?.paragraphs?.map((p, paragraph_i) => (
-                <li key={paragraph_i} className="relative">
-                  {/* PULSANTE INSERIMENTO */}
-                  <AddParagraphButton
-                    if={canWrite && paragraph_i === 0}
-                    className="top-0 -translate-y-1"
-                    handleCreate={() => PARAG.handleCreate("top")}
-                  />
+            {/* WRAPPER PARAGRAFI */}
+            <Frag if={showParagraphs} className="pb-10">
+              <Frag.Else>
+                <div className="py-10 text-center">
+                  <i className="me-1 bi bi-file-text"></i>
+                  Nessun paragrafo
+                </div>
+                <Frag if={!!canWrite} className="flex justify-center">
+                  <button
+                    onClick={() => PARAG.handleCreate()}
+                    className="py-2 px-3 border rounded bg-blue-500/30 text-blue-300"
+                  >
+                    <i className="bi bi-plus-lg"></i>
+                    Aggiungi paragrafo
+                  </button>
+                </Frag>
+              </Frag.Else>
 
-                  {/* TESTO PARAGRAFO */}
-                  <div onClick={PARAG.handleFocusText} data-focus-text
-                        className={`block py-3 ${(p as any).ex_style}`}>
+              {/* target: voglio sapere quanto è alto questo elemento */}
+              <ol ref={olRef}>
+                {SECTION.bookSection?.paragraphs?.map((p, paragraph_i) => (
+                  <li key={paragraph_i} className="relative">
+                    {/* PULSANTE INSERIMENTO */}
+                    <AddParagraphButton
+                      if={canWrite && paragraph_i === 0}
+                      className="top-0 -translate-y-1"
+                      handleCreate={() => PARAG.handleCreate("top")}
+                    />
+
+                    {/* TESTO PARAGRAFO */}
                     <div onClick={PARAG.handleFocusText} data-focus-text
-                          className={`block p-1 ${PARAG.parseStyle(p) || ""}`}>
-                      <div className={canWrite && PARAG.styleInput.get().index === paragraph_i ? 'outline-3 outline-dashed outline-black' : ''}>
-                        <Field
-                          input_class={`p-1 text-center ${canWrite && PARAG.styleInput.get().index === paragraph_i ? 'outline-3 outline-white' : ''}`}
-                          placeholder="Testo del paragrafo"
-                          value={p.text}
-                          readOnly={!canWrite}
-                          hide_label
-                          label="Descrivi la scena"
-                          asterisk
-                          type="textarea"
-                          id={paragraph_i + ">text"}
-                          onInput={(_e) => PARAG.update(paragraph_i, "text", _e.target.value)}
-                          onKeyDown={(_e: any) => PARAG.handleKey(_e)}
-                          error_message={errors[`${paragraph_i}>text`]}
-                          onFocus={() => PARAG.setStyleInput(paragraph_i)}
-                          onClick={PARAG.handleFocusText} data-focus-text
-                        />
-                      </div>
-                    </div>
-
-                    {/* STILE PARAGRAFO */}
-                    <Frag if={canWrite && PARAG.styleInput.get().index === paragraph_i} className="mx-8 relative">
-                      <div className='absolute top-0 z-2 w-full' data-dropdown>
-                        <div className="p-1 bg-white text-black outline rounded">
-                          {/* CONSIGLIATI */}
-                          <div className="flex flex-wrap items-center gap-1">
-                            {AUTOCOMPLETE.suggestions.get().map((className, _i) => (
-                              <button key={_i}
-                                      onClick={_e=> AUTOCOMPLETE.handleClick(_e, p, paragraph_i)}
-                                      className={`px-2 rounded-full text-sm outline font-bold ${_i ?"bg-blue-300" :"bg-red-300"}`}
-                                      aria-label={`Applica stile: ${className}`}>
-
-                                <Frag if={!_i}>
-                                  <i className="px-1 me-1 bi bi-arrow-return-left bg-black/60 text-white rounded"></i>
-                                </Frag>
-                                
-                                {className}
-                              </button>
-                            ))}
-                          </div>
-
-                          <div className="pt-2 grid gap-1 grid-cols-[auto_1fr] items-start">
-                            {/* ICONA PALETTE */}
-                            {p.in_style
-                              ?<button onClick={_=> PARAG.update(paragraph_i, "in_style", "")}
-                                      className="p-1 text-red-700 rounded-lg relative outline"
-                                      aria-label="Resetta stile">
-                                <i className="bi bi-x-lg absolute top-1 start-1"></i>
-                                <i className="bi bi-palette"></i>
-                              </button>
-                              :<label htmlFor={paragraph_i + ">in_style"}
-                                      className="p-1 bi bi-palette-fill"
-                                      aria-label="Seleziona stile"></label>
-                            }
-                            {/* INPUT STILE */}
-                            <div>
-                              <Field
-                                input_class="p-1"
-                                placeholder="Stile tailwind del paragrafo"
-                                value={p.in_style || ''}
-                                disabled={!canWrite}
-                                hide_label
-                                label="Stile tailwind del paragrafo"
-                                asterisk
-                                type="textarea"
-                                id={paragraph_i + ">in_style"}
-                                onChange={(_e) => PARAG.update(paragraph_i, "in_style", _e.target.value.toLowerCase())}
-                                onKeyDown={(_e: any) => PARAG.handleKey(_e)}
-                                onKeyUp={(_e: any) => AUTOCOMPLETE.setSuggestions(_e)}
-                                error_message={errors[`${paragraph_i}>in_style`]}
-                                onFocus={(_e:any) => PARAG.setStyleInput(paragraph_i) }
-                              />
-                            </div>
-
-                          </div>
+                          className={`block py-3 ${(p as any).ex_style}`}>
+                      <div onClick={PARAG.handleFocusText} data-focus-text
+                            className={`block p-1 ${PARAG.parseStyle(p) || ""}`}>
+                        <div className={canWrite && PARAG.styleInput.get().index === paragraph_i ? 'outline-3 outline-dashed outline-black' : ''}>
+                          <Field
+                            input_class={`p-1 text-center ${canWrite && PARAG.styleInput.get().index === paragraph_i ? 'outline-3 outline-white' : ''}`}
+                            placeholder="Testo del paragrafo"
+                            value={p.text}
+                            readOnly={!canWrite}
+                            hide_label
+                            label="Descrivi la scena"
+                            asterisk
+                            type="textarea"
+                            id={paragraph_i + ">text"}
+                            onInput={(_e) => PARAG.update(paragraph_i, "text", _e.target.value)}
+                            onKeyDown={(_e: any) => PARAG.handleKey(_e)}
+                            error_message={errors[`${paragraph_i}>text`]}
+                            onFocus={() => PARAG.setStyleInput(paragraph_i)}
+                            onClick={PARAG.handleFocusText} data-focus-text
+                          />
                         </div>
                       </div>
+
+                      {/* STILE PARAGRAFO */}
+                      <Frag if={canWrite && PARAG.styleInput.get().index === paragraph_i} className="mx-8 relative">
+                        <div className='absolute top-0 z-2 w-full' data-dropdown>
+                          <div className="p-1 bg-white text-black outline rounded">
+                            {/* CONSIGLIATI */}
+                            <div className="flex flex-wrap items-center gap-1">
+                              {AUTOCOMPLETE.suggestions.get().map((className, _i) => (
+                                <button key={_i}
+                                        onClick={_e=> AUTOCOMPLETE.handleClick(_e, p, paragraph_i)}
+                                        className={`px-2 rounded-full text-sm outline font-bold ${_i ?"bg-blue-300" :"bg-red-300"}`}
+                                        aria-label={`Applica stile: ${className}`}>
+
+                                  <Frag if={!_i}>
+                                    <i className="px-1 me-1 bi bi-arrow-return-left bg-black/60 text-white rounded"></i>
+                                  </Frag>
+                                  
+                                  {className}
+                                </button>
+                              ))}
+                            </div>
+
+                            <div className="pt-2 grid gap-1 grid-cols-[auto_1fr] items-start">
+                              {/* ICONA PALETTE */}
+                              {p.in_style
+                                ?<button onClick={_=> PARAG.update(paragraph_i, "in_style", "")}
+                                        className="p-1 text-red-700 rounded-lg relative outline"
+                                        aria-label="Resetta stile">
+                                  <i className="bi bi-x-lg absolute top-1 start-1"></i>
+                                  <i className="bi bi-palette"></i>
+                                </button>
+                                :<label htmlFor={paragraph_i + ">in_style"}
+                                        className="p-1 bi bi-palette-fill"
+                                        aria-label="Seleziona stile"></label>
+                              }
+                              {/* INPUT STILE */}
+                              <div>
+                                <Field
+                                  input_class="p-1"
+                                  placeholder="Stile tailwind del paragrafo"
+                                  value={p.in_style || ''}
+                                  disabled={!canWrite}
+                                  hide_label
+                                  label="Stile tailwind del paragrafo"
+                                  asterisk
+                                  type="textarea"
+                                  id={paragraph_i + ">in_style"}
+                                  onChange={(_e) => PARAG.update(paragraph_i, "in_style", _e.target.value.toLowerCase())}
+                                  onKeyDown={(_e: any) => PARAG.handleKey(_e)}
+                                  onKeyUp={(_e: any) => AUTOCOMPLETE.setSuggestions(_e)}
+                                  error_message={errors[`${paragraph_i}>in_style`]}
+                                  onFocus={(_e:any) => PARAG.setStyleInput(paragraph_i) }
+                                />
+                              </div>
+
+                            </div>
+                          </div>
+                        </div>
+                      </Frag>
+                    </div>
+
+                    {/* RIMUOVI PARAGRAFO */}
+                    <Frag if={canWrite} className="pr-1 pt-3 absolute top-0 end-0 z-1">
+                      <button type="button"
+                              onClick={() => PARAG.handleRemove(paragraph_i)}
+                              className="px-2 py-1 bg-gray-600 text-red-300 rounded-full">
+                        <i className="bi bi-trash-fill"></i>
+                      </button>
                     </Frag>
-                  </div>
 
-                  {/* RIMUOVI PARAGRAFO */}
-                  <Frag if={canWrite} className="pr-1 pt-3 absolute top-0 end-0 z-1">
-                    <button
-                      type="button"
-                      onClick={() => PARAG.handleRemove(paragraph_i)}
-                      className="px-2 py-1 bg-red-700 text-white outline rounded-full"
-                    >
-                      <i className="bi bi-trash"></i>
-                    </button>
-                  </Frag>
-
-                  {/* PULSANTE INSERIMENTO */}
-                  <AddParagraphButton
-                    if={canWrite}
-                    className="bottom-0"
-                    handleCreate={() => PARAG.handleCreate(paragraph_i)}
-                  />
-                </li>
-              ))}
-            </ol>
+                    {/* PULSANTE INSERIMENTO */}
+                    <AddParagraphButton
+                      if={canWrite}
+                      className="bottom-0"
+                      handleCreate={() => PARAG.handleCreate(paragraph_i)}
+                    />
+                  </li>
+                ))}
+              </ol>
+            </Frag>
           </Frag>
-        </Frag>
-      </section>
+        </section>
+
+      </div>
     </main>
   </>);
 }

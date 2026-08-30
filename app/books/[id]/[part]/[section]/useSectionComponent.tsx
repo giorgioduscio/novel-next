@@ -39,6 +39,9 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
   
   
   useEffect(() => {
+    // Wait for books to load before attempting to find the book
+    if (bookContext.loading) return;
+
     // libro
     const foundBook = bookContext.getBookById(book_id);
     if(!foundBook) return console.error("Libro non trovato");
@@ -49,7 +52,7 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
     SECTION_setTitle(sec.title || "");
     // condivide il target ad altri componenti
     bookContext.setTarget(foundBook);
-  }, [book_id, bookContext.getBookById, bookContext.setTarget]);
+  }, [book_id, bookContext.loading, bookContext.getBookById, bookContext.setTarget]);
 
   // restituisce la sezione corrente in base al libro
   function getPart(bookObj = book) :Section | undefined {
@@ -144,16 +147,10 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
     async copy() {
       const section = getSection();
       if (!section) return console.error("Sezione non trovata");
-  
-      try {
-        const serializedSection = JSON.stringify(section, null, 4);
-        await navigator.clipboard.writeText(serializedSection);
-        toast.success("Sezione copiata negli appunti!");
-      } catch (err) {
-        console.error("Errore nella copia:", err);
-      }
+
+      await sharedText.copy_section(section);
     },
-  
+
     // Incolla la struttura del libro dal sistema
     async paste(){
       if (
@@ -161,61 +158,23 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
         !(await agree.warning("Sei sicuro di voler sostituire i paragrafi precedenti?","Incolla"))
       ) return;
 
-      const input =await navigator.clipboard.readText();
-      // controlli
-      const isJson =["{","}","[","]"].every(char => input.includes(char));
-      const isMarckdown =["###"].some(markdown => input.includes(markdown));
-      
-      if(isJson){
-        return SHARED.paste_json(input);
+      const newSection = await sharedText.paste_section();
+      if (!newSection) return;
 
-      } else if(isMarckdown){
-        return SHARED.paste_markdown(input);
-      }
+      const clone = structuredClone(book);
+      if (!clone) return console.error("Libro non trovato");
+
+      const section = getSection(clone);
+      if (!section) return console.error("Sezione non trovata");
+
+      section.title = newSection.title;
+      section.note = newSection.note;
+      section.paragraphs = newSection.paragraphs;
+      setBook(clone);
+
+      const res = await bookContext.updateBook(book_id, clone);
+      if (!res) return toast.danger("Errore nel salvataggio");
     },
-
-    async paste_json(input:string) {
-      try {
-        const clone = structuredClone(book);
-        if (!clone) return console.error("Libro non trovato");
-  
-        const section = getSection(clone);
-        if (!section) return console.error("Sezione non trovata");
-  
-        const newSection: Section = JSON.parse(input);
-        if (!newSection || !newSection.paragraphs)
-          return console.error("Sezione non valida");
-  
-        section.paragraphs = newSection.paragraphs;
-        setBook(clone);
-  
-        const res = await bookContext.updateBook(book_id, clone);
-        if (!res) return toast.danger("Errore nel salvataggio");
-  
-        toast.success("Sezione incollata con successo!");
-      } catch (err) {
-        console.error("Errore nell'incollaggio:", err);
-        toast.danger("Errore nell'incollaggio");
-      }
-    },
-
-    async paste_markdown(input: string){
-      const newSection :Section = sharedText.md_to_section(input)
-        
-      // aggiornamento  componente
-      const clone = structuredClone(book) as Book;
-      const sec = getSection(clone);
-      if(!book || !sec) return console.error("Libro non valido");
-      
-      sec.title = newSection.title;
-      sec.note = newSection.note;
-      sec.paragraphs = newSection.paragraphs;
-
-      setBook(clone)
-      const res = bookContext.updateBook(book_id, clone)
-      if(!res) return toast.danger("Incollaggio fallito")
-      toast.success("Sezione copiata")
-    }
   }
   
   // 4) PARAGRAFI
