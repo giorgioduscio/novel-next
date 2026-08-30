@@ -4,7 +4,7 @@ import useSharedText from "@/app/data/sharedText";
 import { Book, book_schema, Part } from "@/app/schemas/book_schema";
 import { useAgreeWrapper } from "@/app/shareds/Agree";
 import { toast } from "@/app/tools/feedbacksUI";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { safeParse } from "valibot";
 
 interface UseBookComponentProps { id: string }
@@ -328,6 +328,18 @@ export function useBookComponent({ id }: UseBookComponentProps) {
     },
 
     // incolla nel dispositivo i dati in formato json
+    async copyPart(e:React.MouseEvent<HTMLButtonElement>, part_id:string){
+      const icon = e.currentTarget.querySelector('i.bi');
+      const prevClass = icon?.className;
+
+      SHARE.copy(part_id);
+      
+      icon!.className="bi bi-check-lg text-green-600";
+      setTimeout(() => {
+        icon!.className=prevClass!;
+      }, 2000);
+    },
+
     async copy(part_id:string){
       const part = book?.parts?.find(p => p.id === part_id);
       if (!part) return console.error("Part non trovata");

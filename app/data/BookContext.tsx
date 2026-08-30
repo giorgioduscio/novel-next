@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { Book, book_schema } from "../schemas/book_schema";
 import * as v from "valibot";
 import { nanoid } from "nanoid";
@@ -9,292 +9,8 @@ import { generateContext } from "../tools/generateContext";
 
 const FIREBASE_URL = "https://books-3e4c3-default-rtdb.europe-west1.firebasedatabase.app/books";
 
-function bookContextValue() {
-  const [books, setBooks] = useState<Book[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  // interazione con le api (firebase)
-  const API = useMemo(() => ({
-      URL: FIREBASE_URL,
-      saveSingleBook: API_SERVICE.saveSingleBook,
-      saveDebounced: API_SERVICE.saveDebounced,
-      deleteSingleBook: API_SERVICE.deleteSingleBook,
-
-      // carica tutti i libri
-      async loadBooks() {
-        try {
-          setLoading(true);
-          const response = await fetch(`${FIREBASE_URL}.json`);
-          if (!response.ok) return console.error("Caricamento non riuscito", response.status);
-          const data = await response.json();
-
-          let booksArray: Book[] = [];
-          if (data) {
-            if (Array.isArray(data)) {
-              booksArray = data.filter((b): b is Book => Boolean(b && typeof b === "object"));
-            } else if (typeof data === "object") {
-              booksArray = Object.values(data).filter((b): b is Book => Boolean(b && typeof b === "object"));
-            }
-          }
-          setBooks(booksArray);
-        } catch (error) {
-          console.error("Errore nel caricamento delle api:", error);
-        } finally {
-          setLoading(false);
-        }
-      },
-  }), [] );
-
-  // Carica i libri da Firebase all'avvio
-  useEffect(() => {
-    API.loadBooks();
-  }, [API]);
-
-  // crea l'id univoco (nanoid)
-  const createId = useCallback((): string => {
-    return nanoid();
-  }, []);
-
-  // Valida un libro usando valibot
-  const validateBook = useCallback(
-    (book: unknown): Book | null => {
-      try {        
-        const result = v.safeParse(book_schema, book);
-
-        if (!result.success) {
-          console.error("Validation error:", result.issues);
-          return null;
-        }
-        return result.output;
-      } catch (error) {
-        console.error("Validation error:", error);
-        return null;
-      }
-    },[]
-  );
-
-  // Restituisce tutti i libri
-  const readAll = useCallback((): Book[] => {
-    return books;
-  }, [books]);
-
-  // Trova un libro per ID
-  const [target, setTarget] = useState<Book | undefined>(undefined);
-  const getBookById = useCallback(
-    (id: string): Book | undefined => {
-      return books.find((book) => book.id === id);
-    },
-    [books]
-  );
-
-  // Aggiunge un libro alla lista e lo salva su Firebase
-  const addBook = useCallback(
-    (book: Book): Book | null => {
-      const validatedBook = validateBook(book);
-      if (!validatedBook) return null;
-
-      if (books.some((b) => b.id === validatedBook.id)) {
-        console.error("Un libro con questo ID esiste già");
-        return null;
-      }
-
-      const updatedBooks = [...books, validatedBook];
-      setBooks(updatedBooks);
-      API.saveSingleBook(validatedBook);
-      return validatedBook;
-    },
-    [books, validateBook, API]
-  );
-
-  // Crea un nuovo libro con un ID univoco e lo aggiunge alla lista
-  const createBook = useCallback(
-    (book: Omit<Book, "id">): Book | null => {
-      let newId = createId();
-      while (books.some((b) => b.id === newId)) {
-        newId = createId();
-      }
-
-      const newBook: Book = { ...book, id: newId, parts: book.parts || [] };
-      return addBook(newBook);
-    },
-    [books, createId, addBook]
-  );
-
-  // Aggiorna un libro esistente
-  const updateBook = useCallback(
-    (id: string, updatedBook: Partial<Book>, validation = true): Book | null => {
-      const stored = getBookById(id);
-      if (!stored) {
-        console.error("Libro non trovato");
-        return null;
-      }
-
-      const merged = { ...stored, ...updatedBook };
-      const validatedBook = validation ? validateBook(merged as Book) : (merged as Book);
-      if (!validatedBook) return null;
-
-      setBooks((prevBooks) => prevBooks.map((book) => (book.id === id ? validatedBook : book)));
-
-      API.saveDebounced(validatedBook);
-
-      return validatedBook;
-    },
-    [getBookById, validateBook, API]
-  );
-
-  // Elimina un libro
-  const deleteBook = useCallback(
-    (id: string): boolean => {
-      setBooks((prevBooks) => prevBooks.filter((book) => book.id !== id));
-      const res = API.deleteSingleBook(id);
-      if (!res) return false;
-      return true;
-    },
-    [API]
-  );
-
-  // Download methods
-  const download = useMemo(() => ({
-      _json_to_text(data: Book, isMarkdownFormat = false) {
-        let result = `${isMarkdownFormat ? "# " : ""}${data.title}\n\n`;
-        for (let part of data.parts || []) {
-          result += `${isMarkdownFormat ? "## " : ""}${part.title}\n\n`;
-          for (let section of part.sections || []) {
-            result += `${isMarkdownFormat ? "### " : ""}${section.title}\n\n`;
-            for (let paragraph of section.paragraphs || []) {
-              result += `${paragraph.text}\n\n`;
-            }
-          }
-        }
-        return result;
-      },
-
-      json: {
-        label: "Download (.json)",
-        icon: "bi-download",
-        execute(id: string) {
-          const data = getBookById(id);
-          if (!data) throw new Error("libro non trovato");
-          ui_download.json(data, data.title);
-        },
-      },
-
-      txt: {
-        label: "Download (.txt)",
-        icon: "bi-file",
-        execute(id: string) {
-          const data = getBookById(id);
-          if (!data) throw new Error("libro non trovato");
-          const result = download._json_to_text(data);
-          ui_download.text(result, data.title);
-        },
-      },
-
-      md: {
-        label: "Download (.md)",
-        icon: "bi-file-earmark-text",
-        execute(id: string) {
-          const data = getBookById(id);
-          if (!data) throw new Error("libro non trovato");
-          const result = download._json_to_text(data, true);
-          ui_download.markdown(result, data.title);
-        },
-      },
-    }),
-    [getBookById]
-  );
-
-  // Upload methods
-  const upload = useMemo(() => ({
-      json: {
-        label: "Upload (.json)",
-        icon: "bi-upload",
-        async execute() {
-          try {
-            const input = await ui_upload.json<Book>();
-            if (!input) {
-              console.error("Nessun file selezionato");
-              return;
-            }
-
-            if (Array.isArray(input)) {
-              toast.danger("Caricare un solo libro alla volta");
-              return;
-            }
-
-            const existingBook = books.find((book) => book.id === input.id);
-            if (existingBook) {
-              input.id = createId();
-            }
-            const res = addBook(input);
-
-            if (!res) toast.danger("Errore durante il caricamento");
-            toast.success("Libro caricato da JSON");
-          } catch (err) {
-            console.error("Errore durante l'upload JSON:", err);
-          }
-        },
-      },
-
-      markdown: {
-        label: "Upload (.md)",
-        icon: "bi-filetype-md",
-        async execute() {
-          try {
-            const input = await ui_upload.markdown();
-            if (!input) {
-              console.error("Nessun file selezionato");
-              return;
-            }
-            const validatedBook = validateBook(input);
-            if (!validatedBook) return console.error("Formato non valido");
-
-            addBook(validatedBook);
-            toast.success("Libro caricato da Markdown");
-          } catch (err) {
-            console.error("Errore durante l'upload markdown:", err);
-          }
-        },
-      },
-    }),
-    [books, createId, addBook, validateBook]
-  );
-
-  const findFirsted = useCallback((book: Book): { part: string; section: string } => {
-    return {
-      part: book.parts?.[0]?.id || "",
-      section: book.parts?.[0]?.sections?.[0]?.id || "",
-    };
-  }, []);
-
-  return {
-    books,
-    loading,
-    createId,
-    validateBook,
-    addBook,
-    createBook,
-    readAll,
-    getBookById,
-    updateBook,
-    deleteBook,
-    download,
-    upload,
-    findFirsted,
-    target,
-    setTarget,
-  }
-}
-
-
-export const {
-  provider: BookProvider,
-  context: useBookContext
-} = generateContext(bookContextValue);
-
-// Servizio API separato dal ciclo di vita del hook:
+// Servizio API separato dal ciclo di vita del hook
 const API_SERVICE = {
-  // Salva un singolo libro su Firebase (PUT per ID)
   async saveSingleBook(book: Book) {
     try {
       const response = await fetch(`${FIREBASE_URL}/${book.id}.json`, {
@@ -312,12 +28,11 @@ const API_SERVICE = {
     }
   },
 
-  saveDebounced: debounce(async (book: Book) => {
+  saveDebounced: debounce(function (book: Book) {
     console.warn("debounce");
-    await API_SERVICE.saveSingleBook(book);
+    return API_SERVICE.saveSingleBook(book);
   }, 1000),
 
-  // Elimina un singolo libro da Firebase (DELETE per ID)
   async deleteSingleBook(id: string) {
     try {
       const response = await fetch(`${FIREBASE_URL}/${id}.json`, {
@@ -333,3 +48,264 @@ const API_SERVICE = {
     }
   },
 };
+
+function bookContextValue() {
+  const [books, setBooks] = useState<Book[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [target, setTarget] = useState<Book | undefined>(undefined);
+
+  // Carica i libri da Firebase all'avvio
+  useEffect(()=> {
+    API.loadBooks();
+  }, []);
+
+  // Valida un libro usando Valibot
+  function validateBook(book: unknown): Book | null {
+    try {
+      const result = v.safeParse(book_schema, book);
+      if (!result.success) {
+        console.error("Validation error:", result.issues);
+        return null;
+      }
+      return result.output;
+    } catch (error) {
+      console.error("Validation error:", error);
+      return null;
+    }
+  }
+
+  // Funzione per trovare la prima parte e sezione di un libro
+  function findFirsted(book: Book) {
+    return {
+      part: book.parts?.[0]?.id || "",
+      section: book.parts?.[0]?.sections?.[0]?.id || "",
+    };
+  }
+  
+  // Oggetto API
+  const API = {
+    URL: FIREBASE_URL,
+    saveSingleBook: API_SERVICE.saveSingleBook,
+    saveDebounced: API_SERVICE.saveDebounced,
+    deleteSingleBook: API_SERVICE.deleteSingleBook,
+
+    async loadBooks() {
+      try {
+        setLoading(true);
+        const response = await fetch(`${FIREBASE_URL}.json`);
+        if (!response.ok) return console.error("Caricamento non riuscito", response.status);
+
+        const data = await response.json();
+        let booksArray: Book[] = [];
+
+        if (data) {
+          const rawBooks = Array.isArray(data) ? data : Object.values(data);
+          booksArray = rawBooks
+            .filter(function (b) { return Boolean(b && typeof b === "object"); })
+            .map(function (b) { return validateBook(b); })
+            .filter(function (b): b is Book { return b !== null; });
+        }
+        setBooks(booksArray);
+      } catch (error) {
+        console.error("Errore nel caricamento delle api:", error);
+      } finally {
+        setLoading(false);
+      }
+    },
+  };
+
+  // Oggetto CRUD per la gestione dei libri
+  const CRUD = {
+    // Crea un ID univoco
+    createId: function (): string {
+      return nanoid();
+    },
+
+    // Valida un libro usando Valibot
+    validateBook: validateBook,
+
+    // Restituisce tutti i libri
+    readAll: function (): Book[] {
+      return books;
+    },
+
+    // Trova un libro per ID
+    getBookById: function (id: string): Book | undefined {
+      return books.find(function (book) { return book.id === id; });
+    },
+
+    // Aggiunge un libro alla lista e lo salva su Firebase
+    addBook: function (book: Book): Book | null {
+      const validatedBook = this.validateBook(book);
+      if (!validatedBook) return null;
+
+      if (books.some(function (b) { return b.id === validatedBook.id; })) {
+        console.error("Un libro con questo ID esiste già");
+        return null;
+      }
+
+      const updatedBooks = [...books, validatedBook];
+      setBooks(updatedBooks);
+      API.saveSingleBook(validatedBook);
+      return validatedBook;
+    },
+
+    // Crea un nuovo libro con un ID univoco e lo aggiunge alla lista
+    createBook: function (book: Omit<Book, "id">): Book | null {
+      let newId = this.createId();
+      while (books.some(function (b) { return b.id === newId; })) {
+        newId = this.createId();
+      }
+
+      const newBook: Book = { ...book, id: newId, parts: book.parts || [] };
+      return this.addBook(newBook);
+    },
+
+    // Aggiorna un libro esistente
+    updateBook: function (id: string, updatedBook: Partial<Book>, validation = true): Book | null {
+      const stored = this.getBookById(id);
+      if (!stored) {
+        console.error("Libro non trovato");
+        return null;
+      }
+
+      const merged = { ...stored, ...updatedBook };
+      const validatedBook = validation ? this.validateBook(merged as Book) : (merged as Book);
+      if (!validatedBook) return null;
+
+      setBooks(function (prevBooks) {
+        return prevBooks.map(function (book) {
+          return book.id === id ? validatedBook : book;
+        });
+      });
+      API.saveDebounced(validatedBook);
+      return validatedBook;
+    },
+
+    // Elimina un libro
+    deleteBook: function (id: string): boolean {
+      setBooks(function (prevBooks) {
+        return prevBooks.filter(function (book) { return book.id !== id; });
+      });
+      const res = API.deleteSingleBook(id);
+      return !!res;
+    },
+  };
+
+  // Oggetto download
+  const download = {
+    _json_to_text: function (data: Book, isMarkdownFormat = false) {
+      let result = `${isMarkdownFormat ? "# " : ""}${data.title}\n\n`;
+      for (const part of data.parts || []) {
+        result += `${isMarkdownFormat ? "## " : ""}${part.title}\n\n`;
+        for (const section of part.sections || []) {
+          result += `${isMarkdownFormat ? "### " : ""}${section.title}\n\n`;
+          for (const paragraph of section.paragraphs || []) {
+            result += `${paragraph.text}\n\n`;
+          }
+        }
+      }
+      return result;
+    },
+
+    json: {
+      label: "Download (.json)",
+      icon: "bi-download",
+      execute: function (id: string) {
+        const data = CRUD.getBookById(id);
+        if (!data) throw new Error("Libro non trovato");
+        ui_download.json(data, data.title);
+      },
+    },
+
+    txt: {
+      label: "Download (.txt)",
+      icon: "bi-file",
+      execute: function (id: string) {
+        const data = CRUD.getBookById(id);
+        if (!data) throw new Error("Libro non trovato");
+        const result = download._json_to_text(data);
+        ui_download.text(result, data.title);
+      },
+    },
+
+    md: {
+      label: "Download (.md)",
+      icon: "bi-file-earmark-text",
+      execute: function (id: string) {
+        const data = CRUD.getBookById(id);
+        if (!data) throw new Error("Libro non trovato");
+        const result = download._json_to_text(data, true);
+        ui_download.markdown(result, data.title);
+      },
+    },
+  };
+
+  // Oggetto upload
+  const upload = {
+    json: {
+      label: "Upload (.json)",
+      icon: "bi-upload",
+      execute: async function () {
+        try {
+          const input = await ui_upload.json<Book>();
+          if (!input) {
+            console.error("Nessun file selezionato");
+            return;
+          }
+
+          if (Array.isArray(input)) {
+            toast.danger("Caricare un solo libro alla volta");
+            return;
+          }
+
+          const existingBook = books.find(function (book) { return book.id === input.id; });
+          if (existingBook) {
+            input.id = CRUD.createId();
+          }
+          const res = CRUD.addBook(input);
+          if (!res) toast.danger("Errore durante il caricamento");
+          toast.success("Libro caricato da JSON");
+        } catch (err) {
+          console.error("Errore durante l'upload JSON:", err);
+        }
+      },
+    },
+
+    markdown: {
+      label: "Upload (.md)",
+      icon: "bi-filetype-md",
+      execute: async function () {
+        try {
+          const input = await ui_upload.markdown();
+          if (!input) {
+            console.error("Nessun file selezionato");
+            return;
+          }
+          const validatedBook = CRUD.validateBook(input);
+          if (!validatedBook) return console.error("Formato non valido");
+          CRUD.addBook(validatedBook);
+          toast.success("Libro caricato da Markdown");
+        } catch (err) {
+          console.error("Errore durante l'upload markdown:", err);
+        }
+      },
+    },
+  };
+
+  return {
+    books,
+    loading,
+    ...CRUD,
+    download,
+    upload,
+    findFirsted,
+    target,
+    setTarget,
+  };
+}
+
+export const {
+  provider: BookProvider,
+  context: useBookContext
+} = generateContext(bookContextValue);

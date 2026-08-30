@@ -16,12 +16,11 @@ export function useDot<T>(initialValue: T) {
 
 export function useDotNotation<T>(initialValue: T) {
   const [state, setState] = useState<T>(initialValue);
-  // const computed = useMemo(()=> state, [state])
 
-  const result = {
+  const result = useMemo(() => ({
     get: state,
     set: (newValue: T | ((prev: T) => T)) => setState(newValue),
-  };
+  }), [state]);
 
   return result;
 }

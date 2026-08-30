@@ -105,12 +105,12 @@ export default function AuthComponent() {
         <h3 className="mt-5 mb-3">Lista codici</h3>
 
         <ol className="flex gap-2 flex-wrap">
-          <Frag if={!permissions.get().length} className="p-3 w-full bg-sky-700 rounded flex gap-2">
+          <Frag if={!permissions.get.length} className="p-3 w-full bg-sky-700 rounded flex gap-2">
             <i className="bi bi-info-circle"></i>
             <span>Nessun permesso trovato</span>
           </Frag>
 
-          {permissions.get().map((permession, i)=>
+          {permissions.get.map((permession, i)=>
             <li key={i + permession.title} className={`flex-1 min-w-[200px] p-1 rounded ${checkedTargets.get().includes(i) ? 'bg-red-200 outline' : 'bg-indigo-200'}`}>
               <div className="grid grid-cols-[auto_1fr] gap-1">
                 <div className="flex flex-col justify-between">

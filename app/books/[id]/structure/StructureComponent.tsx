@@ -97,9 +97,9 @@ export default function StructureComponent(props: UseBookComponentProps) {
                         </div>
                         <div className="p-2">
                           <button className="px-1 bg-gray-200 text-black outline rounded" 
-                                  onClick={_e=> SHARE.copy(part.id || "")}
+                                  onClick={_e=> SHARE.copyPart(_e, part.id || "")}
                                   title="Copia parte come json">
-                            <i className="bi bi-clipboard"></i>
+                            <i className="bi bi-copy"></i>
                           </button>
                         </div>
                       </div>
@@ -205,7 +205,7 @@ export default function StructureComponent(props: UseBookComponentProps) {
                 </button>
                 <button onClick={() => SHARE.paste()}
                         className="py-2 px-3 bg-indigo-600">
-                  <i className="me-1 bi bi-clipboard-plus-fill"></i>
+                  <i className="me-1 bi bi-clipboard-fill"></i>
                   <span>Incolla</span>
                 </button>
               </div>
