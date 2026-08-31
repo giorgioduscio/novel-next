@@ -1,7 +1,7 @@
 import { useAuthContext } from "@/app/data/AuthContext";
 import { auth_code_schema, Book } from "@/app/schemas/book_schema";
 import Field from "@/app/shareds/Field";
-import { useDot } from "@/app/tools/customStates";
+import { useDot, useDotNotation } from "@/app/tools/customStates";
 import { toast } from "@/app/tools/feedbacksUI";
 import * as v from "valibot";
 import { settings_component_input_class, settings_component_label_class } from "./SettingsComponent";
@@ -18,7 +18,7 @@ export default function AuthFormComponent({ labelParam, book, attributeKey }: Pr
   const { verify, updateCode } = authContext.CONTROLS;
   const agree = useAgreeWrapper();
 
-  const fields = useDot({
+  const fields = useDotNotation({
     old: { label: "Precedente", placeholder: "Es: 19dj-28dy-gry5-bktu", value: "" },
     code: { label: labelParam, placeholder: "Es: 19dj-28dy-gry5-bktu", value: "" },
     confirm: { label: `Conferma ${labelParam}`, placeholder: "Es: 19dj-28dy-gry5-bktu", value: "" },
@@ -43,7 +43,7 @@ export default function AuthFormComponent({ labelParam, book, attributeKey }: Pr
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
     if (!book) return console.error("Libro non trovato");
-    const _field = fields.get();
+    const _field = fields.get;
 
     // 1) il vecchio codice è corretto?
     const isOldCorrect = book[attributeKey]?.length
@@ -79,7 +79,7 @@ export default function AuthFormComponent({ labelParam, book, attributeKey }: Pr
   return (
     <div className="p-1 outline rounded outline-red-500 bg-red-900">
       <form onSubmit={handleSubmit} className="flex flex-wrap gap-2">
-        {Object.entries(fields.get()).map(([key, field]) => (
+        {Object.entries(fields.get).map(([key, field]) => (
           <div key={key} className="relative flex-1 min-w-[200px] bg-white outline rounded">
             <Field
               label_class={settings_component_label_class}
@@ -95,7 +95,7 @@ export default function AuthFormComponent({ labelParam, book, attributeKey }: Pr
         ))}
 
         <div className="w-full">
-          <button type="submit" className="py-2 px-3 bg-red-500 rounded">
+          <button type="submit" className="py-2 px-3 bg-blue-500 rounded">
             Modifica
           </button>
         </div>

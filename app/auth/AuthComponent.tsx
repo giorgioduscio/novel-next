@@ -7,6 +7,8 @@ import Frag from "../shareds/Frag"
 import useAuthComponent from "./useAuthComponent"
 import { useAuthContext } from "../data/AuthContext"
 import Link from "next/link"
+import { ui_copy } from "../tools/feedbacksUI"
+import ManySelect from "../shareds/ManySelect"
 
 
 export default function AuthComponent() {
@@ -22,25 +24,11 @@ export default function AuthComponent() {
 
     {/* AZIONI MULTIPLE */}
     <Frag if={checkedTargets.get().length > 0}>
-      <div className="sticky top-0 z-1 bg-red-900">
-        <div className="mx-auto max-w-[800px] flex items-center">
-
-          <button onClick={() => checkedTargets.set([])} className="p-2 bg-red-900 truncate">
-            <i className="bi bi-x-lg"></i>
-            <span className="hidden">Deseleziona</span>
-          </button>
-
-          <strong className="py-2 px-3 flex-1 text-white">{checkedTargets.get().length}</strong>
-
-          <button onClick={CRUD.handleDeleteMany} className="p-2 px-3 bg-red-900 text-red-300 truncate relative">
-            <i className="bi bi-trash3-fill absolute top-1 left-2"></i>
-            <i className="bi bi-trash3"></i>
-            <i className="bi bi-trash3 absolute bottom-1 right-2"></i>
-            <span className="hidden">Elimina selezionati</span>
-          </button>
-
-        </div>
-      </div>
+      <ManySelect 
+        targets={checkedTargets}
+        allItems={permissions.get().map((_, i) => i)}
+        onDeleteMany={CRUD.handleDeleteMany}
+      />
     </Frag>
 
     <Breadcrumb routes={["Codici"]} />
@@ -75,18 +63,20 @@ export default function AuthComponent() {
             </div>
             <form onSubmit={FORM.handleSubmit} className="p-2 grid sm:grid-cols-2 gap-2 items-center bg-indigo-200">
               {FORM.state.get().map((item) => (
-                <div key={item.key} className="flex-auto bg-white text-black outline rounded">
-                  <Field 
-                    type="text" 
-                    label_class="pt-1 px-3 text-xs font-bold italic"
-                    input_class="pb-2 px-3"
-                    id={item.key}
-                    label={item.label}
-                    placeholder={item.placeholder} 
-                    value={item.value} 
-                    onChange={(e) => FORM.state.set(prev => prev.map(i => i.key === item.key ? { ...i, value: e.target.value } : i))} 
-                    error_message={errors['form>'+item.key] || ""}
-                  />
+                <div key={item.key} className="relative">
+                  <div className="flex-auto bg-white text-black outline rounded">
+                    <Field 
+                      type={item.key ==="auth_code" ?"password" :"text"} 
+                      label_class="pt-1 px-3 text-xs font-bold italic"
+                      input_class="pb-2 px-3"
+                      id={item.key}
+                      label={item.label}
+                      placeholder={item.placeholder} 
+                      value={item.value} 
+                      onChange={(e) => FORM.state.set(prev => prev.map(i => i.key === item.key ? { ...i, value: e.target.value } : i))} 
+                      error_message={errors['form>'+item.key] || ""}
+                    />
+                  </div>
                 </div>
               ))}
 
@@ -112,7 +102,7 @@ export default function AuthComponent() {
 
           {permissions.get().map((permession, i)=>
             <li key={i + permession.title} className={`flex-1 min-w-[200px] p-1 rounded ${checkedTargets.get().includes(i) ? 'bg-red-200 outline' : 'bg-indigo-200'}`}>
-              <div className="grid grid-cols-[auto_1fr] gap-1">
+              <div className="grid grid-cols-[auto_1fr_auto] gap-1">
                 <div className="flex flex-col justify-between">
                   <input
                     type="checkbox"
@@ -121,28 +111,32 @@ export default function AuthComponent() {
                     className="block my-2 scale-150"
                   />
 
-                  <button onClick={() => CRUD.handleDelete(i)} className="px-1 text-red-700 outline rounded">
+                  <button onClick={() => CRUD.handleDelete(i)} 
+                          className="px-1 text-red-700 outline rounded"
+                          title="Rimuovi codice">
                     <i className="bi bi-trash"></i>
                   </button>
                 </div>
 
                 <div className="bg-white text-black outline rounded">
-                  <Field
-                    input_class="pt-1 px-2  italic font-bold text-sm"
-                    id={permession.title}
-                    hide_label label={permession.title}
-                    type="text"
-                    placeholder={permession.title}
-                    value={permession.title}
-                    onChange={(e) => CRUD.handleUpdate(i, 'title', e.target.value)}
-                    error_message={errors[`${i}>title`]}
-                  />
+                  <div>
+                    <Field
+                      input_class="pt-1 px-2  italic font-bold text-sm"
+                      id={permession.title}
+                      hide_label label={permession.title}
+                      type="text"
+                      placeholder={permession.title}
+                      value={permession.title}
+                      onChange={(e) => CRUD.handleUpdate(i, 'title', e.target.value)}
+                      error_message={errors[`${i}>title`]}
+                    />
+                  </div>
                   <div className="relative">
                     <Field
                       input_class="pb-2 px-3"
                       id={permession.auth_code}
                       hide_label label={permession.auth_code}
-                      type="copy"
+                      type="password"
                       placeholder={permession.auth_code}
                       value={permession.auth_code}
                       onChange={(e) => CRUD.handleUpdate(i, 'auth_code', e.target.value)}
@@ -151,6 +145,13 @@ export default function AuthComponent() {
                   </div>
                 </div>
 
+                <div className="text-black">
+                  <button onClick={()=> ui_copy(permession.auth_code)} 
+                          className="px-1 bg-gray-200 outline rounded"
+                          title="Copia codice">
+                    <i className="bi bi-copy"></i>
+                  </button>
+                </div>
               </div>
             </li>
           )}

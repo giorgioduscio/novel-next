@@ -8,6 +8,7 @@ import { Breadcrumb } from "@/app/shareds/Breadcrumb";
 import Navigation from "@/app/shareds/Navigation";
 import { useSectionComponent, UseSectionComponentProps } from "./useSectionComponent";
 import Link from "next/link";
+import UnathorizeComponent from "@/app/shareds/UnathorizeComponent";
 
 interface AddParagraphButtonProps { handleCreate: Function; if: boolean; className?: string }
 function AddParagraphButton({ if: show, handleCreate, className = "" }: AddParagraphButtonProps) {
@@ -45,15 +46,7 @@ export default function SectionComponent(props: UseSectionComponentProps) {
   } = useSectionComponent(props); 
 
   if (!page.isPageLoaded) return <LoadingComponent />;
-  if(!canRead) return (
-    <div className="p-3">
-      <div className="p-3 mx-auto max-w-fit bg-red-300 text-black border rounded">
-        <i className="bi bi-exclamation-triangle me-1"></i>
-        <strong>Non hai i permessi per leggere questa sezione.</strong> <br />
-        <Link href="/books" className="underline">Catalogo</Link>
-      </div>
-    </div>
-  )
+  if (!canRead) return <UnathorizeComponent />
 
   return (<>
     {/* NAVBAR */}

@@ -10,11 +10,12 @@ import Field from "@/app/shareds/Field";
 import { useAuthContext } from "@/app/data/AuthContext";
 import { useCommonPagesContext } from "@/app/data/CommonPagesContext";
 import handleArrowKeyFocus from "@/app/tools/handleArrowKeyFocus";
-import AuthFormComponent from "./AuthFormComponent";
+import AuthFormComponent from "./SettingsCodesFormComponent";
 import { useBookContext } from "@/app/data/BookContext";
 import { useRouter } from "next/navigation";
 import { useAgreeWrapper } from "@/app/shareds/Agree";
 import Navigation from "@/app/shareds/Navigation";
+import UnathorizeComponent from "@/app/shareds/UnathorizeComponent";
 
 export const settings_component_label_class="px-3 text-black text-sm font-bold italic"
 export const settings_component_input_class="pb-2 px-3 text-black w-full"
@@ -82,6 +83,8 @@ export default function SettingsComponent(props: UseBookComponentProps) {
   }
 
   if (!page.isPageLoaded) return <LoadingComponent />;
+  if(!canWrite) return <UnathorizeComponent />
+
   return (
     <>
       <Navigation page_title={book?.title ||""} back_btn={{ href:"/books" }} />    
@@ -128,9 +131,15 @@ export default function SettingsComponent(props: UseBookComponentProps) {
               <i className="bi bi-exclamation-triangle"></i> Danger zone
             </h3>
             <h4 className="pt-2 text-red-400">Codice per la lettura</h4>
+            <p className="m-2 p-3 bg-blue-700 outline rounded">
+              <i className="bi bi-info-circle"></i> Chiunque abbia questo codice sarà autorizzato a leggere questo libro. Se non impostato alcun codice, il libro sarà leggibile da tutti.
+            </p>
             <AuthFormComponent labelParam={"Codice lettura"} attributeKey="auth_read" book={book!} />
             
             <h4 className="pt-2 text-red-400">Codice per la scrittura</h4>
+            <p className="m-2 p-3 bg-blue-700 outline rounded">
+              <i className="bi bi-info-circle"></i> Chiunque abbia questo codice sarà autorizzato a modificare e rimuovere questo libro. Se non impostato alcun codice, sarà modificabile da chiunque.
+            </p>
             <AuthFormComponent labelParam={"Codice scrittura"} attributeKey="auth_write" book={book!} />
 
 

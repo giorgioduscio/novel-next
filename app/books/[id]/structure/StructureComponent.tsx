@@ -13,6 +13,7 @@ import Field from "@/app/shareds/Field";
 import { useAuthContext } from "@/app/data/AuthContext";
 import { useCommonPagesContext } from "@/app/data/CommonPagesContext";
 import handleArrowKeyFocus from "@/app/tools/handleArrowKeyFocus";
+import UnathorizeComponent from "@/app/shareds/UnathorizeComponent";
 
 interface UseBookComponentProps { id: string }
 export default function StructureComponent(props: UseBookComponentProps) {
@@ -35,15 +36,7 @@ export default function StructureComponent(props: UseBookComponentProps) {
 
 
   if (!page.isPageLoaded) return <LoadingComponent/>
-  if(!canRead) return (
-    <div className="p-3">
-      <div className="p-3 mx-auto max-w-fit bg-red-300 text-black border rounded">
-        <i className="bi bi-exclamation-triangle me-1"></i>
-        <strong>Non hai i permessi per leggere questo libro.</strong> <br />
-        <Link href="/books" className="underline">Catalogo</Link>
-      </div>
-    </div>
-  )
+  if (!canRead) return <UnathorizeComponent />
   
   return <>
     <Navigation page_title={book?.title ||""} back_btn={{ href:"/books" }} />    
