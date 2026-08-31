@@ -1,8 +1,8 @@
 import { useBookContext } from "@/app/data/BookContext";
 import { useCommonPagesContext } from "@/app/data/CommonPagesContext";
-import { Book, Section, Paragraph, paragraph_schema, section_schema } from "@/app/schemas/book_schema";
+import { Book, Section, Paragraph, paragraph_schema, section_schema, Part } from "@/app/schemas/book_schema";
 import { useAgreeWrapper } from "@/app/shareds/Agree";
-import { useDot } from "@/app/tools/customStates";
+import { useDot, useDotNotation } from "@/app/tools/customStates";
 import { toast } from "@/app/tools/feedbacksUI";
 import { useRouter } from "next/navigation";
 import { useState, useEffect, useMemo, useRef } from "react";
@@ -55,14 +55,13 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
   }, [book_id, bookContext.loading, bookContext.getBookById, bookContext.setTarget]);
 
   // restituisce la sezione corrente in base al libro
-  function getPart(bookObj = book) :Section | undefined {
+  function getPart(bookObj = book) :Part | undefined {
     return bookObj?.parts
       ?.find((p) => p.id === part_id)
   };
 
   function getSection(bookObj = book) :Section | undefined {
-    return bookObj?.parts
-      ?.find((p) => p.id === part_id)
+    return getPart(bookObj)
       ?.sections.find((s) => s.id === section_id);
   };
 
@@ -78,6 +77,10 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
       for (const paragraph of result.paragraphs){
         const [in_, ex_] = paragraph.in_style.split(",,");
         (paragraph as any).ex_style = ex_ || "";
+        // inizializza isMarcked se non esiste
+        if (paragraph.isMarcked === undefined) {
+          paragraph.isMarcked = false;
+        }
       }
       
       return result;
@@ -214,34 +217,22 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
   const PARAG = {
 
     // aggiorna paragrafo e salva
-    update(index:number, key: keyof Paragraph, value:string, 
-      options?:{addOnEnd?:boolean, noSafe?:boolean, replaceLastWord?:boolean}
-    ){
+    update(index:number, key: keyof Paragraph, value:string |boolean, safe=true){
       const clone = structuredClone(book!);
       const sec = getSection(clone);
       if (!sec || !sec.paragraphs?.length) return;      
 
       // aggiornamento stato
-      // una sola classe -> aggiunge il valore alla fine
-      if(options?.addOnEnd) {
-        sec.paragraphs[index][key] += " "+value;
-
-      // una sola classe -> rinomina l'ultima parola
-      }else if(options?.replaceLastWord) {
-        const current = sec.paragraphs[index][key];
-        const words = current.split(" ");
-        const word = words[words.length - 1] 
-        if(word.length <= 3) words[words.length - 1] = value;
-        sec.paragraphs[index][key] = words.join(" ");
-
-      // tutta e classi -> sostituisci tutto
-      } else {
-        sec.paragraphs[index][key] = value;
+      if(typeof value !== typeof sec.paragraphs[index][key]) {
+        console.error("Tipo non valido");
+        return;
       }
+      (sec.paragraphs as any)[index][key] = value;
+      
       setBook(clone);
       
       // aggiornamento backend e feedback
-      if(options?.noSafe) return;
+      if(!safe) return;
       const res = bookContext.updateBook(book_id, clone)
       if(!res) return toast.danger("Errore di validazione");
       // toast.success("Paragrafo salvato!");
@@ -258,7 +249,8 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
       const newParagraph: Paragraph = { 
         id: bookContext.createId(),
         in_style: "", 
-        text: paragraphText || "" 
+        text: paragraphText || "" ,
+        isMarcked: false
       };
       if (!sec.paragraphs) sec.paragraphs = [];
 
@@ -429,24 +421,12 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
 
   // 5) AUTOCOMPLETE PER STILI RIPETUTI
   const AUTOCOMPLETE = {
-    standardStyles: useDot<string[]>([]),
-    loadStandardStyles() {
-      useEffect(() => {
-        fetch("/Section.sass")
-          .then(res => res.text())
-          .then(text => {
-            const styles = text
-              .split("\n")
-              .map(line => line.trim())
-              .filter(line => line.startsWith("."))
-              .map(line => line.split(/\s+/)[0].replace(/^\./, ""))
-              .filter(Boolean);
-
-            AUTOCOMPLETE.standardStyles.set(styles);
-          })
-          .catch(err => console.error("Errore caricamento SASS:", err));
-      }, []);
-    },
+    standardStyles: [
+      "sinistra", "destra", "centro",
+      "descrizione", "esclamazione", "dialogo", "sussurro",
+      // gradiazioni
+      "bg-black-b", "bg-black-t", "bg-fade-10"
+    ] as const,
 
     usedStyles: useMemo(() => {
       const paragraphs = SECTION.bookSection?.paragraphs;
@@ -472,7 +452,7 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
       // unioni classi usate e standard
       const merged = [
         ...usedStyles,
-        ...AUTOCOMPLETE.standardStyles.get(), 
+        ...AUTOCOMPLETE.standardStyles, 
       ];
 
       // 2) filtraggio
@@ -511,438 +491,456 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
     },
   };
 
-  AUTOCOMPLETE.loadStandardStyles();
 
   // 7) TROVA E SOSTITUISCI
   const searchState = useDot({ value:"", caseSensitive:false, wholeWord:false });
   const paragraphs = SECTION.bookSection?.paragraphs || [];
 
-// Tipo per le occorrenze trovate
-type FoundOccurrence = { type: 'text' | 'style', index: number } | { type: 'section-title' };
+  // Tipo per le occorrenze trovate
+  type FoundOccurrence = { type: 'text' | 'style', index: number } | { type: 'section-title' };
 
-// Calcola le occorrenze trovate automaticamente con useMemo
-const foundIndices = useMemo(() => {
-  const query = searchState.get();
-  if (!query || !query.value.trim()) return [];
+  // Calcola le occorrenze trovate automaticamente con useMemo
+  const foundIndices = useMemo(() => {
+    const query = searchState.get();
+    if (!query || !query.value.trim()) return [];
 
-  const occurrences: FoundOccurrence[] = [];
-  const searchValue = query.caseSensitive ? query.value : query.value.toLowerCase();
+    const occurrences: FoundOccurrence[] = [];
+    const searchValue = query.caseSensitive ? query.value : query.value.toLowerCase();
 
-  // Funzione helper per verificare se il testo contiene la query
-  function matchesQuery (text: string): boolean {
-    const searchText = query.caseSensitive ? text : text.toLowerCase();
-    if (query.wholeWord) {
-      const regex = new RegExp(`\\b${query.value}\\b`, query.caseSensitive ? "" : "i");
-      return regex.test(text);
-    } else {
-      return searchText.includes(searchValue);
-    }
-  };
-
-  // Cerca nel titolo della sezione
-  const sectionTitle = SECTION_title;
-  if (matchesQuery(sectionTitle)) {
-    occurrences.push({ type: 'section-title' });
-  }
-
-  // Cerca nei paragrafi (testo e stile)
-  paragraphs.forEach((p, index) => {
-    // Cerca nel testo
-    if (matchesQuery(p.text)) {
-      occurrences.push({ type: 'text', index });
-    }
-
-    // Cerca nello stile
-    const style = p.in_style || "";
-    if (matchesQuery(style)) {
-      occurrences.push({ type: 'style', index });
-    }
-  });
-
-  return occurrences;
-}, [searchState, paragraphs, SECTION_title]);
-
-const FIND_REPLACE = {
-  // mostra / nascondi sezione
-  isVisible: useDot(false),
-  toggle(){
-    FIND_REPLACE.isVisible.set(prev=> !prev)
-  },
-
-  // CERCA
-  previousQuery: useDot({ value:"", caseSensitive:false, wholeWord:false }),
-  search: searchState,
-  currentIndex: useDot(0),
-
-  // Resetta lo stato
-  reset() {
-    FIND_REPLACE.search.set(p=>({ ...p, value: "" }));
-    FIND_REPLACE.replaceQuery.set("");
-    FIND_REPLACE.currentIndex.set(0);
-  },
-
-  // Cerca tutte le occorrenze nei paragrafi
-  executeSearch() {      
-    const query = FIND_REPLACE.search.get();
-    if (!query) {
-      FIND_REPLACE.reset();
-      return;
-    }
-
-    const previousQuery = FIND_REPLACE.previousQuery.get();
-    const isSameQuery = previousQuery.value === query.value
-      && previousQuery.caseSensitive === query.caseSensitive
-      && previousQuery.wholeWord === query.wholeWord;
-
-    // Se la query è la stessa, vai semplicemente al prossimo indice
-    function focus() {
-      const currentIndex = FIND_REPLACE.currentIndex.get();
-      
-      if (foundIndices.length === 0) return;
-      const newIndex = (currentIndex < foundIndices.length - 1) ? currentIndex + 1 : 0;
-      FIND_REPLACE.currentIndex.set(newIndex);
-  
-      setTimeout(() => {
-        const occurrence = foundIndices[newIndex];
-        // titolo sezione
-        if (occurrence.type === 'section-title') {
-          const titleInput = document.getElementById("section-title") as HTMLInputElement;
-          if (titleInput) {
-            titleInput.scrollIntoView({ behavior: "smooth", block: "center" });
-            titleInput.focus();
-          }
-  
-        // testo e stile
-        } else {
-          // testo
-          if (occurrence.type === 'text') {
-            const textInput =document.getElementById(`${occurrence.index}>text`);
-            if (!textInput) return console.error("input testuale non trovato");
-            setTimeout(() => {
-              textInput.scrollIntoView({ behavior: "smooth", block: "center" });
-            }, 100);
-          }
-
-          // stile
-          if (occurrence.type === 'style') {
-            PARAG.setStyleInput(occurrence.index) // apre il dropdown
-
-            setTimeout(() => {
-              const styleInput =document.getElementById(`${occurrence.index}>in_style`);
-              if (!styleInput) return console.error("input stile non trovato", occurrence);
-              
-              setTimeout(() => {
-                styleInput.scrollIntoView({ behavior: "smooth", block: "center" });
-              }, 100);
-            }, 100);
-          }
-  
-        }
-      }, 100);
-    }
-
-    if (isSameQuery) {
-      focus()
-      return;
-    }
-
-    // Nuova query: resetta e scrolla al primo elemento
-    FIND_REPLACE.currentIndex.set(0);
-    FIND_REPLACE.previousQuery.set(p=>({ ...p, value:query.value, caseSensitive:query.caseSensitive, wholeWord:query.wholeWord }));
-
-    // Sposta il focus sul primo input trovato
-    if (foundIndices.length > 0) {
-      focus()
-    }
-  },
-
-  // Vai all'occorrenza precedente
-  previous() {
-    const currentIndex = FIND_REPLACE.currentIndex.get();
-
-    if (foundIndices.length === 0) return;
-    const newIndex = currentIndex > 0 ? currentIndex - 1 : foundIndices.length - 1;
-    FIND_REPLACE.currentIndex.set(newIndex);
-
-    setTimeout(() => {
-      const occurrence = foundIndices[newIndex];
-      if (occurrence.type === 'section-title') {
-        const titleInput = document.getElementById("section-title") as HTMLInputElement;
-        if (titleInput) titleInput.focus();
+    // Funzione helper per verificare se il testo contiene la query
+    function matchesQuery (text: string): boolean {
+      const searchText = query.caseSensitive ? text : text.toLowerCase();
+      if (query.wholeWord) {
+        const regex = new RegExp(`\\b${query.value}\\b`, query.caseSensitive ? "" : "i");
+        return regex.test(text);
       } else {
-        const inputId = occurrence.type === 'text' 
-          ? `${occurrence.index}>text` 
-          : `${occurrence.index}>in_style`;
-        const input = document.getElementById(inputId) as HTMLTextAreaElement;
-        if (!input) return;
-        input.scrollIntoView({ behavior: "smooth", block: "center" });
-        // Apri l'input dello stile se necessario
-        if (occurrence.type === 'style') {
-          PARAG.setStyleInput(occurrence.index);
-        }
-        // Fai focus sull'input
-        setTimeout(() => {
-          const focusedInput = document.getElementById(inputId) as HTMLTextAreaElement;
-          if (focusedInput) focusedInput.focus();
-        }, 50);
+        return searchText.includes(searchValue);
       }
-    }, 100);
-  },
+    };
 
-  // Vai all'occorrenza successiva
-  next() {
-    const currentIndex = FIND_REPLACE.currentIndex.get();
-
-    if (foundIndices.length === 0) return;
-    const newIndex = currentIndex < foundIndices.length - 1 ? currentIndex + 1 : 0;
-    FIND_REPLACE.currentIndex.set(newIndex);
-
-    setTimeout(() => {
-      const occurrence = foundIndices[newIndex];
-      if (occurrence.type === 'section-title') {
-        const titleInput = document.getElementById("section-title") as HTMLInputElement;
-        if (titleInput) titleInput.focus();
-      } else {
-        const inputId = occurrence.type === 'text' 
-          ? `${occurrence.index}>text` 
-          : `${occurrence.index}>in_style`;
-        const input = document.getElementById(inputId) as HTMLTextAreaElement;
-        if (!input) return;
-        input.scrollIntoView({ behavior: "smooth", block: "center" });
-        // Apri l'input dello stile se necessario
-        if (occurrence.type === 'style') {
-          PARAG.setStyleInput(occurrence.index);
-        }
-        // Fai focus sull'input
-        setTimeout(() => {
-          const focusedInput = document.getElementById(inputId) as HTMLTextAreaElement;
-          if (focusedInput) focusedInput.focus();
-        }, 50);
-      }
-    }, 100);
-  },
-
-  // SOSTITUZIONE
-  replaceQuery: useDot(""),
-  replaceAll(targets: FoundOccurrence[] = foundIndices) {
-    if (targets.length === 0) return;
-    const replaceText = FIND_REPLACE.replaceQuery.get();
-    const search = FIND_REPLACE.search.get();
-    if (!book) return;
-
-    // Funzione per sfuggire i caratteri speciali in una stringa per RegExp
-    function escapeRegExp(string: string): string {
-      return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    // Cerca nel titolo della sezione
+    const sectionTitle = SECTION_title;
+    if (matchesQuery(sectionTitle)) {
+      occurrences.push({ type: 'section-title' });
     }
 
-    // Clona il libro una volta sola
-    const bookClone = structuredClone(book);
-    const sec = getSection(bookClone);
-    if (!sec?.paragraphs) return;
+    // Cerca nei paragrafi (testo e stile)
+    paragraphs.forEach((p, index) => {
+      // Cerca nel testo
+      if (matchesQuery(p.text)) {
+        occurrences.push({ type: 'text', index });
+      }
 
-    // Itera su tutte le occorrenze target
-    targets.forEach((occurrence) => {
-      if (occurrence.type === 'section-title') {
-        // Sostituisci nel titolo della sezione
-        let title = sec.title;
-        const searchValue = search.caseSensitive ? search.value : search.value.toLowerCase();
-        const escapedSearchValue = escapeRegExp(searchValue);
-
-        let regex: RegExp;
-        if (search.wholeWord) {
-          regex = new RegExp(`\\b${escapedSearchValue}\\b`, search.caseSensitive ? "g" : "gi");
-        } else {
-          regex = new RegExp(escapedSearchValue, search.caseSensitive ? "g" : "gi");
-        }
-
-        const newTitle = title.replace(regex, replaceText);
-        sec.title = newTitle;
-      } else {
-        // Sostituisci nei paragrafi
-        const paragraph = sec.paragraphs?.[occurrence.index];
-        if (!paragraph) return;
-
-        if (occurrence.type === 'text') {
-          let text = paragraph.text;
-          const searchValue = search.caseSensitive ? search.value : search.value.toLowerCase();
-          const escapedSearchValue = escapeRegExp(searchValue);
-
-          let regex: RegExp;
-          if (search.wholeWord) {
-            regex = new RegExp(`\\b${escapedSearchValue}\\b`, search.caseSensitive ? "g" : "gi");
-          } else {
-            regex = new RegExp(escapedSearchValue, search.caseSensitive ? "g" : "gi");
-          }
-
-          const newText = text.replace(regex, replaceText);
-          paragraph.text = newText;
-          PARAG.update(occurrence.index, "text", newText, { noSafe: true });
-        } else if (occurrence.type === 'style') {
-          let style = paragraph.in_style || "";
-          const searchValue = search.caseSensitive ? search.value : search.value.toLowerCase();
-          const escapedSearchValue = escapeRegExp(searchValue);
-
-          let regex: RegExp;
-          if (search.wholeWord) {
-            regex = new RegExp(`\\b${escapedSearchValue}\\b`, search.caseSensitive ? "g" : "gi");
-          } else {
-            regex = new RegExp(escapedSearchValue, search.caseSensitive ? "g" : "gi");
-          }
-
-          const newStyle = style.replace(regex, replaceText);
-          paragraph.in_style = newStyle;
-          PARAG.update(occurrence.index, "in_style", newStyle, { noSafe: true });
-        }
+      // Cerca nello stile
+      const style = p.in_style || "";
+      if (matchesQuery(style)) {
+        occurrences.push({ type: 'style', index });
       }
     });
 
-    // Salva una volta sola su database
-    bookContext.updateBook(book_id, bookClone);
-    toast.success("Sostituite tutte le occorrenze");
+    return occurrences;
+  }, [searchState, paragraphs, SECTION_title]);
 
-    // Reimposta la ricerca per aggiornare gli indici
-    FIND_REPLACE.executeSearch();
-  },
+  const FIND_REPLACE = {
+    // mostra / nascondi sezione
+    isVisible: useDot(false),
+    toggle(){
+      FIND_REPLACE.isVisible.set(prev=> !prev)
+    },
 
-  // Sostituisce la prima occorrenza
-  replace() {
-    const currentIndex = FIND_REPLACE.currentIndex.get();
-    const replaceText = FIND_REPLACE.replaceQuery.get();
-    const search = FIND_REPLACE.search.get();
+    // CERCA
+    previousQuery: useDot({ value:"", caseSensitive:false, wholeWord:false }),
+    search: searchState,
+    currentIndex: useDot(0),
 
-    if (foundIndices.length === 0 || currentIndex >= foundIndices.length) return;
-    if (!replaceText.trim()) return;
+    // Resetta lo stato
+    reset() {
+      FIND_REPLACE.search.set(p=>({ ...p, value: "" }));
+      FIND_REPLACE.replaceQuery.set("");
+      FIND_REPLACE.currentIndex.set(0);
+    },
 
-    // Chiama replaceAll con un array contenente solo l'occorrenza corrente
-    FIND_REPLACE.replaceAll([foundIndices[currentIndex]]);
+    // Cerca tutte le occorrenze nei paragrafi
+    executeSearch() {      
+      const query = FIND_REPLACE.search.get();
+      if (!query) {
+        FIND_REPLACE.reset();
+        return;
+      }
 
-    // Vai alla prossima occorrenza
-    const updatedIndex = FIND_REPLACE.currentIndex.get();
-    if (foundIndices.length > 0 && updatedIndex < foundIndices.length) {
-      const nextOccurrence = foundIndices[updatedIndex];
+      const previousQuery = FIND_REPLACE.previousQuery.get();
+      const isSameQuery = previousQuery.value === query.value
+        && previousQuery.caseSensitive === query.caseSensitive
+        && previousQuery.wholeWord === query.wholeWord;
+
+      // Se la query è la stessa, vai semplicemente al prossimo indice
+      function focus() {
+        const currentIndex = FIND_REPLACE.currentIndex.get();
+        
+        if (foundIndices.length === 0) return;
+        const newIndex = (currentIndex < foundIndices.length - 1) ? currentIndex + 1 : 0;
+        FIND_REPLACE.currentIndex.set(newIndex);
+    
+        setTimeout(() => {
+          const occurrence = foundIndices[newIndex];
+          // titolo sezione
+          if (occurrence.type === 'section-title') {
+            const titleInput = document.getElementById("section-title") as HTMLInputElement;
+            if (titleInput) {
+              titleInput.scrollIntoView({ behavior: "smooth", block: "center" });
+              titleInput.focus();
+            }
+    
+          // testo e stile
+          } else {
+            // testo
+            if (occurrence.type === 'text') {
+              const textInput =document.getElementById(`${occurrence.index}>text`);
+              if (!textInput) return console.error("input testuale non trovato");
+              setTimeout(() => {
+                textInput.scrollIntoView({ behavior: "smooth", block: "center" });
+              }, 100);
+            }
+
+            // stile
+            if (occurrence.type === 'style') {
+              PARAG.setStyleInput(occurrence.index) // apre il dropdown
+
+              setTimeout(() => {
+                const styleInput =document.getElementById(`${occurrence.index}>in_style`);
+                if (!styleInput) return console.error("input stile non trovato", occurrence);
+                
+                setTimeout(() => {
+                  styleInput.scrollIntoView({ behavior: "smooth", block: "center" });
+                }, 100);
+              }, 100);
+            }
+    
+          }
+        }, 100);
+      }
+
+      if (isSameQuery) {
+        focus()
+        return;
+      }
+
+      // Nuova query: resetta e scrolla al primo elemento
+      FIND_REPLACE.currentIndex.set(0);
+      FIND_REPLACE.previousQuery.set(p=>({ ...p, value:query.value, caseSensitive:query.caseSensitive, wholeWord:query.wholeWord }));
+
+      // Sposta il focus sul primo input trovato
+      if (foundIndices.length > 0) {
+        focus()
+      }
+    },
+
+    // Vai all'occorrenza precedente
+    previous() {
+      const currentIndex = FIND_REPLACE.currentIndex.get();
+
+      if (foundIndices.length === 0) return;
+      const newIndex = currentIndex > 0 ? currentIndex - 1 : foundIndices.length - 1;
+      FIND_REPLACE.currentIndex.set(newIndex);
+
       setTimeout(() => {
-        if (nextOccurrence.type === 'section-title') {
+        const occurrence = foundIndices[newIndex];
+        if (occurrence.type === 'section-title') {
           const titleInput = document.getElementById("section-title") as HTMLInputElement;
-          if (titleInput) {
-            titleInput.scrollIntoView({ behavior: "smooth", block: "center" });
-            titleInput.focus();
-          }
+          if (titleInput) titleInput.focus();
         } else {
-          const inputId = nextOccurrence.type === 'text' 
-            ? `${nextOccurrence.index}>text` 
-            : `${nextOccurrence.index}>in_style`;
-          const nextInput = document.getElementById(inputId) as HTMLTextAreaElement;
-          if (!nextInput) return;
-          nextInput.scrollIntoView({ behavior: "smooth", block: "center" });
-          if (nextOccurrence.type === 'style') {
-            PARAG.setStyleInput(nextOccurrence.index);
+          const inputId = occurrence.type === 'text' 
+            ? `${occurrence.index}>text` 
+            : `${occurrence.index}>in_style`;
+          const input = document.getElementById(inputId) as HTMLTextAreaElement;
+          if (!input) return;
+          input.scrollIntoView({ behavior: "smooth", block: "center" });
+          // Apri l'input dello stile se necessario
+          if (occurrence.type === 'style') {
+            PARAG.setStyleInput(occurrence.index);
           }
+          // Fai focus sull'input
           setTimeout(() => {
             const focusedInput = document.getElementById(inputId) as HTMLTextAreaElement;
             if (focusedInput) focusedInput.focus();
           }, 50);
         }
       }, 100);
-    }
-  },
-};
-// 5.5) KEYBOARD FEATURES
-const handleKeyboardFeature = useKeyboardFeatures(book_id, getSection, book, setBook, AUTOCOMPLETE, SECTION, PARAG);
+    },
 
-// 6) STORICO AZIONI
-const HISTORY = {
-  undoStack: useDot<Paragraph[][]>([]),
-  redoStack: useDot<Paragraph[][]>([]),
+    // Vai all'occorrenza successiva
+    next() {
+      const currentIndex = FIND_REPLACE.currentIndex.get();
 
-  // Salva lo stato attuale in undoStack e svuota redoStack
-  saveState(paragraphs: Paragraph[]) {
-    HISTORY.undoStack.set(prev => [...prev, structuredClone(paragraphs)]);
-    // Svuota redoStack dopo una nuova azione
-    HISTORY.redoStack.set([]); 
-  },
+      if (foundIndices.length === 0) return;
+      const newIndex = currentIndex < foundIndices.length - 1 ? currentIndex + 1 : 0;
+      FIND_REPLACE.currentIndex.set(newIndex);
 
-  // torna allo stato precedente
-  undo() {
-    const undoStack = HISTORY.undoStack.get();
-    if (undoStack.length <= 1) return; // Non c'è nulla da fare undo
+      setTimeout(() => {
+        const occurrence = foundIndices[newIndex];
+        if (occurrence.type === 'section-title') {
+          const titleInput = document.getElementById("section-title") as HTMLInputElement;
+          if (titleInput) titleInput.focus();
+        } else {
+          const inputId = occurrence.type === 'text' 
+            ? `${occurrence.index}>text` 
+            : `${occurrence.index}>in_style`;
+          const input = document.getElementById(inputId) as HTMLTextAreaElement;
+          if (!input) return;
+          input.scrollIntoView({ behavior: "smooth", block: "center" });
+          // Apri l'input dello stile se necessario
+          if (occurrence.type === 'style') {
+            PARAG.setStyleInput(occurrence.index);
+          }
+          // Fai focus sull'input
+          setTimeout(() => {
+            const focusedInput = document.getElementById(inputId) as HTMLTextAreaElement;
+            if (focusedInput) focusedInput.focus();
+          }, 50);
+        }
+      }, 100);
+    },
 
-    const currentState = undoStack[undoStack.length - 1];
-    const previousState = undoStack[undoStack.length - 2];
-
-    // Sposta lo stato attuale in redoStack
-    HISTORY.redoStack.set(prev => [...prev, currentState]);
-
-    // Rimuovi l'ultimo stato da undoStack
-    HISTORY.undoStack.set(prev => prev.slice(0, -1));
-
-    // Applica lo stato precedente
-    const clone = structuredClone(book!);
-    const sec = getSection(clone);
-    if (!sec) return console.error("Sezione non trovata");
-
-    sec.paragraphs = structuredClone(previousState);
-    setBook(clone);
-  },
-
-  // torna allo stato successivo
-  redo() {
-    const redoStack = HISTORY.redoStack.get();
-    if (redoStack.length === 0) return; // Non c'è nulla da fare redo
-
-    const nextState = redoStack[redoStack.length - 1];
-
-    // Sposta lo stato attuale in undoStack
-    HISTORY.undoStack.set(prev => [...prev, structuredClone(nextState)]);
-
-    // Rimuovi l'ultimo stato da redoStack
-    HISTORY.redoStack.set(prev => prev.slice(0, -1));
-
-    // Applica lo stato successivo
-    const clone = structuredClone(book!);
-    const sec = getSection(clone);
-    if (!sec) return console.error("Sezione non trovata");
-
-    sec.paragraphs = structuredClone(nextState);
-    setBook(clone);
-  },
-  
-  // salva i paragrafi ogni volta che book cambia
-  onChangeBook() {
-    useEffect(() => {
+    // SOSTITUZIONE
+    replaceQuery: useDot(""),
+    replaceAll(targets: FoundOccurrence[] = foundIndices) {
+      if (targets.length === 0) return;
+      const replaceText = FIND_REPLACE.replaceQuery.get();
+      const search = FIND_REPLACE.search.get();
       if (!book) return;
-      const sec = getSection(structuredClone(book));
-      if (!sec) return console.error("Sezione non trovata");
-  
-      const paragraphs = sec.paragraphs;
-      if (!paragraphs) return console.error("Paragrafi non trovati");
-  
-      // Salva solo se lo stato è diverso dall'ultimo in undoStack
-      const lastState = HISTORY.undoStack.get()[HISTORY.undoStack.get().length - 1];
-      if (!lastState || JSON.stringify(lastState) !== JSON.stringify(paragraphs)) {
-        HISTORY.saveState(paragraphs);
-      }
-    }, [book])
-  }
-};
-HISTORY.onChangeBook();
 
-return {
-  book,
-  part,
-  errors,
-  page,
-  book_id,
-  section_id,
-  SECTION_title,
-  SECTION,
-  SHARED,
-  PARAG,
-  showParagraphs,
-  AUTOCOMPLETE,
-  HISTORY, 
-  FIND_REPLACE,
-  foundIndices,
-  canRead, canWrite,
-  olRef, olHeight
-};
+      // Funzione per sfuggire i caratteri speciali in una stringa per RegExp
+      function escapeRegExp(string: string): string {
+        return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      }
+
+      // Clona il libro una volta sola
+      const bookClone = structuredClone(book);
+      const sec = getSection(bookClone);
+      if (!sec?.paragraphs) return;
+
+      // Itera su tutte le occorrenze target
+      targets.forEach((occurrence) => {
+        if (occurrence.type === 'section-title') {
+          // Sostituisci nel titolo della sezione
+          let title = sec.title;
+          const searchValue = search.caseSensitive ? search.value : search.value.toLowerCase();
+          const escapedSearchValue = escapeRegExp(searchValue);
+
+          let regex: RegExp;
+          if (search.wholeWord) {
+            regex = new RegExp(`\\b${escapedSearchValue}\\b`, search.caseSensitive ? "g" : "gi");
+          } else {
+            regex = new RegExp(escapedSearchValue, search.caseSensitive ? "g" : "gi");
+          }
+
+          const newTitle = title.replace(regex, replaceText);
+          sec.title = newTitle;
+        } else {
+          // Sostituisci nei paragrafi
+          const paragraph = sec.paragraphs?.[occurrence.index];
+          if (!paragraph) return;
+
+          if (occurrence.type === 'text') {
+            let text = paragraph.text;
+            const searchValue = search.caseSensitive ? search.value : search.value.toLowerCase();
+            const escapedSearchValue = escapeRegExp(searchValue);
+
+            let regex: RegExp;
+            if (search.wholeWord) {
+              regex = new RegExp(`\\b${escapedSearchValue}\\b`, search.caseSensitive ? "g" : "gi");
+            } else {
+              regex = new RegExp(escapedSearchValue, search.caseSensitive ? "g" : "gi");
+            }
+
+            const newText = text.replace(regex, replaceText);
+            paragraph.text = newText;
+            PARAG.update(occurrence.index, "text", newText, true );
+          } else if (occurrence.type === 'style') {
+            let style = paragraph.in_style || "";
+            const searchValue = search.caseSensitive ? search.value : search.value.toLowerCase();
+            const escapedSearchValue = escapeRegExp(searchValue);
+
+            let regex: RegExp;
+            if (search.wholeWord) {
+              regex = new RegExp(`\\b${escapedSearchValue}\\b`, search.caseSensitive ? "g" : "gi");
+            } else {
+              regex = new RegExp(escapedSearchValue, search.caseSensitive ? "g" : "gi");
+            }
+
+            const newStyle = style.replace(regex, replaceText);
+            paragraph.in_style = newStyle;
+            PARAG.update(occurrence.index, "in_style", newStyle, false );
+          }
+        }
+      });
+
+      // Salva una volta sola su database
+      bookContext.updateBook(book_id, bookClone);
+      toast.success("Sostituite tutte le occorrenze");
+
+      // Reimposta la ricerca per aggiornare gli indici
+      FIND_REPLACE.executeSearch();
+    },
+
+    // Sostituisce la prima occorrenza
+    replace() {
+      const currentIndex = FIND_REPLACE.currentIndex.get();
+      const replaceText = FIND_REPLACE.replaceQuery.get();
+      const search = FIND_REPLACE.search.get();
+
+      if (foundIndices.length === 0 || currentIndex >= foundIndices.length) return;
+      if (!replaceText.trim()) return;
+
+      // Chiama replaceAll con un array contenente solo l'occorrenza corrente
+      FIND_REPLACE.replaceAll([foundIndices[currentIndex]]);
+
+      // Vai alla prossima occorrenza
+      const updatedIndex = FIND_REPLACE.currentIndex.get();
+      if (foundIndices.length > 0 && updatedIndex < foundIndices.length) {
+        const nextOccurrence = foundIndices[updatedIndex];
+        setTimeout(() => {
+          if (nextOccurrence.type === 'section-title') {
+            const titleInput = document.getElementById("section-title") as HTMLInputElement;
+            if (titleInput) {
+              titleInput.scrollIntoView({ behavior: "smooth", block: "center" });
+              titleInput.focus();
+            }
+          } else {
+            const inputId = nextOccurrence.type === 'text' 
+              ? `${nextOccurrence.index}>text` 
+              : `${nextOccurrence.index}>in_style`;
+            const nextInput = document.getElementById(inputId) as HTMLTextAreaElement;
+            if (!nextInput) return;
+            nextInput.scrollIntoView({ behavior: "smooth", block: "center" });
+            if (nextOccurrence.type === 'style') {
+              PARAG.setStyleInput(nextOccurrence.index);
+            }
+            setTimeout(() => {
+              const focusedInput = document.getElementById(inputId) as HTMLTextAreaElement;
+              if (focusedInput) focusedInput.focus();
+            }, 50);
+          }
+        }, 100);
+      }
+    },
+  };
+  // 5.5) KEYBOARD FEATURES
+  const handleKeyboardFeature = useKeyboardFeatures(book_id, getSection, book, setBook, AUTOCOMPLETE, SECTION, PARAG);
+
+  // 6) STORICO AZIONI
+  const HISTORY = {
+    undoStack: useDot<Paragraph[][]>([]),
+    redoStack: useDot<Paragraph[][]>([]),
+
+    // Salva lo stato attuale in undoStack e svuota redoStack
+    saveState(paragraphs: Paragraph[]) {
+      HISTORY.undoStack.set(prev => [...prev, structuredClone(paragraphs)]);
+      // Svuota redoStack dopo una nuova azione
+      HISTORY.redoStack.set([]); 
+    },
+
+    // torna allo stato precedente
+    undo() {
+      const undoStack = HISTORY.undoStack.get();
+      if (undoStack.length <= 1) return; // Non c'è nulla da fare undo
+
+      const currentState = undoStack[undoStack.length - 1];
+      const previousState = undoStack[undoStack.length - 2];
+
+      // Sposta lo stato attuale in redoStack
+      HISTORY.redoStack.set(prev => [...prev, currentState]);
+
+      // Rimuovi l'ultimo stato da undoStack
+      HISTORY.undoStack.set(prev => prev.slice(0, -1));
+
+      // Applica lo stato precedente
+      const clone = structuredClone(book!);
+      const sec = getSection(clone);
+      if (!sec) return console.error("Sezione non trovata");
+
+      sec.paragraphs = structuredClone(previousState);
+      setBook(clone);
+    },
+
+    // torna allo stato successivo
+    redo() {
+      const redoStack = HISTORY.redoStack.get();
+      if (redoStack.length === 0) return; // Non c'è nulla da fare redo
+
+      const nextState = redoStack[redoStack.length - 1];
+
+      // Sposta lo stato attuale in undoStack
+      HISTORY.undoStack.set(prev => [...prev, structuredClone(nextState)]);
+
+      // Rimuovi l'ultimo stato da redoStack
+      HISTORY.redoStack.set(prev => prev.slice(0, -1));
+
+      // Applica lo stato successivo
+      const clone = structuredClone(book!);
+      const sec = getSection(clone);
+      if (!sec) return console.error("Sezione non trovata");
+
+      sec.paragraphs = structuredClone(nextState);
+      setBook(clone);
+    },
+    
+    // salva i paragrafi ogni volta che book cambia
+    onChangeBook() {
+      useEffect(() => {
+        if (!book) return;
+        const sec = getSection(structuredClone(book));
+        if (!sec) return console.error("Sezione non trovata");
+    
+        const paragraphs = sec.paragraphs;
+        if (!paragraphs) return console.error("Paragrafi non trovati");
+    
+        // Salva solo se lo stato è diverso dall'ultimo in undoStack
+        const lastState = HISTORY.undoStack.get()[HISTORY.undoStack.get().length - 1];
+        if (!lastState || JSON.stringify(lastState) !== JSON.stringify(paragraphs)) {
+          HISTORY.saveState(paragraphs);
+        }
+      }, [book])
+    }
+  };
+  HISTORY.onChangeBook();
+
+  // 7) segnalibro
+  const MARCKERS ={
+    isVisible: useDot(false),
+    // tutti i paragrafi segnati
+    markers: useMemo(()=>{
+      return getSection()?.paragraphs?.filter(p=> p.isMarcked) || [];
+    }, [getSection]),
+    // scrolla la pagina fino al segnalibro
+    scrollToMarker(id:string) {
+      const input = document.getElementById(`${id}>text`);
+      
+      setTimeout(() => {
+        input?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 100);
+      
+    }
+  }
+
+  return {
+    book,
+    part,
+    errors,
+    page,
+    book_id,
+    section_id,
+    SECTION_title,
+    SECTION,
+    SHARED,
+    PARAG,
+    showParagraphs,
+    AUTOCOMPLETE,
+    HISTORY, 
+    FIND_REPLACE,
+    foundIndices,
+    canRead, canWrite,
+    olRef, olHeight,
+    MARCKERS
+  };
 }

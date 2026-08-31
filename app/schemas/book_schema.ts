@@ -188,6 +188,7 @@ export const paragraph_schema = v.object({
     v.check((v) => validateStyle(v), "in_style: Solo stili standard o ornamentali")
   ),
   text: v.string(),
+  isMarcked: v.boolean(),
 });
 
 export const section_schema = v.object({

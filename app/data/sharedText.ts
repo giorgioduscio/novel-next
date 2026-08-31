@@ -129,6 +129,7 @@ export default function useSharedText() {
           id: bookContext.createId(),
           in_style: p.startsWith("* ") ? "dialogo sinistra" : "",
           text: p.replace("* ", ""),
+          isMarcked: false,
         });
       }
     });
@@ -393,6 +394,14 @@ export default function useSharedText() {
           toast.danger("Parte non valida");
           return null;
         }
+        // Assicura che tutti i paragrafi abbiano isMarcked
+        newPart.sections.forEach(section => {
+          section.paragraphs?.forEach(p => {
+            if (p.isMarcked === undefined) {
+              p.isMarcked = false;
+            }
+          });
+        });
         toast.success("Parte incollata con successo!");
         return newPart;
       } catch (err) {
@@ -433,6 +442,12 @@ export default function useSharedText() {
           toast.danger("Sezione non valida");
           return null;
         }
+        // Assicura che tutti i paragrafi abbiano isMarcked
+        newSection.paragraphs.forEach(p => {
+          if (p.isMarcked === undefined) {
+            p.isMarcked = false;
+          }
+        });
         toast.success("Sezione incollata con successo!");
         return newSection;
       } catch (err) {

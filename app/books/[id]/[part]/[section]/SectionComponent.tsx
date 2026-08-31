@@ -41,6 +41,7 @@ export default function SectionComponent(props: UseSectionComponentProps) {
     canRead, canWrite,
     olRef,
     olHeight,
+    MARCKERS
   } = useSectionComponent(props); 
 
   if (!page.isPageLoaded) return <LoadingComponent />;
@@ -71,6 +72,8 @@ export default function SectionComponent(props: UseSectionComponentProps) {
       </Frag>
     </Navigation>
 
+
+
     {/* BREADCRUMB */}
     <Breadcrumb routes={["Catalogo:/books", `${book?.title}:/${book?.id}`, `${part?.title}:/structure`, SECTION_title]} />
 
@@ -83,17 +86,23 @@ export default function SectionComponent(props: UseSectionComponentProps) {
             <button onClick={HISTORY.undo} 
                     className="px-3 py-2 bg-indigo-900" 
                     title="Annulla">
-              <i className="bi bi-arrow-left"></i> 
+              <i className="bi bi-arrow-90deg-left" style={{transform:"rotate(-90) !important"}}></i> 
             </button>
-            <button onClick={HISTORY.redo} 
-                    className="px-3 py-2 bg-indigo-900" 
-                    title="Ripeti">
-              <i className="bi bi-arrow-right"></i> 
+            <button onClick={()=> MARCKERS.isVisible.set(true)} 
+                    className="px-3 py-2 bg-green-900" 
+                    title="Segnalibri">
+              <i className="bi bi-bookmarks-fill"></i> 
+              <span className="ms-1 hidden sm:inline">Segnalibri</span>
             </button>
             <button onClick={FIND_REPLACE.toggle} 
                     className={`px-3 py-2 ${FIND_REPLACE.isVisible.get() ?"bg-blue-800" :"bg-gray-800"}`}>
               <i className="bi bi-search"></i> 
               <span className="ms-1 hidden sm:inline">Trova</span>
+            </button>
+            <button onClick={HISTORY.redo} 
+                    className="px-3 py-2 bg-indigo-900" 
+                    title="Ripeti">
+              <i className="bi bi-arrow-90deg-right rotate-90"></i> 
             </button>
           </div>
         </Frag>
@@ -191,7 +200,51 @@ export default function SectionComponent(props: UseSectionComponentProps) {
       </div>
     </div>
 
-
+    {/* SEGNALIBRI */}
+    <Frag if={canRead && MARCKERS.isVisible.get()}>
+      <div className="fixed inset-0 z-50 flex">
+        {/* BACKDROP */}
+        <div onClick={()=> MARCKERS.isVisible.set(false)}
+             className="absolute inset-0 bg-black/50">
+        </div>
+        
+        {/* OFFCANVAS */}
+        <div className="relative ml-auto w-80 max-w-full h-full bg-indigo-900 shadow-xl overflow-y-auto">
+          <div className="p-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold text-white">
+                <i className="bi bi-bookmarks-fill me-2"></i>
+                Segnalibri
+              </h3>
+              <button onClick={()=> MARCKERS.isVisible.set(false)}
+                      className="p-2 text-white hover:bg-indigo-800 rounded"
+                      title="Chiudi">
+                <i className="bi bi-x-lg"></i>
+              </button>
+            </div>
+            
+            <ol className="space-y-2">
+              {MARCKERS.markers.length === 0 ? (
+                <li className="text-gray-400 text-center py-4">
+                  Nessun segnalibro impostato
+                </li>
+              ) : (
+                MARCKERS.markers.map((p, index) => (  
+                  <li key={index}>
+                    <button onClick={()=> MARCKERS.scrollToMarker(index.toString())}
+                            className="w-full py-2 px-3 bg-indigo-800 text-sm text-left rounded truncate"
+                            title={`Vai al paragrafo: ${p.text}`}>
+                      <i className="me-2 bi bi-bookmark"></i>
+                      <span className="truncate">{p.text || 'Paragrafo senza testo'}</span>
+                    </button>
+                  </li>
+                ))
+              )}
+            </ol>
+          </div>
+        </div>
+      </div>
+    </Frag>
 
     <main id="SectionComponent" onClick={PARAG.closeTemplateInputStyle}>
       <div className="mx-auto container max-w-[400px]">
@@ -280,8 +333,8 @@ export default function SectionComponent(props: UseSectionComponentProps) {
 
                     {/* TESTO PARAGRAFO */}
                     <div onClick={PARAG.handleFocusText}
-                          className={`block py-3 ${(p as any).ex_style}`}>
-                      <div onClick={PARAG.handleFocusText}>
+                          >
+                      <div onClick={PARAG.handleFocusText} className={`block py-3 ${(p as any).ex_style}`}>
                         <div  className={canWrite && PARAG.styleInput.get().index === paragraph_i ? 'outline-3 outline-dashed outline-black' : ''}>
                           <div  onClick={PARAG.handleFocusText} className={`${canWrite && PARAG.styleInput.get().index === paragraph_i ? 'outline-3 outline-white' : ''}`}>
                             <Field
@@ -366,11 +419,21 @@ export default function SectionComponent(props: UseSectionComponentProps) {
 
                     {/* RIMUOVI PARAGRAFO */}
                     <Frag if={canWrite} className="pr-1 pt-3 absolute top-0 end-0 z-1">
-                      <button type="button"
-                              onClick={() => PARAG.handleRemove(paragraph_i)}
-                              className="px-2 py-1 bg-gray-600 text-red-300 rounded-full">
-                        <i className="bi bi-trash-fill"></i>
-                      </button>
+                      <div className="flex flex-col">
+                        <button type="button" title="rimuovi paragrafo"
+                                onClick={() => PARAG.handleRemove(paragraph_i)}
+                                className="px-2 py-1 bg-gray-600 text-red-300 rounded-full">
+                          <i className="bi bi-trash-fill"></i>
+                        </button>
+                        <button type="button" title={`${p.isMarcked ?"Rimuovi" :"Imposta"} segnalibro`}
+                                onClick={() => PARAG.update(paragraph_i,"isMarcked", !p.isMarcked)}
+                                className="px-2 py-1 bg-gray-600 text-green-300 rounded-full">
+                          {p.isMarcked 
+                            ?<i className="bi bi-bookmark-fill"></i>
+                            :<i className="bi bi-bookmark"></i>
+                          }
+                        </button>
+                      </div>
                     </Frag>
 
                     {/* PULSANTE INSERIMENTO */}
