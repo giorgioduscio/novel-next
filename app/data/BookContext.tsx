@@ -6,6 +6,7 @@ import * as v from "valibot";
 import { nanoid } from "nanoid";
 import { ui_upload, ui_download, debounce, toast } from "../tools/feedbacksUI";
 import { generateContext } from "../tools/generateContext";
+import { sanitizeAccessCode, isValidAccessCode } from "@/lib/security";
 
 const FIREBASE_URL = "https://books-3e4c3-default-rtdb.europe-west1.firebasedatabase.app/books";
 
@@ -82,6 +83,38 @@ function bookContextValue() {
     };
   }
   
+  // Verify access code using existing Argon2 implementation
+  async function verifyAccessCode(bookId: string, code: string, type: 'read' | 'write'): Promise<boolean> {
+    try {
+      // Sanitize code before processing
+      const sanitizedCode = sanitizeAccessCode(code);
+      
+      if (!isValidAccessCode(sanitizedCode)) {
+        console.error('Invalid code format');
+        return false;
+      }
+
+      // Get the book to check the hash
+      const book = books.find(b => b.id === bookId);
+      if (!book) return false;
+
+      const authField = type === 'read' ? 'auth_read' : 'auth_write';
+      const storedHash = book[authField];
+
+      // If no password is set, allow access
+      if (!storedHash || storedHash === '') {
+        return true;
+      }
+
+      // Use existing Argon2 verification from client-side
+      const { verifyWithArgon2 } = await import('../actions/argonActions');
+      return await verifyWithArgon2(sanitizedCode, storedHash);
+    } catch (error) {
+      console.error('Error verifying code:', error);
+      return false;
+    }
+  }
+
   // Oggetto API
   const API = {
     URL: FIREBASE_URL,
@@ -302,7 +335,10 @@ function bookContextValue() {
     findFirsted,
     target,
     setTarget,
+    verifyAccessCode,
   };
+
+  return bookContextValue;
 }
 
 export const {
