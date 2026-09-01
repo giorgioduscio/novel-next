@@ -68,7 +68,7 @@ export default function BooksComponent() {
                 label_class="px-2 pt-1 text-sm  font-bold italic"
                 input_class="pl-8 px-3 py-1 bg-white text-black outline rounded-full"
                 placeholder="Cerca per titolo o autore..."
-                value={searchQuery.get()}
+                value={searchQuery.get}
                 onChange={(e) => searchQuery.set(e.target.value)}
               />
             </div>

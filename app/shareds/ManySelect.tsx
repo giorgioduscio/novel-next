@@ -4,7 +4,7 @@ import Frag from "./Frag"
 
 interface ManySelectProps<T> {
   targets: {
-    get(): T[]
+    get: T[]
     set(value: T[]): void
   }
   allItems: T[]
@@ -13,7 +13,7 @@ interface ManySelectProps<T> {
 
 export default function ManySelect<T>({ targets, allItems, onDeleteMany }: ManySelectProps<T>) {
   
-  const selectedCount = targets.get().length
+  const selectedCount = targets.get.length
   const totalCount = allItems.length
   const allSelected = selectedCount === totalCount && totalCount > 0
 

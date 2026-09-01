@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { useDot } from "../tools/customStates";
+import { useDotNotation } from "../tools/customStates";
 import { Permission, Book } from "../schemas/book_schema";
 import { useBookContext } from "./BookContext";
 import { hashWithArgon2, verifyWithArgon2, checkAccessWithArgon2 } from "../actions/argonActions";
@@ -12,7 +12,7 @@ export const {
   context: useAuthContext,
 } = generateContext(() => {
   const bookContext = useBookContext();
-  const permissions = useDot<Permission[]>([]);
+  const permissions = useDotNotation<Permission[]>([]);
   const [allowedReadIds, setAllowedReadIds] = useState<string[]>([]);
   const [allowedWriteIds, setAllowedWriteIds] = useState<string[]>([]);
 
@@ -44,7 +44,7 @@ export const {
   // Sincronizza i permessi dell'utente con i libri
   useEffect(() => {
     let isCancelled = false;
-    const userCodes = permissions.get().map((p) => p.auth_code).filter(Boolean);
+    const userCodes = permissions.get.map((p) => p.auth_code).filter(Boolean);
     const books = bookContext.books;
 
     async function evaluatePermissions() {
@@ -78,7 +78,7 @@ export const {
     return () => {
       isCancelled = true;
     };
-  }, [permissions.get(), bookContext.books]);
+  }, [permissions.get, bookContext.books]);
 
   // Funzioni stabilizzate con useCallback
   const canRead = useCallback(

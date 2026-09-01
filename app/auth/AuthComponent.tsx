@@ -16,17 +16,17 @@ export default function AuthComponent() {
   const { permissions } = useAuthContext()
 
   return <>
-    <Frag if={checkedTargets.get().length === 0}>
+    <Frag if={checkedTargets.get.length === 0}>
       <Navigation page_title="Permessi" back_btn={{ href:'/' }}>
         <Link href={"/books"} className="py-1 px-2 bg-orange-700 rounded">Catalogo</Link>
       </Navigation>
     </Frag>
 
     {/* AZIONI MULTIPLE */}
-    <Frag if={checkedTargets.get().length > 0}>
+    <Frag if={checkedTargets.get.length > 0}>
       <ManySelect 
         targets={checkedTargets}
-        allItems={permissions.get().map((_, i) => i)}
+        allItems={permissions.get.map((_, i) => i)}
         onDeleteMany={CRUD.handleDeleteMany}
       />
     </Frag>
@@ -47,7 +47,7 @@ export default function AuthComponent() {
         <div className="flex justify-between items-center">
           <h2 className="my-3 text-2xl font-bold">Permessi</h2>
           <button onClick={() => FORM.isVisible.set(prev=> !prev)} className="py-1 px-2 bg-indigo-600 text-white rounded">
-            {FORM.isVisible.get()
+            {FORM.isVisible.get
               ? <><i className="bi bi-x-lg"></i> Chiudi</>
               : <><i className="bi bi-plus-lg"></i> Aggiungi</>
             }
@@ -56,13 +56,13 @@ export default function AuthComponent() {
 
 
         {/* NUOVO PERMESSO */}
-        <Frag if={FORM.isVisible.get()} className="mx-auto max-w-max">
+        <Frag if={FORM.isVisible.get} className="mx-auto max-w-max">
           <div className="outline outline-indigo-600 rounded">
             <div className="p-2 bg-indigo-600 flex gap-2">
               <h3>Aggiungi codice</h3>
             </div>
             <form onSubmit={FORM.handleSubmit} className="p-2 grid sm:grid-cols-2 gap-2 items-center bg-indigo-200">
-              {FORM.state.get().map((item) => (
+              {FORM.state.get.map((item) => (
                 <div key={item.key} className="relative">
                   <div className="flex-auto bg-white text-black outline rounded">
                     <Field 
@@ -95,18 +95,18 @@ export default function AuthComponent() {
         <h3 className="mt-5 mb-3">Lista codici</h3>
 
         <ol className="flex gap-2 flex-wrap">
-          <Frag if={!permissions.get().length} className="p-3 w-full bg-sky-700 rounded flex gap-2">
+          <Frag if={!permissions.get.length} className="p-3 w-full bg-sky-700 rounded flex gap-2">
             <i className="bi bi-info-circle"></i>
             <span>Nessun permesso trovato</span>
           </Frag>
 
-          {permissions.get().map((permession, i)=>
-            <li key={i + permession.title} className={`flex-1 min-w-[200px] p-1 rounded ${checkedTargets.get().includes(i) ? 'bg-red-200 outline' : 'bg-indigo-200'}`}>
+          {permissions.get.map((permession, i)=>
+            <li key={i + permession.title} className={`flex-1 min-w-[200px] p-1 rounded ${checkedTargets.get.includes(i) ? 'bg-red-200 outline' : 'bg-indigo-200'}`}>
               <div className="grid grid-cols-[auto_1fr_auto] gap-1">
                 <div className="flex flex-col justify-between">
                   <input
                     type="checkbox"
-                    checked={checkedTargets.get().includes(i)}
+                    checked={checkedTargets.get.includes(i)}
                     onChange={() => CRUD.toggleTarget(i)}
                     className="block my-2 scale-150"
                   />

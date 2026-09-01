@@ -4,7 +4,7 @@
 import { useMemo } from "react";
 import { useAuthContext } from "../data/AuthContext";
 import { Book, Permission, permission_schema } from "../schemas/book_schema";
-import { useDot } from "../tools/customStates";
+import { useDotNotation } from "../tools/customStates";
 import { toast } from "../tools/feedbacksUI";
 import * as v from "valibot";
 import { useAgreeWrapper } from "../shareds/Agree";
@@ -17,8 +17,8 @@ export default function useAuthComponent() {
   const canWrite =(book:Book)=> !!book && !!CONTROLS.canWrite(book);
 
   const FORM = {
-    isVisible: useDot(false),
-    state: useDot<{ key: keyof Permission; value: string; placeholder: string; label: string }[]>([
+    isVisible: useDotNotation(false),
+    state: useDotNotation<{ key: keyof Permission; value: string; placeholder: string; label: string }[]>([
       { key: "title", value: "", placeholder: "Es: Signore degli anelli", label: "Titolo" },
       { key: "auth_code", value: "", placeholder: "Es: qk49-384i-gnd3-1h48", label: "Codice" },
     ]),
@@ -39,11 +39,11 @@ export default function useAuthComponent() {
         return toast.danger("Codice non valido");
 
       // se ci sono due codici con lo stesso title
-      const existing = permissions.get().find((perm) => perm.title === newPermission.output.title);
+      const existing = permissions.get.find((perm) => perm.title === newPermission.output.title);
       if (existing) return toast.danger("Titolo già esistente");
 
       // aggiornamento
-      const updated = [...permissions.get(), newPermission.output];
+      const updated = [...permissions.get, newPermission.output];
       permissions.set(updated);
       LOCAL.set(updated);
 
@@ -58,12 +58,12 @@ export default function useAuthComponent() {
   const newPermission = useMemo(() => {
     let formValues: Record<string, string> = {};
 
-    FORM.state.get().forEach((item) => {
+    FORM.state.get.forEach((item) => {
       formValues[item.key] = item.value;
     });
     
     return v.safeParse(permission_schema, formValues);
-  }, [FORM.state.get()]);
+  }, [FORM.state.get]);
 
   const errors = useMemo(() => {
     const result: Record<string, string> = {};
@@ -74,8 +74,8 @@ export default function useAuthComponent() {
       result["form>" + field] = message;
     }
     // codici
-    for (let i = 0; i < permissions.get().length; i++) {
-      const code = permissions.get()[i];
+    for (let i = 0; i < permissions.get.length; i++) {
+      const code = permissions.get[i];
       const parsedCode = v.safeParse(permission_schema, code);
       if (!parsedCode.success) {
         const [key, message] = parsedCode.issues[0].message.split(": ");
@@ -83,18 +83,18 @@ export default function useAuthComponent() {
       }
     }
     return result;
-  }, [newPermission, permissions.get()]);
+  }, [newPermission, permissions.get]);
 
   // AZIONI
-  const checkedTargets = useDot<number[]>([]);
+  const checkedTargets = useDotNotation<number[]>([]);
   const CRUD = {
     async handleDelete(index: number) {
-      const target = permissions.get()[index];
+      const target = permissions.get[index];
       if (!target) return console.error("Codice non trovato");
 
       if (!(await agree.danger(`Rimuovere '${target.title || target.auth_code}'?`, "Rimuovi"))) return;
 
-      const updated = permissions.get().filter((_, i) => i !== index);
+      const updated = permissions.get.filter((_, i) => i !== index);
       permissions.set(updated);
       LOCAL.set(updated);
       // feedback
@@ -104,15 +104,14 @@ export default function useAuthComponent() {
     },
 
     async handleDeleteMany() {
-      const targets = checkedTargets
-        .get()
-        .map((i) => permissions.get()[i]?.title)
+      const targets = checkedTargets.get
+        .map((i) => permissions.get[i]?.title)
         .filter(Boolean) as string[];
       if (!targets.length) return console.error("Nessun target selezionato");
 
       if (!(await agree.danger(`Rimuovere '${targets.join(", ")}'?`, "Rimuovi"))) return;
 
-      const updated = permissions.get().filter((_, i) => !checkedTargets.get().includes(i));
+      const updated = permissions.get.filter((_, i) => !checkedTargets.get.includes(i));
       permissions.set(updated);
       LOCAL.set(updated);
       checkedTargets.set([]);
@@ -124,7 +123,7 @@ export default function useAuthComponent() {
 
     handleUpdate(index: number, key: keyof Permission, newValue: string) {
       const previousValue = structuredClone((permissions as any).get()[index][key]);
-      const updated = permissions.get().map((p, i) =>
+      const updated = permissions.get.map((p, i) =>
         i === index ? { ...p, [key]: newValue } : p
       );
       permissions.set(updated);
@@ -136,7 +135,7 @@ export default function useAuthComponent() {
     },
 
     toggleTarget(index: number) {
-      const current = checkedTargets.get();
+      const current = checkedTargets.get;
       if (current.includes(index)) {
         checkedTargets.set(current.filter((i) => i !== index));
       } else {

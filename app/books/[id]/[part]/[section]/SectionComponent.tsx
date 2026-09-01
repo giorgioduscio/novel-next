@@ -74,7 +74,7 @@ export default function SectionComponent(props: UseSectionComponentProps) {
     <div className={`sticky top-[calc(45px+env(safe-area-inset-top))] z-20 mx-auto w-fit max-w-[800px] ${canWrite ?"" :"pointer-events-none invisible"}`}>
       <div className="bg-indigo-900 rounded-b-lg overflow-hidden">
         {/* UNDO / REDO */} 
-        <Frag if={canWrite && !FIND_REPLACE.isVisible.get()}>
+        <Frag if={canWrite && !FIND_REPLACE.isVisible.get}>
           <div className="flex items-center">
             <button onClick={HISTORY.undo} 
                     className="px-3 py-2 bg-indigo-900" 
@@ -88,7 +88,7 @@ export default function SectionComponent(props: UseSectionComponentProps) {
               <span className="ms-1 hidden sm:inline">Segnalibri</span>
             </button>
             <button onClick={FIND_REPLACE.toggle} 
-                    className={`px-3 py-2 ${FIND_REPLACE.isVisible.get() ?"bg-blue-800" :"bg-gray-800"}`}>
+                    className={`px-3 py-2 ${FIND_REPLACE.isVisible.get ?"bg-blue-800" :"bg-gray-800"}`}>
               <i className="bi bi-search"></i> 
               <span className="ms-1 hidden sm:inline">Trova</span>
             </button>
@@ -101,13 +101,13 @@ export default function SectionComponent(props: UseSectionComponentProps) {
         </Frag>
 
         {/* TROVA E SOSTITUISCI */}
-        <Frag if={canWrite && FIND_REPLACE.isVisible.get()} className="p-1">
+        <Frag if={canWrite && FIND_REPLACE.isVisible.get} className="p-1">
           {/* generali */}
           <div className="grid grid-cols-[1fr_auto] items-center">
             <h4 className="p-3 font-bold text-sm">
               {foundIndices.length > 0 ?(
                 <span>
-                  {FIND_REPLACE.currentIndex.get() + 1} / {foundIndices.length} occorrenze trovate
+                  {FIND_REPLACE.currentIndex.get + 1} / {foundIndices.length} occorrenze trovate
                 </span>
               ):(
                 <span>Cerca e sostituisci</span>
@@ -128,7 +128,7 @@ export default function SectionComponent(props: UseSectionComponentProps) {
                 input_class="w-[100px] py-2 px-3"
                 hide_label
                 label="Trova"
-                value={FIND_REPLACE.search.get().value}
+                value={FIND_REPLACE.search.get.value}
                 disabled={!canWrite}
                 onInput={(e) => FIND_REPLACE.search.set(p=> ({ ...p, value: e.target.value }))}
                 error_message={""}
@@ -139,13 +139,13 @@ export default function SectionComponent(props: UseSectionComponentProps) {
               />
             </div>
               
-            <button onClick={(e) => FIND_REPLACE.search.set(prev => ({ ...prev, caseSensitive: !prev.caseSensitive }))}
-                    className={`p-2 ${FIND_REPLACE.search.get().caseSensitive ? 'bg-blue-200/80' : ''}`}
+            <button onClick={() => FIND_REPLACE.search.set(prev => ({ ...prev, caseSensitive: !prev.caseSensitive }))}
+                    className={`p-2 ${FIND_REPLACE.search.get.caseSensitive ? 'bg-blue-200/80' : ''}`}
                     title="Maiuscole/minuscole">
               <i className="bi bi-alphabet-uppercase"></i>
             </button>
-            <button onClick={(e) => FIND_REPLACE.search.set(prev => ({ ...prev, wholeWord: !prev.wholeWord }))}
-                    className={`p-2 ${FIND_REPLACE.search.get().wholeWord ? 'bg-blue-200/80' : ''}`}
+            <button onClick={() => FIND_REPLACE.search.set(prev => ({ ...prev, wholeWord: !prev.wholeWord }))}
+                    className={`p-2 ${FIND_REPLACE.search.get.wholeWord ? 'bg-blue-200/80' : ''}`}
                     title="Parola intera">
               <i className="bi bi-fonts"></i>
             </button>
@@ -164,7 +164,7 @@ export default function SectionComponent(props: UseSectionComponentProps) {
                 input_class="py-2 px-3"
                 hide_label
                 label="Sostituisci"
-                value={FIND_REPLACE.replaceQuery.get()}
+                value={FIND_REPLACE.replaceQuery.get}
                 disabled={!canWrite}
                 onInput={(e) => FIND_REPLACE.replaceQuery.set(e.target.value)}
                 error_message={""}
@@ -194,7 +194,7 @@ export default function SectionComponent(props: UseSectionComponentProps) {
     </div>
 
     {/* SEGNALIBRI */}
-    <Frag if={canRead && MARCKERS.isVisible.get()}>
+    <Frag if={canRead && MARCKERS.isVisible.get}>
       <div className="fixed inset-0 z-50 flex">
         {/* BACKDROP */}
         <div onClick={()=> MARCKERS.isVisible.set(false)}
@@ -328,8 +328,8 @@ export default function SectionComponent(props: UseSectionComponentProps) {
                     <div onClick={PARAG.handleFocusText}
                           >
                       <div onClick={PARAG.handleFocusText} className={`block py-3 ${(p as any).ex_style}`}>
-                        <div  className={canWrite && PARAG.styleInput.get().index === paragraph_i ? 'outline-3 outline-dashed outline-black' : ''}>
-                          <div  onClick={PARAG.handleFocusText} className={`${canWrite && PARAG.styleInput.get().index === paragraph_i ? 'outline-3 outline-white' : ''}`}>
+                        <div  className={canWrite && PARAG.styleInput.get.index === paragraph_i ? 'outline-3 outline-dashed outline-black' : ''}>
+                          <div  onClick={PARAG.handleFocusText} className={`${canWrite && PARAG.styleInput.get.index === paragraph_i ? 'outline-3 outline-white' : ''}`}>
                             <Field
                               input_class={`text-center ${PARAG.parseStyle(p) || ""}`}
                               placeholder="Testo del paragrafo"
@@ -351,12 +351,12 @@ export default function SectionComponent(props: UseSectionComponentProps) {
                       </div>
 
                       {/* STILE PARAGRAFO */}
-                      <Frag if={canWrite && PARAG.styleInput.get().index === paragraph_i} className="mx-8 relative">
+                      <Frag if={canWrite && PARAG.styleInput.get.index === paragraph_i} className="mx-8 relative">
                         <div className='absolute top-0 z-2 w-full' data-dropdown>
                           <div className="p-1 bg-white text-black outline rounded">
                             {/* CONSIGLIATI */}
                             <div className="flex flex-wrap items-center gap-1">
-                              {AUTOCOMPLETE.suggestions.get().map((className, _i) => (
+                              {AUTOCOMPLETE.suggestions.get.map((className, _i) => (
                                 <button key={_i}
                                         onClick={_e=> AUTOCOMPLETE.handleClick(_e, p, paragraph_i)}
                                         className={`px-2 rounded-full text-sm outline font-bold ${_i ?"bg-blue-300" :"bg-red-300"}`}

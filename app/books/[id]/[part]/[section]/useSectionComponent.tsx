@@ -2,9 +2,8 @@ import { useBookContext } from "@/app/data/BookContext";
 import { useCommonPagesContext } from "@/app/data/CommonPagesContext";
 import { Book, Section, Paragraph, paragraph_schema, section_schema, Part } from "@/app/schemas/book_schema";
 import { useAgreeWrapper } from "@/app/shareds/Agree";
-import { useDot, useDotNotation } from "@/app/tools/customStates";
+import { useDotNotation } from "@/app/tools/customStates";
 import { toast } from "@/app/tools/feedbacksUI";
-import { useRouter } from "next/navigation";
 import { useState, useEffect, useMemo, useRef } from "react";
 import { safeParse } from "valibot";
 import { useKeyboardFeatures } from "./keyboardFeatures";
@@ -306,9 +305,7 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
     },
 
     // input di stile
-    styleInput: useDot({
-      index:-1, isVisible:false, 
-    }),
+    styleInput: useDotNotation({ index:-1, isVisible:false }),
     setStyleInput(paragraph_i?:number){
       if(!page.isEditMode) return;
             
@@ -438,7 +435,7 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
 
 
     // classi suggerite
-    suggestions: useDot<string[]>([]),
+    suggestions: useDotNotation<string[]>([]),
     setSuggestions(e:React.ChangeEvent<HTMLTextAreaElement>){
       // 1) risorse
       const target =e.target as HTMLTextAreaElement
@@ -493,7 +490,7 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
 
 
   // 7) TROVA E SOSTITUISCI
-  const searchState = useDot({ value:"", caseSensitive:false, wholeWord:false });
+  const searchState = useDotNotation({ value:"", caseSensitive:false, wholeWord:false });
   const paragraphs = SECTION.bookSection?.paragraphs || [];
 
   // Tipo per le occorrenze trovate
@@ -501,7 +498,7 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
 
   // Calcola le occorrenze trovate automaticamente con useMemo
   const foundIndices = useMemo(() => {
-    const query = searchState.get();
+    const query = searchState.get;
     if (!query || !query.value.trim()) return [];
 
     const occurrences: FoundOccurrence[] = [];
@@ -543,15 +540,15 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
 
   const FIND_REPLACE = {
     // mostra / nascondi sezione
-    isVisible: useDot(false),
+    isVisible: useDotNotation(false),
     toggle(){
       FIND_REPLACE.isVisible.set(prev=> !prev)
     },
 
     // CERCA
-    previousQuery: useDot({ value:"", caseSensitive:false, wholeWord:false }),
+    previousQuery: useDotNotation({ value:"", caseSensitive:false, wholeWord:false }),
     search: searchState,
-    currentIndex: useDot(0),
+    currentIndex: useDotNotation(0),
 
     // Resetta lo stato
     reset() {
@@ -562,20 +559,20 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
 
     // Cerca tutte le occorrenze nei paragrafi
     executeSearch() {      
-      const query = FIND_REPLACE.search.get();
+      const query = FIND_REPLACE.search.get;
       if (!query) {
         FIND_REPLACE.reset();
         return;
       }
 
-      const previousQuery = FIND_REPLACE.previousQuery.get();
+      const previousQuery = FIND_REPLACE.previousQuery.get;
       const isSameQuery = previousQuery.value === query.value
         && previousQuery.caseSensitive === query.caseSensitive
         && previousQuery.wholeWord === query.wholeWord;
 
       // Se la query è la stessa, vai semplicemente al prossimo indice
       function focus() {
-        const currentIndex = FIND_REPLACE.currentIndex.get();
+        const currentIndex = FIND_REPLACE.currentIndex.get;
         
         if (foundIndices.length === 0) return;
         const newIndex = (currentIndex < foundIndices.length - 1) ? currentIndex + 1 : 0;
@@ -637,7 +634,7 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
 
     // Vai all'occorrenza precedente
     previous() {
-      const currentIndex = FIND_REPLACE.currentIndex.get();
+      const currentIndex = FIND_REPLACE.currentIndex.get;
 
       if (foundIndices.length === 0) return;
       const newIndex = currentIndex > 0 ? currentIndex - 1 : foundIndices.length - 1;
@@ -670,7 +667,7 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
 
     // Vai all'occorrenza successiva
     next() {
-      const currentIndex = FIND_REPLACE.currentIndex.get();
+      const currentIndex = FIND_REPLACE.currentIndex.get;
 
       if (foundIndices.length === 0) return;
       const newIndex = currentIndex < foundIndices.length - 1 ? currentIndex + 1 : 0;
@@ -702,11 +699,11 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
     },
 
     // SOSTITUZIONE
-    replaceQuery: useDot(""),
+    replaceQuery: useDotNotation(""),
     replaceAll(targets: FoundOccurrence[] = foundIndices) {
       if (targets.length === 0) return;
-      const replaceText = FIND_REPLACE.replaceQuery.get();
-      const search = FIND_REPLACE.search.get();
+      const replaceText = FIND_REPLACE.replaceQuery.get;
+      const search = FIND_REPLACE.search.get;
       if (!book) return;
 
       // Funzione per sfuggire i caratteri speciali in una stringa per RegExp
@@ -785,9 +782,9 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
 
     // Sostituisce la prima occorrenza
     replace() {
-      const currentIndex = FIND_REPLACE.currentIndex.get();
-      const replaceText = FIND_REPLACE.replaceQuery.get();
-      const search = FIND_REPLACE.search.get();
+      const currentIndex = FIND_REPLACE.currentIndex.get;
+      const replaceText = FIND_REPLACE.replaceQuery.get;
+      const search = FIND_REPLACE.search.get;
 
       if (foundIndices.length === 0 || currentIndex >= foundIndices.length) return;
       if (!replaceText.trim()) return;
@@ -796,7 +793,7 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
       FIND_REPLACE.replaceAll([foundIndices[currentIndex]]);
 
       // Vai alla prossima occorrenza
-      const updatedIndex = FIND_REPLACE.currentIndex.get();
+      const updatedIndex = FIND_REPLACE.currentIndex.get;
       if (foundIndices.length > 0 && updatedIndex < foundIndices.length) {
         const nextOccurrence = foundIndices[updatedIndex];
         setTimeout(() => {
@@ -830,8 +827,8 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
 
   // 6) STORICO AZIONI
   const HISTORY = {
-    undoStack: useDot<Paragraph[][]>([]),
-    redoStack: useDot<Paragraph[][]>([]),
+    undoStack: useDotNotation<Paragraph[][]>([]),
+    redoStack: useDotNotation<Paragraph[][]>([]),
 
     // Salva lo stato attuale in undoStack e svuota redoStack
     saveState(paragraphs: Paragraph[]) {
@@ -842,7 +839,7 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
 
     // torna allo stato precedente
     undo() {
-      const undoStack = HISTORY.undoStack.get();
+      const undoStack = HISTORY.undoStack.get;
       if (undoStack.length <= 1) return; // Non c'è nulla da fare undo
 
       const currentState = undoStack[undoStack.length - 1];
@@ -865,7 +862,7 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
 
     // torna allo stato successivo
     redo() {
-      const redoStack = HISTORY.redoStack.get();
+      const redoStack = HISTORY.redoStack.get;
       if (redoStack.length === 0) return; // Non c'è nulla da fare redo
 
       const nextState = redoStack[redoStack.length - 1];
@@ -896,7 +893,7 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
         if (!paragraphs) return console.error("Paragrafi non trovati");
     
         // Salva solo se lo stato è diverso dall'ultimo in undoStack
-        const lastState = HISTORY.undoStack.get()[HISTORY.undoStack.get().length - 1];
+        const lastState = HISTORY.undoStack.get[HISTORY.undoStack.get.length - 1];
         if (!lastState || JSON.stringify(lastState) !== JSON.stringify(paragraphs)) {
           HISTORY.saveState(paragraphs);
         }
@@ -907,7 +904,7 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
 
   // 7) segnalibro
   const MARCKERS ={
-    isVisible: useDot(false),
+    isVisible: useDotNotation(false),
     // tutti i paragrafi segnati
     markers: useMemo(()=>{
       return getSection()?.paragraphs?.filter(p=> p.isMarcked) || [];

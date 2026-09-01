@@ -5,7 +5,7 @@ import { useCommonPagesContext } from "../data/CommonPagesContext";
 import { Book, book_schema } from "../schemas/book_schema";
 import { toast } from "../tools/feedbacksUI";
 import { useAuthContext } from "../data/AuthContext";
-import { useDot } from "../tools/customStates";
+import { useDotNotation } from "../tools/customStates";
 
 export function useBooksComponent() {
   const bookContext = useBookContext();
@@ -15,7 +15,7 @@ export function useBooksComponent() {
 
   // 1) LIBRI
   const [books, setBooks] = useState<Book[]>([]);
-  const searchQuery = useDot("");
+  const searchQuery = useDotNotation("");
   
   useEffect(() => {
     // Trova tutti i libri per cui ha un codice di lettura
@@ -25,8 +25,8 @@ export function useBooksComponent() {
 
   // Filtra i libri in base alla ricerca
   const filteredBooks = useMemo(() => {
-    if (!searchQuery.get().trim()) return books;
-    const query = searchQuery.get().toLowerCase();
+    if (!searchQuery.get.trim()) return books;
+    const query = searchQuery.get.toLowerCase();
     return books.filter(book => 
       book.title.toLowerCase().includes(query) || 
       book.author_name.toLowerCase().includes(query)

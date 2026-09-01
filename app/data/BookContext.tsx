@@ -337,8 +337,6 @@ function bookContextValue() {
     setTarget,
     verifyAccessCode,
   };
-
-  return bookContextValue;
 }
 
 export const {

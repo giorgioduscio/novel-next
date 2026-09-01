@@ -58,7 +58,7 @@ export function useKeyboardFeatures(
         e.key==="Enter" && key === "in_style",
         function enterStyle(){
           e.preventDefault();
-          // const in_style = AUTOCOMPLETE.suggestions.get()?.[0];
+          // const in_style = AUTOCOMPLETE.suggestions.get?.[0];
           // if(!in_style) return;
           PARAG.update(index, "in_style", value);
         }
