@@ -2,7 +2,7 @@ import { useBookContext } from "@/app/data/BookContext";
 import { useCommonPagesContext } from "@/app/data/CommonPagesContext";
 import { Book, Section, Paragraph, paragraph_schema, section_schema, Part } from "@/app/schemas/book_schema";
 import { useAgreeWrapper } from "@/app/shareds/Agree";
-import { useDotNotation } from "@/app/tools/customStates";
+import { useDotNotation } from "@/app/tools/reactCustomization";
 import { toast } from "@/app/tools/feedbacksUI";
 import { useState, useEffect, useMemo, useRef } from "react";
 import { safeParse } from "valibot";
@@ -17,57 +17,63 @@ export interface UseSectionComponentProps {
 }
 
 export function useSectionComponent({ book_id, part_id, section_id }: UseSectionComponentProps) {
-  // 1) DATI PRINCIPALI
   const sharedText = useSharedText();
   const bookContext = useBookContext();
   const agree = useAgreeWrapper();
   const page = useCommonPagesContext();
-  const [book, setBook] = useState<Book | undefined>(undefined);
-  const part = useMemo(()=> getPart(), [book])
   const authContext = useAuthContext()
-  const [SECTION_title, SECTION_setTitle] = useState("");
-
+  
+  // 1) DATI PRINCIPALI
+  const book = useDotNotation<Book | undefined>(undefined);
+  const part = useMemo(()=> 
+    getPart()
+  , [book.get, part_id])
   // autorizzazioni
   const canRead =useMemo(()=> 
-    !!book && !!authContext.CONTROLS.canRead(book)
-  , [book, authContext])
+    !!book.get && 
+    !!authContext.CONTROLS.canRead(book.get)
+  , [book.get, authContext])
   
   const canWrite =useMemo(()=> 
-    !!book && !!authContext.CONTROLS.canWrite(book) && page.isEditMode
-  , [book, authContext, page])
+    !!book.get 
+    && !!authContext.CONTROLS.canWrite(book.get) 
+    && page.isEditMode
+  , [book.get, authContext, page])
+
+  // restituisce la sezione corrente in base al libro
+  function getPart(bookObj = book.get) :Part | undefined {
+    return bookObj?.parts
+      ?.find((p) => p.id === part_id)
+  };
+
+  function getSection(bookObj = book.get) :Section | undefined {
+    return getPart(bookObj)
+      ?.sections.find((s) => s.id === section_id);
+  };
   
   
   useEffect(() => {
-    // Wait for books to load before attempting to find the book
+    // Wait for books to load before attempting to find the book.get
     if (bookContext.loading) return;
 
     // libro
     const foundBook = bookContext.getBookById(book_id);
     if(!foundBook) return console.error("Libro non trovato");
-    setBook(foundBook);
+    book.set(foundBook);
     // sezione
     const sec = getSection(foundBook)
     if(!sec) return console.error("Sezione non trovata");
-    SECTION_setTitle(sec.title || "");
+    SECTION.mainTitle.set(sec.title || "");
     // condivide il target ad altri componenti
     bookContext.setTarget(foundBook);
-  }, [book_id, bookContext.loading, bookContext.getBookById, bookContext.setTarget]);
+  }, [book_id, part_id, section_id, bookContext.loading, bookContext.getBookById, bookContext.setTarget]);
 
-  // restituisce la sezione corrente in base al libro
-  function getPart(bookObj = book) :Part | undefined {
-    return bookObj?.parts
-      ?.find((p) => p.id === part_id)
-  };
-
-  function getSection(bookObj = book) :Section | undefined {
-    return getPart(bookObj)
-      ?.sections.find((s) => s.id === section_id);
-  };
 
   // 2) SEZIONE
-  const SECTION = {
+  class SectionFeature {
+    mainTitle = useDotNotation("")
 
-    bookSection: useMemo(() :Section |undefined => {
+    bookSection = useMemo(() :Section |undefined => {
       const result = getSection();
       if (!result) return undefined;
       if (!result.paragraphs) result.paragraphs = [];
@@ -83,55 +89,29 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
       }
       
       return result;
-    }, [book, part_id, SECTION_title]),
+    }, [book.get, part_id, section_id, this.mainTitle]);
 
     // Numero di parole nella sezione
-    words: useMemo(() :number => {
+    words :number = useMemo(() => {
       const section = getSection();
       return section?.paragraphs?.reduce((acc, p) => acc + p.text.length, 0) || 0;
-    }, [book, SECTION_title]),
-
-    // Cambia il titolo della sezione
-    handleChange(value: string) {
-      SECTION_setTitle(value);
-    },
-
-    // Esegue cambio di rotta
-    handleSubmit(e: React.FormEvent) {
-      e.preventDefault();
-      const trimmed = SECTION_title.trim();
-      if (!book || !trimmed || trimmed === section_id) {
-        throw new Error("Titolo non modificato");
-      }
-
-      const clone = structuredClone(book);
-      const sec = getSection(clone);
-      if (!sec) {
-        throw new Error("Sezione non trovata");
-      }
-
-      sec.title = trimmed;
-      setBook(clone);
-
-      const newBook = bookContext.updateBook(book_id, clone, false);
-      if (!newBook) return toast.danger("Titolo non valido");
-      toast.success("Titolo aggiornato");
-    },
+    }, [book.get, part_id, section_id, this.mainTitle]);
 
     // Aggiorna la nota della sezione
-    updateNote(value: string) {
-      if (!book) throw new Error("Libro non trovato");
-      const clone = structuredClone(book);
+    update(sectionKey: keyof Section, value: string) {
+      if (!book.get) throw new Error("Libro non trovato");
+      const clone = structuredClone(book.get);
       const sec = getSection(clone);
       if (!sec) throw new Error("Sezione non trovata");
 
-      sec.note = value.trim();
-      setBook(clone);
+      (sec as any)[sectionKey] = value;
+      if(sectionKey=="title") this.mainTitle.set(value.trim())
+      book.set(clone);
 
       const newBook = bookContext.updateBook(book_id, clone);
       if (!newBook) return toast.danger("Errore nell'aggiornamento della nota");
       toast.success("Nota sezione aggiornata");
-    },
+    };
 
     // Premendo 'invio' o 'freccia giù' passa al primo paragrafo
     titleKeyDown(e: React.KeyboardEvent) {
@@ -139,10 +119,17 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
         const firstParagraph = document.getElementById("0>text");
         if (firstParagraph) firstParagraph.focus();
       }
-    },
+    };
   };
+  const SECTION = new SectionFeature()
 
-  const SHARED ={
+  // 3) copia e incolla
+  class SHARED {
+    constructor() {
+      // Bind dei metodi per mantenere il contesto
+      this.copy = this.copy.bind(this);
+      this.paste = this.paste.bind(this);
+    }
 
     // Copia nel sistema la struttura del libro
     async copy() {
@@ -150,19 +137,22 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
       if (!section) return console.error("Sezione non trovata");
 
       await sharedText.copy_section(section);
-    },
+    }
 
     // Incolla la struttura del libro dal sistema
-    async paste(){
+    async paste() {
       if (
         SECTION.bookSection?.paragraphs?.length &&
-        !(await agree.warning("Sei sicuro di voler sostituire i paragrafi precedenti?","Incolla"))
+        !(await agree.warning(
+          "Sei sicuro di voler sostituire i paragrafi precedenti?",
+          "Incolla"
+        ))
       ) return;
 
       const newSection = await sharedText.paste_section();
       if (!newSection) return;
 
-      const clone = structuredClone(book);
+      const clone = structuredClone(book.get);
       if (!clone) return console.error("Libro non trovato");
 
       const section = getSection(clone);
@@ -171,223 +161,238 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
       section.title = newSection.title;
       section.note = newSection.note;
       section.paragraphs = newSection.paragraphs;
-      setBook(clone);
+      book.set(clone);
 
       const res = await bookContext.updateBook(book_id, clone);
       if (!res) return toast.danger("Errore nel salvataggio");
-    },
+    }
   }
-  
+
   // 4) PARAGRAFI
-  const showParagraphs = useMemo(() => 
-    !!SECTION.bookSection?.paragraphs?.length
-  , [SECTION.bookSection]);
-
-  const olRef = useRef<HTMLOListElement>(null);
-  const [olHeight, setOlHeight] = useState<number>(0);
-
-  // Inizializza ResizeObserver solo quando `showParagraphs` è true e `olRef.current` esiste
-  useEffect(() => {
-    if (!olRef.current || !showParagraphs) {
-      setOlHeight(0);
-      return;
+  class Parag {
+    constructor() {
+      // Bind dei metodi per mantenere il contesto
+      this.update = this.update.bind(this);
+      this.handleCreate = this.handleCreate.bind(this);
+      this.handleKey = this.handleKey.bind(this);
+      this.parseStyle = this.parseStyle.bind(this);
+      this.setStyleInput = this.setStyleInput.bind(this);
+      this.closeTemplateInputStyle = this.closeTemplateInputStyle.bind(this);
+      this.handleRemove = this.handleRemove.bind(this);
+      this.handleFocusText = this.handleFocusText.bind(this);
+      this.initResizeObserver() 
     }
 
-    const observer = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        setOlHeight(entry.contentRect.height);
-      }
-    });
+    // Proprietà per gestire lo stato globale
+    showParagraphs = useMemo(() => 
+      !!SECTION.bookSection?.paragraphs?.length
+    ,[SECTION.bookSection]);
 
-    observer.observe(olRef.current);
+    listReference = useRef<HTMLOListElement>(null);
+    listHeight = useDotNotation<number>(0);
 
-    // Misura immediatamente la dimensione corrente
-    const { height } = olRef.current.getBoundingClientRect();
-    setOlHeight(height);
+    // Inizializza ResizeObserver
+    initResizeObserver() {
+      useEffect(() => {
+        if (!this.listReference.current || !this.showParagraphs) {
+          this.listHeight.set(0); 
+          return;
+        }
 
-    return () => {
-      if (olRef.current) {
-        observer.unobserve(olRef.current);
-      }
-    };
-  }, [showParagraphs]);
-  
+        const observer = new ResizeObserver((entries) => {
+          for (const entry of entries) {
+            this.listHeight.set(entry.contentRect.height);
+          }
+        });
 
-  const PARAG = {
+        observer.observe(this.listReference.current);
 
-    // aggiorna paragrafo e salva
-    update(index:number, key: keyof Paragraph, value:string |boolean, safe=true){
-      const clone = structuredClone(book!);
+        // Misura immediatamente la dimensione corrente
+        const { height } = this.listReference.current.getBoundingClientRect();
+        this.listHeight.set(height);
+
+        return () => {
+          if (this.listReference.current) {
+            observer.unobserve(this.listReference.current);
+          }
+        };
+      }, [book.get, this.showParagraphs]);
+    }
+
+    // Input di stile
+    styleInput = useDotNotation({ index: -1, isVisible: false });
+
+
+    // Aggiorna un paragrafo e salva
+    update(index: number, key: keyof Paragraph, value: string | boolean, safe = true) {
+      const clone = structuredClone(book.get!);
       const sec = getSection(clone);
-      if (!sec || !sec.paragraphs?.length) return;      
+      if (!sec || !sec.paragraphs?.length) return;
 
-      // aggiornamento stato
-      if(typeof value !== typeof sec.paragraphs[index][key]) {
+      // Controllo del tipo
+      if (typeof value !== typeof sec.paragraphs[index][key]) {
         console.error("Tipo non valido");
         return;
       }
       (sec.paragraphs as any)[index][key] = value;
-      
-      setBook(clone);
-      
-      // aggiornamento backend e feedback
-      if(!safe) return;
-      const res = bookContext.updateBook(book_id, clone)
-      if(!res) return toast.danger("Errore di validazione");
-      // toast.success("Paragrafo salvato!");
-    },
 
-    // crea nuovo paragrafo senza salvarlo
-    handleCreate(index?: number |'top', paragraphText="") {
-      if (!book) return console.error("Libro non disponibile");
-        
-      const updated = structuredClone(book);
+      book.set(clone);
+
+      // Aggiornamento backend e feedback
+      if (!safe) return;
+      const res = bookContext.updateBook(book_id, clone);
+      if (!res) return toast.danger("Errore di validazione");
+    }
+
+    // Crea un nuovo paragrafo senza salvarlo
+    handleCreate(index?: number | 'top', paragraphText = "") {
+      if (!book.get) return console.error("Libro non disponibile");
+
+      const updated = structuredClone(book.get);
       const sec = getSection(updated);
       if (!sec) return console.error("Sezione non trovata");
 
-      const newParagraph: Paragraph = { 
+      const newParagraph: Paragraph = {
         id: bookContext.createId(),
-        in_style: "", 
-        text: paragraphText || "" ,
+        in_style: "",
+        text: paragraphText || "",
         isMarcked: false
       };
       if (!sec.paragraphs) sec.paragraphs = [];
 
-      // stringa TOP -> aggiungi in cima
-      if(index ==="top") {
+      // Aggiungi in cima
+      if (index === "top") {
         sec.paragraphs.unshift(newParagraph);
-
-      // Nessun indice -> aggiungi in fondo
-      } else if (index === undefined) {
+      }
+      // Aggiungi in fondo
+      else if (index === undefined) {
         sec.paragraphs.push(newParagraph);
-
+      }
       // Inserisce dopo l'indice
-      } else {
+      else {
         sec.paragraphs.splice(index + 1, 0, newParagraph);
       }
-  
-      // aggiorna lo stato
-      setBook(updated);
-      // salvataggio condizionale
-      if(paragraphText) bookContext.updateBook(book_id, updated, false);
-      // feedback
+
+      // Aggiorna lo stato
+      book.set(updated);
+      // Salvataggio condizionale
+      if (paragraphText) bookContext.updateBook(book_id, updated, false);
       toast.success("Paragrafo aggiunto");
-    },
+    }
 
-    // gestisce alcune funzionalità speciali (es. Enter, Tab)
-    handleKey(e: React.KeyboardEvent<HTMLTextAreaElement>){
-      if(!book) return console.error("libro non disponibile");
-      
-      // funzionalità da tastiera
+    // Gestisce funzionalità speciali (es. Enter, Tab)
+    handleKey(e: React.KeyboardEvent<HTMLTextAreaElement>) {
+      if (!book.get) return console.error("Libro non disponibile");
       return handleKeyboardFeature(e);
-    },
+    }
 
-    // imposta il colore appropriato del testo
-    parseStyle(paragraph:Paragraph) :string{
+    // Imposta il colore appropriato del testo
+    parseStyle(paragraph: Paragraph): string {
       // Estrai solo la parte prima di ',,' per lo stile principale
       const [in_style] = paragraph.in_style.split(",,");
 
-      // sfondo bianco
-      if(in_style?.includes("bg-white")){
+      // Sfondo bianco
+      if (in_style?.includes("bg-white")) {
         return in_style + " text-black";
       }
 
       const backgroundPattern = /bg-[a-zA-Z]+-[0-9]+/;
       const match = in_style?.match(backgroundPattern);
-      // non si specifica lo sfondo
-      if(!match){
+      // Non si specifica lo sfondo
+      if (!match) {
         return in_style || "";
       }
       const gradiant = parseInt(match[0].split('-')[2] || "0");
-      const textColor = gradiant <= 400 ?" text-black" :" text-white";
+      const textColor = gradiant <= 400 ? " text-black" : " text-white";
 
       return in_style + textColor;
-    },
+    }
 
-    // input di stile
-    styleInput: useDotNotation({ index:-1, isVisible:false }),
-    setStyleInput(paragraph_i?:number){
-      if(!page.isEditMode) return;
-            
+    // Imposta l'input di stile
+    setStyleInput(paragraph_i?: number) {
+      if (!page.isEditMode) return;
+
       // RESET
-      if (paragraph_i === undefined){
-        this.styleInput.set(prev=> ({ 
+      if (paragraph_i === undefined) {
+        this.styleInput.set(prev => ({
           ...prev,
           isVisible: false,
           index: -1,
         }));
         return;
       }
-      // cerca paragrafo
+
+      // Cerca paragrafo
       const target = SECTION.bookSection?.paragraphs?.[paragraph_i];
       if (!target) return console.error("Paragrafo non trovato");
-      
-      this.styleInput.set(prev=> ({ 
-        ...prev, 
+
+      this.styleInput.set(prev => ({
+        ...prev,
         isVisible: true,
         index: paragraph_i,
       }));
-    },
+    }
 
-    // attraverso <main> chiude l'input di stile
+    // Chiude l'input di stile attraverso <main>
     closeTemplateInputStyle(e: React.MouseEvent) {
       e.stopPropagation();
       const textarea = (e.target as HTMLElement).closest("textarea");
       const dropdown = (e.target as HTMLElement).closest("[data-dropdown]");
-      if(!dropdown && !textarea) PARAG.setStyleInput()
-    },
+      if (!dropdown && !textarea) this.setStyleInput();
+    }
 
-    // rimuove un paragrafo
-    async handleRemove(index: number) {  
-      if (!book) {
+    // Rimuove un paragrafo
+    async handleRemove(index: number) {
+      if (!book.get) {
         throw new Error("Libro non disponibile");
       }
-  
-      const updated = structuredClone(book);
+
+      const updated = structuredClone(book.get);
       const sec = getSection(updated);
 
       if (!sec) {
         throw new Error("Sezione non trovata");
       }
-      // stato locale
+      // Stato locale
       if (!sec.paragraphs) sec.paragraphs = [];
       sec.paragraphs.splice(index, 1);
-      setBook(updated);
-      
-      // salva su db
+      book.set(updated);
+
+      // Salva su db
       const res = bookContext.updateBook(book_id, updated);
-      // feedback
+      // Feedback
       if (!res) return toast.danger("Errore nel salvataggio");
       toast.success("Paragrafo rimosso");
-    },  
-    
-    // applica il focus sul testo del paragrafo
-    handleFocusText(e: any) {
-      if(!authContext.CONTROLS.canWrite(book!)) 
+    }
+
+    // Applica il focus sul testo del paragrafo
+    handleFocusText(e: React.MouseEvent | React.FocusEvent) {
+      if (!authContext.CONTROLS.canWrite(book.get!))
         return console.error("Permesso negato");
-      
-      // seleziona textarea del testo del paragrafo
+
+      // Seleziona textarea del testo del paragrafo
       const element = e.target as HTMLElement;
       const isSelected = element.tagName === "TEXTAREA";
       const textarea = (
-        isSelected 
+        isSelected
           ? (element as HTMLTextAreaElement)
           : (element.querySelector('textarea[name*=">text"], textarea[id*=">text"]') as HTMLTextAreaElement)
             || (element.closest('li')?.querySelector('textarea[name*=">text"], textarea[id*=">text"]') as HTMLTextAreaElement)
             || (e.currentTarget?.querySelector?.('textarea[name*=">text"], textarea[id*=">text"]') as HTMLTextAreaElement)
       );
-      
-      if(!textarea) return console.error("Textarea non trovata");
-      
-      // fa tornare editmode
-      if(!page.isEditMode) page.toggleEditMode();
-      // applica il focus
+
+      if (!textarea) return console.error("Textarea non trovata");
+
+      // Fa tornare editmode
+      if (!page.isEditMode) page.toggleEditMode();
+      // Applica il focus
       setTimeout(() => {
         const targetTextarea = (document.getElementById(textarea.id) as HTMLTextAreaElement) || textarea;
         targetTextarea?.focus();
       }, 200);
     }
-  }
+  }  
+  const PARAG =new Parag()
 
   // 4) aggiunge dinamicamente glierrori dei paragrafi non validi
   const errors = useMemo(()=>{
@@ -414,164 +419,177 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
       })
     }
     return result;
-  }, [book])
+  }, [book.get])
 
   // 5) AUTOCOMPLETE PER STILI RIPETUTI
-  const AUTOCOMPLETE = {
-    standardStyles: [
+  class AUTOCOMPLETE {
+    // Stili predefiniti
+    standardStyles = [
       "sinistra", "destra", "centro",
       "descrizione", "esclamazione", "dialogo", "sussurro",
-      // gradiazioni
+      // Gradiazioni
       "bg-black-b", "bg-black-t", "bg-fade-10"
-    ] as const,
+    ] as const;
 
-    usedStyles: useMemo(() => {
+    // Stili usati nei paragrafi
+    usedStyles = useMemo(() => {
       const paragraphs = SECTION.bookSection?.paragraphs;
       if (!paragraphs) return [];
       return paragraphs
         .map(p => p.in_style?.trim() || "")
         .filter(Boolean);
-    }, [SECTION.bookSection?.paragraphs]),
+    }, [SECTION.bookSection?.paragraphs]);
 
+    // Suggerimenti attuali
+    suggestions = useDotNotation<string[]>([]);
 
-    // classi suggerite
-    suggestions: useDotNotation<string[]>([]),
-    setSuggestions(e:React.ChangeEvent<HTMLTextAreaElement>){
-      // 1) risorse
-      const target =e.target as HTMLTextAreaElement
-      if(!target.name.includes("style")) return;
-      const inputValue = target.value;
-
-      // classi dell'input
-      const paragraphClasses =inputValue.toLowerCase().trim().split(" ");
-      // classi usate
-      const usedStyles :string[] = AUTOCOMPLETE.usedStyles.map(input=> input.split(" ")).flat()
-      // unioni classi usate e standard
-      const merged = [
-        ...usedStyles,
-        ...AUTOCOMPLETE.standardStyles, 
-      ];
-
-      // 2) filtraggio
-      // classi che assomigliano all'input
-      const filtered = merged.filter(mergedStyle => // controlla ogni merge
-        // almeno una classe del paragrafo
-        paragraphClasses.some(paragraphClass=> 
-          // il merge assomiglia all'input ma non è uguale
-          mergedStyle.includes(paragraphClass)
-          && mergedStyle !== paragraphClass
-        )
-      )
-
-      // 3) aggiunge la classe ripetuta più simile
-      const similInput = AUTOCOMPLETE.usedStyles.find(usedStyle=> 
-        usedStyle.includes(inputValue) 
-        && usedStyle !== inputValue
-      ) || "";
-      // 4) mostra 5 suggerimenti senza ripetizioni
-      const result = [...new Set([similInput, ...filtered])]
-        .filter(Boolean).splice(0, 5)
-      
-      AUTOCOMPLETE.suggestions.set(result)
-    },
-
-    handleClick(e:React.MouseEvent<HTMLButtonElement>, p:Paragraph, index:number){
-      const newClass =(e.target as HTMLDivElement).innerText;
-      const actualClasses =p.in_style.toLowerCase().split(" ");
-
-      // aggiornamento
-      const update = actualClasses.map((cls, _i)=> 
-        newClass.includes(cls) ? newClass : cls
-      ).join(" ");
-      PARAG.update(index, "in_style", update)
-      AUTOCOMPLETE.suggestions.set([]) 
-    },
-  };
-
-
-  // 7) TROVA E SOSTITUISCI
-  const searchState = useDotNotation({ value:"", caseSensitive:false, wholeWord:false });
-  const paragraphs = SECTION.bookSection?.paragraphs || [];
-
-  // Tipo per le occorrenze trovate
-  type FoundOccurrence = { type: 'text' | 'style', index: number } | { type: 'section-title' };
-
-  // Calcola le occorrenze trovate automaticamente con useMemo
-  const foundIndices = useMemo(() => {
-    const query = searchState.get;
-    if (!query || !query.value.trim()) return [];
-
-    const occurrences: FoundOccurrence[] = [];
-    const searchValue = query.caseSensitive ? query.value : query.value.toLowerCase();
-
-    // Funzione helper per verificare se il testo contiene la query
-    function matchesQuery (text: string): boolean {
-      const searchText = query.caseSensitive ? text : text.toLowerCase();
-      if (query.wholeWord) {
-        const regex = new RegExp(`\\b${query.value}\\b`, query.caseSensitive ? "" : "i");
-        return regex.test(text);
-      } else {
-        return searchText.includes(searchValue);
-      }
-    };
-
-    // Cerca nel titolo della sezione
-    const sectionTitle = SECTION_title;
-    if (matchesQuery(sectionTitle)) {
-      occurrences.push({ type: 'section-title' });
+    constructor() {
+      // Bind dei metodi per mantenere il contesto
+      this.setSuggestions = this.setSuggestions.bind(this);
+      this.handleClick = this.handleClick.bind(this);
     }
 
-    // Cerca nei paragrafi (testo e stile)
-    paragraphs.forEach((p, index) => {
-      // Cerca nel testo
-      if (matchesQuery(p.text)) {
-        occurrences.push({ type: 'text', index });
-      }
+    // Aggiorna i suggerimenti in base all'input
+    setSuggestions(e: React.ChangeEvent<HTMLTextAreaElement>) {
+      // 1) Risorse
+      const target = e.target as HTMLTextAreaElement;
+      if (!target.name.includes("style")) return;
+      const inputValue = target.value;
 
-      // Cerca nello stile
-      const style = p.in_style || "";
-      if (matchesQuery(style)) {
-        occurrences.push({ type: 'style', index });
-      }
-    });
+      // Classi dell'input
+      const paragraphClasses = inputValue.toLowerCase().trim().split(" ");
 
-    return occurrences;
-  }, [searchState, paragraphs, SECTION_title]);
+      // Classi usate nei paragrafi
+      const usedStyles: string[] = this.usedStyles
+        .map(input => input.split(" "))
+        .flat();
 
-  const FIND_REPLACE = {
-    // mostra / nascondi sezione
-    isVisible: useDotNotation(false),
-    toggle(){
-      FIND_REPLACE.isVisible.set(prev=> !prev)
-    },
+      // Unione di classi usate e standard
+      const merged = [
+        ...usedStyles,
+        ...this.standardStyles,
+      ];
 
+      // 2) Filtraggio: classi che assomigliano all'input
+      const filtered = merged.filter(mergedStyle =>
+        paragraphClasses.some(paragraphClass =>
+          mergedStyle.includes(paragraphClass) &&
+          mergedStyle !== paragraphClass
+        )
+      );
+
+      // 3) Aggiunge la classe ripetuta più simile
+      const similInput = this.usedStyles.find(usedStyle =>
+        usedStyle.includes(inputValue) &&
+        usedStyle !== inputValue
+      ) || "";
+
+      // 4) Mostra 5 suggerimenti senza ripetizioni
+      const result = [...new Set([similInput, ...filtered])]
+        .filter(Boolean)
+        .splice(0, 5);
+
+      this.suggestions.set(result);
+    }
+
+    // Gestisce il click su un suggerimento
+    handleClick(e: React.MouseEvent<HTMLButtonElement>, p: Paragraph, index: number) {
+      const newClass = (e.target as HTMLDivElement).innerText;
+      const actualClasses = p.in_style.toLowerCase().split(" ");
+
+      // Aggiornamento delle classi
+      const update = actualClasses.map((cls) =>
+        newClass.includes(cls) ? newClass : cls
+      ).join(" ");
+
+      PARAG.update(index, "in_style", update);
+      this.suggestions.set([]);
+    }
+  }
+
+
+  // 7) TROVA E SOSTITUISCI 
+  // Tipo per le occorrenze trovate
+  type FoundOccurrence = { type: 'text' | 'style', index: number } | { type: 'section-title' };
+  
+  class FIND_REPLACE {
+    constructor(){
+      this.next = this.next.bind(this);
+      this.previous = this.previous.bind(this);
+    };
+    
     // CERCA
-    previousQuery: useDotNotation({ value:"", caseSensitive:false, wholeWord:false }),
-    search: searchState,
-    currentIndex: useDotNotation(0),
+    isVisible = useDotNotation(false); // mostra / nascondi sezione
+    previousQuery = useDotNotation({ value:"", caseSensitive:false, wholeWord:false });
+    search = useDotNotation({ value:"", caseSensitive:false, wholeWord:false });
+    currentIndex = useDotNotation(0);
 
     // Resetta lo stato
     reset() {
-      FIND_REPLACE.search.set(p=>({ ...p, value: "" }));
-      FIND_REPLACE.replaceQuery.set("");
-      FIND_REPLACE.currentIndex.set(0);
-    },
+      this.search.set(p=>({ ...p, value: "" }));
+      this.replaceQuery.set("");
+      this.currentIndex.set(0);
+    };
 
+
+    // Calcola le occorrenze trovate automaticamente con useMemo
+    foundIndices = useMemo(() => {
+      const query = this.search.get;
+      if (!query || !query.value.trim()) return [];
+
+      const occurrences: FoundOccurrence[] = [];
+      const searchValue = query.caseSensitive ? query.value : query.value.toLowerCase();
+
+      // Funzione helper per verificare se il testo contiene la query
+      function matchesQuery (text: string): boolean {
+        const searchText = query.caseSensitive ? text : text.toLowerCase();
+        if (query.wholeWord) {
+          const regex = new RegExp(`\\b${query.value}\\b`, query.caseSensitive ? "" : "i");
+          return regex.test(text);
+        } else {
+          return searchText.includes(searchValue);
+        }
+      };
+
+      // Cerca nel titolo della sezione
+      const sectionTitle = SECTION.mainTitle.get;
+      if (matchesQuery(sectionTitle)) {
+        occurrences.push({ type: 'section-title' });
+      }
+
+      // Cerca nei paragrafi (testo e stile)
+      getSection()?.paragraphs?.forEach((p, index) => {
+        // Cerca nel testo
+        if (matchesQuery(p.text)) {
+          occurrences.push({ type: 'text', index });
+        }
+
+        // Cerca nello stile
+        const style = p.in_style || "";
+        if (matchesQuery(style)) {
+          occurrences.push({ type: 'style', index });
+        }
+      });
+
+      return occurrences;
+    }, [this.search, book.get, SECTION.mainTitle.get]);
+  
     // Cerca tutte le occorrenze nei paragrafi
     executeSearch() {      
-      const query = FIND_REPLACE.search.get;
+      const query = this.search.get;
       if (!query) {
-        FIND_REPLACE.reset();
+        this.reset();
         return;
       }
 
-      const previousQuery = FIND_REPLACE.previousQuery.get;
+      const previousQuery = this.previousQuery.get;
       const isSameQuery = previousQuery.value === query.value
         && previousQuery.caseSensitive === query.caseSensitive
         && previousQuery.wholeWord === query.wholeWord;
 
       // Se la query è la stessa, vai semplicemente al prossimo indice
-      function focus() {
+      const FIND_REPLACE = this, foundIndices = this.foundIndices;
+      function _makeFocus() {
         const currentIndex = FIND_REPLACE.currentIndex.get;
         
         if (foundIndices.length === 0) return;
@@ -618,7 +636,7 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
       }
 
       if (isSameQuery) {
-        focus()
+        _makeFocus()
         return;
       }
 
@@ -627,21 +645,22 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
       FIND_REPLACE.previousQuery.set(p=>({ ...p, value:query.value, caseSensitive:query.caseSensitive, wholeWord:query.wholeWord }));
 
       // Sposta il focus sul primo input trovato
-      if (foundIndices.length > 0) {
-        focus()
+      if (this.foundIndices.length > 0) {
+        _makeFocus()
       }
-    },
+    };
 
     // Vai all'occorrenza precedente
     previous() {
+      const FIND_REPLACE = this;
       const currentIndex = FIND_REPLACE.currentIndex.get;
 
-      if (foundIndices.length === 0) return;
-      const newIndex = currentIndex > 0 ? currentIndex - 1 : foundIndices.length - 1;
+      if (this.foundIndices.length === 0) return;
+      const newIndex = currentIndex > 0 ? currentIndex - 1 : this.foundIndices.length - 1;
       FIND_REPLACE.currentIndex.set(newIndex);
 
       setTimeout(() => {
-        const occurrence = foundIndices[newIndex];
+        const occurrence = this.foundIndices[newIndex];
         if (occurrence.type === 'section-title') {
           const titleInput = document.getElementById("section-title") as HTMLInputElement;
           if (titleInput) titleInput.focus();
@@ -663,18 +682,19 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
           }, 50);
         }
       }, 100);
-    },
+    };
 
     // Vai all'occorrenza successiva
     next() {
+      const FIND_REPLACE = this;      
       const currentIndex = FIND_REPLACE.currentIndex.get;
 
-      if (foundIndices.length === 0) return;
-      const newIndex = currentIndex < foundIndices.length - 1 ? currentIndex + 1 : 0;
+      if (this.foundIndices.length === 0) return;
+      const newIndex = currentIndex < this.foundIndices.length - 1 ? currentIndex + 1 : 0;
       FIND_REPLACE.currentIndex.set(newIndex);
 
       setTimeout(() => {
-        const occurrence = foundIndices[newIndex];
+        const occurrence = this.foundIndices[newIndex];
         if (occurrence.type === 'section-title') {
           const titleInput = document.getElementById("section-title") as HTMLInputElement;
           if (titleInput) titleInput.focus();
@@ -696,15 +716,16 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
           }, 50);
         }
       }, 100);
-    },
+    };
 
     // SOSTITUZIONE
-    replaceQuery: useDotNotation(""),
-    replaceAll(targets: FoundOccurrence[] = foundIndices) {
+    replaceQuery = useDotNotation("");
+    replaceAll(targets: FoundOccurrence[] = this.foundIndices) {
+      const FIND_REPLACE = this;
       if (targets.length === 0) return;
       const replaceText = FIND_REPLACE.replaceQuery.get;
       const search = FIND_REPLACE.search.get;
-      if (!book) return;
+      if (!book.get) return;
 
       // Funzione per sfuggire i caratteri speciali in una stringa per RegExp
       function escapeRegExp(string: string): string {
@@ -712,7 +733,7 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
       }
 
       // Clona il libro una volta sola
-      const bookClone = structuredClone(book);
+      const bookClone = structuredClone(book.get);
       const sec = getSection(bookClone);
       if (!sec?.paragraphs) return;
 
@@ -778,24 +799,25 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
 
       // Reimposta la ricerca per aggiornare gli indici
       FIND_REPLACE.executeSearch();
-    },
+    };
 
     // Sostituisce la prima occorrenza
     replace() {
+      const FIND_REPLACE = this;
       const currentIndex = FIND_REPLACE.currentIndex.get;
       const replaceText = FIND_REPLACE.replaceQuery.get;
       const search = FIND_REPLACE.search.get;
 
-      if (foundIndices.length === 0 || currentIndex >= foundIndices.length) return;
+      if (this.foundIndices.length === 0 || currentIndex >= this.foundIndices.length) return;
       if (!replaceText.trim()) return;
 
       // Chiama replaceAll con un array contenente solo l'occorrenza corrente
-      FIND_REPLACE.replaceAll([foundIndices[currentIndex]]);
+      FIND_REPLACE.replaceAll([this.foundIndices[currentIndex]]);
 
       // Vai alla prossima occorrenza
       const updatedIndex = FIND_REPLACE.currentIndex.get;
-      if (foundIndices.length > 0 && updatedIndex < foundIndices.length) {
-        const nextOccurrence = foundIndices[updatedIndex];
+      if (this.foundIndices.length > 0 && updatedIndex < this.foundIndices.length) {
+        const nextOccurrence = this.foundIndices[updatedIndex];
         setTimeout(() => {
           if (nextOccurrence.type === 'section-title') {
             const titleInput = document.getElementById("section-title") as HTMLInputElement;
@@ -820,104 +842,158 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
           }
         }, 100);
       }
-    },
-  };
-  // 5.5) KEYBOARD FEATURES
-  const handleKeyboardFeature = useKeyboardFeatures(book_id, getSection, book, setBook, AUTOCOMPLETE, SECTION, PARAG);
+    };
 
+  };
+
+  // 5.5) KEYBOARD FEATURES
+  const handleKeyboardFeature = useKeyboardFeatures(book_id, getSection, book.get, book.set, SECTION, PARAG);
+
+  
   // 6) STORICO AZIONI
-  const HISTORY = {
-    undoStack: useDotNotation<Paragraph[][]>([]),
-    redoStack: useDotNotation<Paragraph[][]>([]),
+  class HISTORY {
+    undoStack = useDotNotation<Paragraph[][]>([]);
+    redoStack = useDotNotation<Paragraph[][]>([]);
+
+    constructor(){
+      this.onChangeBook(); // aggiorna cronologia locale
+      // Bind dei metodi per mantenere il contesto
+      this.undo = this.undo.bind(this);
+      this.redo = this.redo.bind(this);
+      this.saveState = this.saveState.bind(this);
+    }
 
     // Salva lo stato attuale in undoStack e svuota redoStack
     saveState(paragraphs: Paragraph[]) {
-      HISTORY.undoStack.set(prev => [...prev, structuredClone(paragraphs)]);
+      this.undoStack.set(prev => [...prev, structuredClone(paragraphs)]);
       // Svuota redoStack dopo una nuova azione
-      HISTORY.redoStack.set([]); 
-    },
+      this.redoStack.set([]);
+    };
 
     // torna allo stato precedente
     undo() {
-      const undoStack = HISTORY.undoStack.get;
-      if (undoStack.length <= 1) return; // Non c'è nulla da fare undo
+      const undoStack = this.undoStack.get;
+      if (!undoStack || undoStack.length <= 1) return; // Non c'è nulla da fare undo
 
       const currentState = undoStack[undoStack.length - 1];
       const previousState = undoStack[undoStack.length - 2];
 
       // Sposta lo stato attuale in redoStack
-      HISTORY.redoStack.set(prev => [...prev, currentState]);
+      this.redoStack.set(prev => [...prev, currentState]);
 
       // Rimuovi l'ultimo stato da undoStack
-      HISTORY.undoStack.set(prev => prev.slice(0, -1));
+      this.undoStack.set(prev => prev.slice(0, -1));
 
       // Applica lo stato precedente
-      const clone = structuredClone(book!);
+      const clone = structuredClone(book.get!);
       const sec = getSection(clone);
       if (!sec) return console.error("Sezione non trovata");
 
       sec.paragraphs = structuredClone(previousState);
-      setBook(clone);
-    },
+      book.set(clone);
+    };
 
     // torna allo stato successivo
     redo() {
-      const redoStack = HISTORY.redoStack.get;
+      const redoStack = this.redoStack.get;
       if (redoStack.length === 0) return; // Non c'è nulla da fare redo
 
       const nextState = redoStack[redoStack.length - 1];
 
       // Sposta lo stato attuale in undoStack
-      HISTORY.undoStack.set(prev => [...prev, structuredClone(nextState)]);
+      this.undoStack.set(prev => [...prev, structuredClone(nextState)]);
 
       // Rimuovi l'ultimo stato da redoStack
-      HISTORY.redoStack.set(prev => prev.slice(0, -1));
+      this.redoStack.set(prev => prev.slice(0, -1));
 
       // Applica lo stato successivo
-      const clone = structuredClone(book!);
+      const clone = structuredClone(book.get!);
       const sec = getSection(clone);
       if (!sec) return console.error("Sezione non trovata");
 
       sec.paragraphs = structuredClone(nextState);
-      setBook(clone);
-    },
+      book.set(clone);
+    };
     
-    // salva i paragrafi ogni volta che book cambia
+    // salva i paragrafi ogni volta che book.get cambia
     onChangeBook() {
       useEffect(() => {
-        if (!book) return;
-        const sec = getSection(structuredClone(book));
+        if (!book.get) return;
+        const sec = getSection(structuredClone(book.get));
         if (!sec) return console.error("Sezione non trovata");
     
         const paragraphs = sec.paragraphs;
         if (!paragraphs) return console.error("Paragrafi non trovati");
     
         // Salva solo se lo stato è diverso dall'ultimo in undoStack
-        const lastState = HISTORY.undoStack.get[HISTORY.undoStack.get.length - 1];
+        const lastState = this.undoStack.get[this.undoStack.get.length - 1];
         if (!lastState || JSON.stringify(lastState) !== JSON.stringify(paragraphs)) {
-          HISTORY.saveState(paragraphs);
+          this.saveState(paragraphs);
         }
-      }, [book])
+      }, [book.get])
     }
   };
-  HISTORY.onChangeBook();
 
   // 7) segnalibro
-  const MARCKERS ={
-    isVisible: useDotNotation(false),
-    // tutti i paragrafi segnati
-    markers: useMemo(()=>{
-      return getSection()?.paragraphs?.filter(p=> p.isMarcked) || [];
-    }, [getSection]),
+  class MARCKERS {
+    isVisible = useDotNotation(false);
+
+    // tutti i paragrafi segnati con indice originale
+    markers = useMemo(() => {
+      const paragraphs = getSection()?.paragraphs || [];
+      return paragraphs
+        .map((paragraph, index) => ({ paragraph, index }))
+        .filter((item) => item.paragraph.isMarcked);
+    }, [book.get, part_id, section_id]);
+
     // scrolla la pagina fino al segnalibro
-    scrollToMarker(id:string) {
+    scrollToMarker(id: string | number) {
       const input = document.getElementById(`${id}>text`);
-      
+
       setTimeout(() => {
         input?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        if(canWrite) input?.focus();
       }, 100);
-      
     }
+  };
+  
+  // 8) NAVIGAZIONE TRA SEZIONI
+  class NAVIGATION {
+    allSections = useMemo(() => {
+      if (!book.get?.parts) return [];
+      const list: { part_id: string; part_title: string; section_id: string; section_title: string }[] = [];
+      for (const p of book.get.parts) {
+        if (p.sections) {
+          for (const s of p.sections) {
+            list.push({
+              part_id: p.id,
+              part_title: p.title,
+              section_id: s.id,
+              section_title: s.title,
+            });
+          }
+        }
+      }
+      return list;
+    }, [book.get]);
+  
+    currentSectionIndex = useMemo(() => {
+      return this.allSections.findIndex((s) => s.part_id === part_id && s.section_id === section_id);
+    }, [this.allSections, part_id, section_id]);
+  
+    prevSection = useMemo(() => {
+      if (this.currentSectionIndex > 0) {
+        return this.allSections[this.currentSectionIndex - 1];
+      }
+      return undefined;
+    }, [this.allSections, this.currentSectionIndex]);
+  
+    nextSection = useMemo(() => {
+      if (this.currentSectionIndex >= 0 && this.currentSectionIndex < this.allSections.length - 1) {
+        return this.allSections[this.currentSectionIndex + 1];
+      }
+      return undefined;
+    }, [this.allSections, this.currentSectionIndex]);
   }
 
   return {
@@ -926,18 +1002,17 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
     errors,
     page,
     book_id,
+    part_id,
     section_id,
-    SECTION_title,
     SECTION,
-    SHARED,
+    SHARED: new SHARED(),
     PARAG,
-    showParagraphs,
-    AUTOCOMPLETE,
-    HISTORY, 
-    FIND_REPLACE,
-    foundIndices,
+    AUTOCOMPLETE: new AUTOCOMPLETE(),
+    FIND_REPLACE: new FIND_REPLACE(),
     canRead, canWrite,
-    olRef, olHeight,
-    MARCKERS
+
+    HISTORY: new HISTORY(),
+    MARCKERS: new MARCKERS(),
+    NAVIGATION: new NAVIGATION()
   };
 }

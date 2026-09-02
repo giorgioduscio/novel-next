@@ -1,11 +1,10 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { useDotNotation } from "../tools/customStates";
+import { generateContext, useDotNotation } from "../tools/reactCustomization";
 import { Permission, Book } from "../schemas/book_schema";
 import { useBookContext } from "./BookContext";
 import { hashWithArgon2, verifyWithArgon2, checkAccessWithArgon2 } from "../actions/argonActions";
-import { generateContext } from "../tools/generateContext";
 
 export const {
   provider: AuthProvider,

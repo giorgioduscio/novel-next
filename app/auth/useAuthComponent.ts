@@ -4,7 +4,7 @@
 import { useMemo } from "react";
 import { useAuthContext } from "../data/AuthContext";
 import { Book, Permission, permission_schema } from "../schemas/book_schema";
-import { useDotNotation } from "../tools/customStates";
+import { useDotNotation } from "../tools/reactCustomization";
 import { toast } from "../tools/feedbacksUI";
 import * as v from "valibot";
 import { useAgreeWrapper } from "../shareds/Agree";

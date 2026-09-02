@@ -15,8 +15,8 @@ export default function Home() {
     <main id="Home" className="">
       <Navigation page_title="Home" />
 
+      {/* Hero Section */}
       <section className="mx-auto container max-w-[800px]">
-        {/* Hero Section */}
         <div className="flex flex-col items-center justify-center px-4 py-16">
           <div className="max-w-3xl text-center">
             <h1 className="text-5xl md:text-7xl font-bold mb-6 text-orange-500">
@@ -30,16 +30,18 @@ export default function Home() {
             </p>
             <Link 
               href="/books"
-              className="inline-block bg-orange-400 text-gray-900 font-bold text-xl px-8 py-4 transition-all transform hover:scale-105 slash-x"
+              className="px-8 py-4 inline-block bg-orange-400 text-black font-bold text-xl transition-all transform hover:scale-105 rounded"
             >
               <i className="bi bi-book me-2"></i>
               Inizia a leggere
             </Link>
           </div>
         </div>
+      </section>
 
-        {/* Tech Stack Section */}
-        <section className="bg-indigo-800 py-12 px-4">
+      {/* Tech Stack Section */}
+      <section className="bg-indigo-800">
+        <div className=" py-12 px-4">
           <div className="max-w-max mx-auto">
             <h2 className="text-3xl font-bold mb-8 text-center text-orange-400" style={{ fontFamily: 'var(--font-bubblegum)' }}>
               🛠️ Tecnologie utilizzate
@@ -48,7 +50,7 @@ export default function Home() {
               {tools.map((tech, index) => (
                 <div 
                   key={index}
-                  className="p-2 py-6 bg-indigo-700 text-center hover:bg-indigo-600 transition-colors slash-y"
+                  className="p-2 py-6 bg-indigo-700 text-center hover:bg-indigo-600 transition-colors rounded"
                 >
                   <i className={`bi ${tech.icon} text-3xl text-orange-400 mb-3`}></i>
                   <p className="font-semibold text-lg">{tech.name}</p>
@@ -56,20 +58,8 @@ export default function Home() {
               ))}
             </div>
           </div>
-        </section>
+        </div>
       </section>
     </main>
   );
 }
-/*
-@page.tsx implementa una homepage accattivante che 
-* spieghi sinteticamente lo scopo del progetto: creare e leggere novelle con un tocco fumettistico
-* inviti l'utente a leggere i libri
-* in fonto alla pagina, una tabella con gli stumenti usati per sviluppare il progetto
-  - docker
-  - next.js
-  - tailwindcss
-  - typescript
-  - valibot
-  - bootstrap icons
-*/

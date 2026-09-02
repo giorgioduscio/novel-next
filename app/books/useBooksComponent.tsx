@@ -5,7 +5,7 @@ import { useCommonPagesContext } from "../data/CommonPagesContext";
 import { Book, book_schema } from "../schemas/book_schema";
 import { toast } from "../tools/feedbacksUI";
 import { useAuthContext } from "../data/AuthContext";
-import { useDotNotation } from "../tools/customStates";
+import { useDotNotation } from "../tools/reactCustomization";
 
 export function useBooksComponent() {
   const bookContext = useBookContext();

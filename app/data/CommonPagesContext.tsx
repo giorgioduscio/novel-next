@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
-import { generateContext } from "../tools/generateContext";
+import { useState, useEffect } from "react";
+import { generateContext } from "../tools/reactCustomization";
 
 export const {
   provider: CommonPagesProvider,

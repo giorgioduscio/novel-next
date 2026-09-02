@@ -10,7 +10,6 @@ export function useKeyboardFeatures(
   getSection: Function,
   book: Book | undefined,
   setBook: (book: Book) => void,
-  AUTOCOMPLETE: Main['AUTOCOMPLETE'],
   SECTION: Main['SECTION'],
   PARAG: Main['PARAG'],
 ) {
@@ -218,7 +217,7 @@ export function useKeyboardFeatures(
     const match = FEATURES.find(feature=> feature[0]);
     if(!match) return;  
     match[1]();
-  }, [book, book_id, getSection, setBook, AUTOCOMPLETE, SECTION, PARAG]);
+  }, [book, book_id, getSection, setBook, SECTION, PARAG]);
 
   return handleKey;
 }

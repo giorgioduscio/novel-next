@@ -9,6 +9,7 @@ import Navigation from "@/app/shareds/Navigation";
 import { useSectionComponent, UseSectionComponentProps } from "./useSectionComponent";
 import Link from "next/link";
 import UnathorizeComponent from "@/app/shareds/UnathorizeComponent";
+import React from "react";
 
 interface AddParagraphButtonProps { handleCreate: Function; if: boolean; className?: string }
 function AddParagraphButton({ if: show, handleCreate, className = "" }: AddParagraphButtonProps) {
@@ -30,19 +31,17 @@ function AddParagraphButton({ if: show, handleCreate, className = "" }: AddParag
 export default function SectionComponent(props: UseSectionComponentProps) {
   const {
     book, part,
-    book_id,  section_id,  page,  SECTION_title,
+    book_id,  section_id,  page,
     SECTION,
     SHARED,  
-    PARAG, showParagraphs,
+    PARAG, 
     errors,
     AUTOCOMPLETE,
     HISTORY,
     FIND_REPLACE,
-    foundIndices,
     canRead, canWrite,
-    olRef,
-    olHeight,
-    MARCKERS
+    MARCKERS,
+    NAVIGATION
   } = useSectionComponent(props); 
 
   if (!page.isPageLoaded) return <LoadingComponent />;
@@ -50,7 +49,7 @@ export default function SectionComponent(props: UseSectionComponentProps) {
 
   return (<>
     {/* NAVBAR */}
-    <Navigation back_btn={{ href: `/books/${book_id}` }} page_title={SECTION_title}>
+    <Navigation back_btn={{ href: `/books/${book_id}` }} page_title={SECTION.mainTitle.get}>
       <button onClick={SHARED.copy}
               className="p-2 bg-blue-900 text-sm truncate">
         <i className="bi bi-copy"></i>
@@ -68,35 +67,39 @@ export default function SectionComponent(props: UseSectionComponentProps) {
 
 
     {/* BREADCRUMB */}
-    <Breadcrumb routes={["Catalogo:/books", `${book?.title}:/${book?.id}`, `${part?.title}:/structure`, SECTION_title]} />
+    <Breadcrumb routes={["Catalogo:/books", `${book.get?.title}:/${book.get?.id}`, `${part?.title}:/structure`, SECTION.mainTitle.get]} />
 
     {/* STRUMENTI */}
-    <div className={`sticky top-[calc(45px+env(safe-area-inset-top))] z-20 mx-auto w-fit max-w-[800px] ${canWrite ?"" :"pointer-events-none invisible"}`}>
+    <div className="sticky top-[calc(45px+env(safe-area-inset-top))] z-20 mx-auto w-fit max-w-[800px]">
       <div className="bg-indigo-900 rounded-b-lg overflow-hidden">
-        {/* UNDO / REDO */} 
-        <Frag if={canWrite && !FIND_REPLACE.isVisible.get}>
+        {/* UNDO / REDO / SEGNALIBRI / TROVA */} 
+        <Frag if={!FIND_REPLACE.isVisible.get}>
           <div className="flex items-center">
-            <button onClick={HISTORY.undo} 
-                    className="px-3 py-2 bg-indigo-900" 
-                    title="Annulla">
-              <i className="bi bi-arrow-90deg-left" style={{transform:"rotate(-90) !important"}}></i> 
-            </button>
+            <Frag if={canWrite}>
+              <button onClick={HISTORY.undo} 
+                      className="px-3 py-2 bg-indigo-900" 
+                      title="Annulla">
+                <i className="bi bi-arrow-90deg-left" style={{transform:"rotate(-90) !important"}}></i> 
+              </button>
+            </Frag>
             <button onClick={()=> MARCKERS.isVisible.set(true)} 
                     className="px-3 py-2 bg-green-900" 
                     title="Segnalibri">
               <i className="bi bi-bookmarks-fill"></i> 
               <span className="ms-1 hidden sm:inline">Segnalibri</span>
             </button>
-            <button onClick={FIND_REPLACE.toggle} 
-                    className={`px-3 py-2 ${FIND_REPLACE.isVisible.get ?"bg-blue-800" :"bg-gray-800"}`}>
-              <i className="bi bi-search"></i> 
-              <span className="ms-1 hidden sm:inline">Trova</span>
-            </button>
-            <button onClick={HISTORY.redo} 
-                    className="px-3 py-2 bg-indigo-900" 
-                    title="Ripeti">
-              <i className="bi bi-arrow-90deg-right rotate-90"></i> 
-            </button>
+            <Frag if={canWrite}>
+              <button onClick={()=> FIND_REPLACE.isVisible.set(p=> !p)} 
+                      className={`px-3 py-2 ${FIND_REPLACE.isVisible.get ?"bg-blue-800" :"bg-gray-800"}`}>
+                <i className="bi bi-search"></i> 
+                <span className="ms-1 hidden sm:inline">Trova</span>
+              </button>
+              <button onClick={HISTORY.redo} 
+                      className="px-3 py-2 bg-indigo-900" 
+                      title="Ripeti">
+                <i className="bi bi-arrow-90deg-right rotate-90"></i> 
+              </button>
+            </Frag>
           </div>
         </Frag>
 
@@ -105,15 +108,15 @@ export default function SectionComponent(props: UseSectionComponentProps) {
           {/* generali */}
           <div className="grid grid-cols-[1fr_auto] items-center">
             <h4 className="p-3 font-bold text-sm">
-              {foundIndices.length > 0 ?(
+              {FIND_REPLACE.foundIndices.length > 0 ?(
                 <span>
-                  {FIND_REPLACE.currentIndex.get + 1} / {foundIndices.length} occorrenze trovate
+                  {FIND_REPLACE.currentIndex.get + 1} / {FIND_REPLACE.foundIndices.length} occorrenze trovate
                 </span>
               ):(
                 <span>Cerca e sostituisci</span>
               )}
             </h4>
-            <button type="button" onClick={FIND_REPLACE.toggle} 
+            <button type="button" onClick={()=> FIND_REPLACE.isVisible.set(p=> !p)} 
                     className="py-2 px-3 bg-indigo-900"
                     title="Chiudi">
               <i className="bi bi-x-lg"></i>
@@ -222,13 +225,16 @@ export default function SectionComponent(props: UseSectionComponentProps) {
                   Nessun segnalibro impostato
                 </li>
               ) : (
-                MARCKERS.markers.map((p, index) => (  
+                MARCKERS.markers.map((item, index) => (  
                   <li key={index}>
-                    <button onClick={()=> MARCKERS.scrollToMarker(index.toString())}
-                            className="w-full py-2 px-3 bg-indigo-800 text-sm text-left rounded truncate"
-                            title={`Vai al paragrafo: ${p.text}`}>
+                    <button onClick={()=> {
+                              MARCKERS.scrollToMarker(item.index.toString());
+                              MARCKERS.isVisible.set(false);
+                            }}
+                            className="w-full py-2 px-3 bg-indigo-800 hover:bg-indigo-700 text-sm text-left rounded truncate cursor-pointer transition-colors"
+                            title={`Vai al paragrafo: ${item.paragraph.text}`}>
                       <i className="me-2 bi bi-bookmark"></i>
-                      <span className="truncate">{p.text || 'Paragrafo senza testo'}</span>
+                      <span className="truncate">{item.paragraph.text || 'Paragrafo senza testo'}</span>
                     </button>
                   </li>
                 ))
@@ -252,31 +258,33 @@ export default function SectionComponent(props: UseSectionComponentProps) {
           </Frag>
 
 
-
           {/* SEZIONE TROVATA */}
           <Frag if={!!SECTION.bookSection}>
             {/* TITOLO SEZIONE */}
-            <form onSubmit={SECTION.handleSubmit} className="p-3 pb-60 text-center">
-              <Field
-                input_class="text-3xl font-bold text-center text-orange-500"
-                hide_label
-                label="Titolo della sezione"
-                value={SECTION_title}
-                disabled={!canWrite}
-                asterisk
-                onInput={(_e) => SECTION.handleChange(_e.target.value)}
-                error_message={errors["section>section-title"]}
-                id={"section-title"}
-                type={"text"}
-                placeholder={"Titolo della sezione"}
-                onKeyDown={SECTION.titleKeyDown}
-              />
+            <div className="p-3 pb-60 text-center">
+              <div>
+                <Field
+                  input_class="text-3xl font-bold text-center text-orange-500"
+                  hide_label
+                  label="Titolo della sezione"
+                  value={SECTION.mainTitle.get}
+                  disabled={!canWrite}
+                  asterisk
+                  onInput={(_e) => SECTION.update("title", _e.target.value.trim())}
+                  error_message={errors["section>section-title"]}
+                  id={"section-title"}
+                  type={"text"}
+                  placeholder={"Titolo della sezione"}
+                  onKeyDown={SECTION.titleKeyDown}
+                />
+              </div>
+
               <div className="mt-5 border-t border-gray-500 relative">
                 <Frag if={canWrite} className="absolute z-2">
                   <div className="py-1 flex flex-wrap gap-1 justify-around">
                     <b className="px-2 bg-blue-300 text-sm text-black outline rounded-full">Paragrafi: {SECTION.bookSection?.paragraphs?.length}</b>
                     <b className="px-2 bg-green-300 text-sm text-black outline rounded-full">Lettere: {SECTION.words}</b>
-                    <b className="px-2 bg-indigo-300 text-sm text-black outline rounded-full">Lunghezza pagina: {Math.floor(olHeight)}px</b>
+                    <b className="px-2 bg-indigo-300 text-sm text-black outline rounded-full">Lunghezza pagina: {Math.floor(PARAG.listHeight.get)}px</b>
                   </div>
                   <div className="p-1 bg-white text-black outline rounded">
                     <Field
@@ -289,15 +297,16 @@ export default function SectionComponent(props: UseSectionComponentProps) {
                       type={"textarea"}
                       rows={4}
                       placeholder={"Visualizzato solo dagli scrittori. Inserire sintesi o modifiche da implementare"}
-                      onInput={(_e) => SECTION.updateNote(_e.target.value)}
+                      onInput={(_e) => SECTION.update("note", _e.target.value)}
                     />
                   </div>
                 </Frag>
               </div>
-            </form>
+            </div>
+            
 
             {/* WRAPPER PARAGRAFI */}
-            <Frag if={showParagraphs} className="pb-10">
+            <Frag if={PARAG.showParagraphs} className="pb-10">
               <Frag.Else>
                 <div className="py-10 text-center">
                   <i className="me-1 bi bi-file-text"></i>
@@ -314,7 +323,7 @@ export default function SectionComponent(props: UseSectionComponentProps) {
                 </Frag>
               </Frag.Else>
 
-              <ol ref={olRef}>
+              <ol ref={PARAG.listReference}>
                 {SECTION.bookSection?.paragraphs?.map((p, paragraph_i) => (
                   <li key={paragraph_i} className="relative">
                     {/* PULSANTE INSERIMENTO */}
@@ -410,7 +419,7 @@ export default function SectionComponent(props: UseSectionComponentProps) {
                       </Frag>
                     </div>
 
-                    {/* RIMUOVI PARAGRAFO */}
+                    {/* RIMUOVI PARAGRAFO / SEGNALIBRO */}
                     <Frag if={canWrite} className="pr-1 pt-3 absolute top-0 end-0 z-1">
                       <div className="flex flex-col">
                         <button type="button" title="rimuovi paragrafo"
@@ -428,6 +437,11 @@ export default function SectionComponent(props: UseSectionComponentProps) {
                         </button>
                       </div>
                     </Frag>
+                    <Frag if={!canWrite && !!p.isMarcked} className="pr-1 pt-3 absolute top-0 end-0 z-1 pointer-events-none">
+                      <div className="px-2 py-1 bg-gray-600/60 text-green-300 rounded-full">
+                        <i className="bi bi-bookmark-fill"></i>
+                      </div>
+                    </Frag>
 
                     {/* PULSANTE INSERIMENTO */}
                     <AddParagraphButton
@@ -439,6 +453,31 @@ export default function SectionComponent(props: UseSectionComponentProps) {
                 ))}
               </ol>
             </Frag>
+
+            {/* NAVIGAZIONE SEZIONI (PRECEDENTE / SUCCESSIVA) */}
+            <div className="mt-8 p-3 grid grid-cols-2 gap-3 text-sm">
+              {[NAVIGATION.prevSection, NAVIGATION.nextSection].map((_sec,i)=><React.Fragment key={i}>
+                {_sec ?(
+                  <Link href={`/books/${book_id}/${_sec.part_id}/${_sec.section_id}`}
+                        className="p-2 flex items-center gap-2 bg-indigo-600 rounded-lg shadow-lg"
+                        title={`Sezione ${!i ?"precedente" :"successiva"}: ${_sec.section_title}${_sec.part_title !== part?.title ? ` (${_sec.part_title})` : ''}`}>
+
+                    <Frag if={i===0}>
+                      <i className="bi bi-chevron-left text-lg flex-shrink-0"></i>
+                    </Frag>
+                    <div className="flex flex-col min-w-0 text-left">
+                      <span className="text-xs text-gray-300">{!i ?"Precedente" :"Successiva"}</span>
+                      <span className="font-semibold truncate">{_sec.section_title}</span>
+                    </div>
+                    <Frag if={i===1}>
+                      <i className="bi bi-chevron-right text-lg flex-shrink-0"></i>
+                    </Frag>
+                  </Link>
+
+                ) : <div /> }
+              </React.Fragment> )}
+            </div>
+
           </Frag>
         </section>
 

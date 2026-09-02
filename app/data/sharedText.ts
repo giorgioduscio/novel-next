@@ -1,6 +1,6 @@
 import { Book, Part, Section, Paragraph } from "../schemas/book_schema";
 import { useBookContext } from "./BookContext";
-import { ui_upload, toast } from "../tools/feedbacksUI";
+import { toast } from "../tools/feedbacksUI";
 
 export default function useSharedText() {
   const bookContext = useBookContext();
