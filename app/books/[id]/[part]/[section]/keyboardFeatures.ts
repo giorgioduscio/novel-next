@@ -5,18 +5,35 @@ import { useCallback } from "react";
 
 type Main = ReturnType<typeof useSectionComponent>;
 
-export function useKeyboardFeatures(
-  book_id: string,
-  getSection: Function,
-  book: Book | undefined,
-  setBook: (book: Book) => void,
-  SECTION: Main['SECTION'],
-  PARAG: Main['PARAG'],
-) {
+export function useKeyboardFeatures(getSection: Function, dependencies: Pick<Main, 'book' | 'SECTION' | 'PARAG' | 'AUTOCOMPLETE'>) {
   const bookContext = useBookContext();
+  const { book, SECTION, PARAG, AUTOCOMPLETE } = dependencies;
 
-  const handleKey = useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (!book) return;
+  // CHANGEFOCUS helper per cambiare il focus
+  function _changeFocus(direction: "up" | "down" | "this", from: "|__" | "__|" | number, index:number, key: keyof Paragraph ="text") {  
+    const walk = direction === "up" ? -1 
+                : direction === "down" ? 1 
+                : 0;
+
+    setTimeout(() => {
+      const el = document.getElementById(`${index + walk}>${key}`) as HTMLTextAreaElement;
+      if(!el) return console.error("Elemento non trovato");
+      // comincia all'inizio della textarea
+      if(from === "__|") el.setSelectionRange(el.value.length, el.value.length);
+      else if(from === "|__") el.setSelectionRange(0, 0); 
+      else el.setSelectionRange(from, from);
+      el.focus();
+    }, 10);
+  }
+
+  const handleKey = useCallback((
+    e: React.KeyboardEvent<HTMLTextAreaElement>, 
+    index: number,
+    key: keyof Paragraph, 
+    paragraph:Paragraph
+
+  ) => {
+    if (!book.get) return console.error("Libro non disponibile");
 
     // controllo iniziale
     const gesturesKeys = [
@@ -27,39 +44,41 @@ export function useKeyboardFeatures(
 
     // 1) dati
     const { value, id } = e.target as HTMLTextAreaElement;
-    const [_index, key] = id.split(">") as [string, keyof Paragraph];
-    const index = parseInt(_index);
     if (isNaN(index) || !key) return console.error("Parametri non validi");
-    const section = getSection(book);
+
+    const section = getSection(book.get);
     if (!section) return console.error("Sezione non trovata");
     const textarea = e.target as HTMLTextAreaElement;
 
-    // CHANGEFOCUS helper per cambiare il focus
-    function _changeFocus(direction: "up" | "down" | "this", from: "|__" | "__|" | number) {  
-      const walk = direction === "up" ? -1 
-                  : direction === "down" ? 1 
-                  : 0;
 
-      setTimeout(() => {
-        const el = document.getElementById(`${index + walk}>${key}`) as HTMLTextAreaElement;
-        if(!el) return console.error("Elemento non trovato");
-        // comincia all'inizio della textarea
-        if(from === "__|") el.setSelectionRange(el.value.length, el.value.length);
-        else if(from === "|__") el.setSelectionRange(0, 0); 
-        else el.setSelectionRange(from, from);
-        el.focus();
-      }, 10);
-    }
 
     // FEATURES
     const FEATURES :[boolean, ()=> any][] =[
       [
-        e.key==="Enter" && key === "in_style",
+        key === "in_style" && ["Enter","ArrowUp"].includes(e.key),
         function enterStyle(){
+          e.preventDefault(); 
+          
+          PARAG.update(index, key, value)
+
+          if(e.key==="ArrowUp"){
+            _changeFocus("this", "__|", index)  
+          } 
+          // else if(e.key==="ArrowDown"){
+          //   _changeFocus("down", "|__", index)
+          // }
+        }
+      ],
+      [
+        e.key==="ArrowDown" && key === "in_style"
+        && textarea.selectionEnd === textarea.value.length,
+        function autocompleteStyle(){
           e.preventDefault();
-          // const in_style = AUTOCOMPLETE.suggestions.get?.[0];
-          // if(!in_style) return;
-          PARAG.update(index, "in_style", value);
+
+          const suggestion = AUTOCOMPLETE.suggestions.get;
+          if(!suggestion.length) return console.error("Suggerimenti non trovati");
+          
+          AUTOCOMPLETE.insertClass(index, suggestion[0], paragraph);
         }
       ],
       [
@@ -73,18 +92,18 @@ export function useKeyboardFeatures(
           // se è all'inizio, crea un paragrafo prima
           if(start === 0) {
             PARAG.handleCreate(index-1);
-            _changeFocus("this", "|__");
+            _changeFocus("this", "|__", index, "text");
 
           // se alla fine, crea un paragrafo dopo
           } else if (start === value.length) {
             PARAG.handleCreate(index);
-            _changeFocus("down", "|__");
+            _changeFocus("down", "|__", index, "text");
 
           // se nel mezzo, l'attuale paragrafo ha valore prima del cursore
           // e ne crea un'altro con il valore dopo il cursore
           } else {
             // 1. Aggiorna il paragrafo corrente con `before`
-            const updatedBook = structuredClone(book);
+            const updatedBook = structuredClone(book.get);
             const sec = getSection(updatedBook);
             if (!sec?.paragraphs?.[index]) return;
 
@@ -100,11 +119,11 @@ export function useKeyboardFeatures(
               in_style: sec.paragraphs[index].in_style || "", 
             } as Paragraph);
             
-            setBook(updatedBook); // Aggiorna lo stato
+            book.set(updatedBook); // Aggiorna lo stato
 
             // 2. Crea un nuovo paragrafo con `after`
             setTimeout(() => {
-              _changeFocus("down", "|__");
+              _changeFocus("down", "|__", index);
             }, 100);
           }
         }
@@ -122,7 +141,9 @@ export function useKeyboardFeatures(
           const prevLength = prevParag.text.length;
 
           // 2. Crea una copia aggiornata del libro
-          const updatedBook = structuredClone(book);
+          const updatedBook = structuredClone(book.get);
+          if(!updatedBook) return console.error("Libro non trovato");
+          
           const sec = getSection(updatedBook);
           if (!sec?.paragraphs?.[index] || !sec.paragraphs?.[index - 1]) {
             return console.error("Paragrafo non trovato");
@@ -133,7 +154,7 @@ export function useKeyboardFeatures(
           sec.paragraphs.splice(index, 1); // Rimuove il paragrafo attuale        
 
           // 4. Aggiorna lo stato
-          setBook(updatedBook);
+          book.set(updatedBook);
 
           // 5. Sposta il cursore alla fine del paragrafo precedente
           setTimeout(() => {
@@ -145,7 +166,7 @@ export function useKeyboardFeatures(
             prevElement.focus();
 
             // Salva su DB
-            bookContext.updateBook(book_id, updatedBook, false);
+            bookContext.updateBook(updatedBook.id, updatedBook, false);
           }, 10);
 
         }
@@ -160,7 +181,7 @@ export function useKeyboardFeatures(
             if(!targetParag) return console.error("Paragrafo non trovato");
             PARAG.handleRemove(index);
             // focus sul paragrafo successivo
-            _changeFocus("this", "|__");
+            _changeFocus("this", "|__", index);
   
           // a fine paragrafo, sposta il valore del paragrafo successivo nell'attuale
           } else if(target.selectionEnd === value.length) {
@@ -168,13 +189,14 @@ export function useKeyboardFeatures(
             const nextParag = section?.paragraphs?.[index + 1];
             if(!nextParag) return console.error("Paragrafo successivo non trovato");
   
-            const updatedBook = structuredClone(book);
+            const updatedBook = structuredClone(book.get);
+            if (!updatedBook) return console.error("Libro non trovato");
             const sec = getSection(updatedBook);
             if (!sec?.paragraphs?.[index]) return console.error("Paragrafo non trovato");
             
             sec.paragraphs[index].text = value + nextParag.text;
             sec.paragraphs.splice(index + 1, 1);
-            setBook(updatedBook);
+            book.set(updatedBook);
             
             // sposta cursore sull'indice 
             setTimeout(() => {
@@ -198,7 +220,7 @@ export function useKeyboardFeatures(
         (e.key === "ArrowLeft" || e.key ==="ArrowUp") 
         && key === "text" && textarea.selectionStart === 0,
         function ArrowLeft(){
-          _changeFocus("up", "__|");
+          _changeFocus("up", "__|", index);
         }
       ],
       [
@@ -208,7 +230,7 @@ export function useKeyboardFeatures(
         && SECTION.bookSection?.paragraphs !== undefined
         && index!==SECTION.bookSection?.paragraphs?.length - 1,
         function ArrowRight(){
-          _changeFocus("down", "|__");
+          _changeFocus("down", "|__", index);
         }
       ],
     ] as const;
@@ -217,7 +239,7 @@ export function useKeyboardFeatures(
     const match = FEATURES.find(feature=> feature[0]);
     if(!match) return;  
     match[1]();
-  }, [book, book_id, getSection, setBook, SECTION, PARAG]);
+  }, [book.get, getSection, SECTION, PARAG]);
 
   return handleKey;
 }

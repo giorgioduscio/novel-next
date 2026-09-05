@@ -163,7 +163,6 @@ const not_allowed_styles = [
   // Tables
   "border-collapse",
   "border-separate",
-  "border-spacing-",
   "caption-",
 
   // Accessibility / forced colors
@@ -174,12 +173,23 @@ function validateStyle(v:string){
   if(v.trim().length === 0) return true;
   const classes = v.trim().split(" "); // tutte le classi tailwind
   // verifica se c'è almeno una classe che non appartiene a quelle permesse
-  return classes.every((classe) => // verificare tutte le classi attuali
-  // verificare che nessuna classe non permessa sia presente
-  not_allowed_styles.every((style) => 
-    // (classe attuale non deve contenere una delle classi non permesse)
-    !classe.includes(style)) 
+  const result = classes.every((classeAttuale) => // verificare tutte le classi attuali
+    // verificare che nessuna classe non permessa sia presente
+    not_allowed_styles.every((notAllowedStyle) => {
+      const isBlocked = notAllowedStyle .includes(classeAttuale);
+      if (isBlocked) {
+        console.error(`Classe bloccata: "${classeAttuale}" contiene "${notAllowedStyle}"`);
+      }
+      return !isBlocked;
+    })
   );
+  
+  if (!result) {
+    console.error("Stile completo non valido:", v);
+    console.error("Classi:", classes);
+  }
+  
+  return result;
 }
 
 export const paragraph_schema = v.object({

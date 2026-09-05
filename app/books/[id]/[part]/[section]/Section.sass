@@ -32,14 +32,14 @@
 
     // 2) FUMETTO DESCRIZIONE
     .desc, .descrizione
-        padding: 1rem 2rem
-        border-width: 0.15rem 
+        padding: 1rem 
+        border-width: 2px 
         border-style: solid 
         
     // 3) FUMETTO DIALOGO
     .dialogo
-        padding: 1rem 2rem
-        border-width: 0.1rem 
+        padding: 1rem 
+        border-width: 2px 
         border-radius: 40px
         &.sinistra
             border-top-left-radius: 0 !important
@@ -72,3 +72,5 @@
     @for $i from 1 through 10
         .bg-fade-#{$i * 10}
             background: linear-gradient(to bottom, oklab(0 0 0 / #{$i * 0.1 - 0.1}), oklab(0 0 0 / #{$i * 0.1}))
+        .-bg-fade-#{$i * 10}
+            background: linear-gradient(to bottom, oklab(0 0 0 / #{$i * 0.1}), oklab(0 0 0 / #{$i * 0.1 - 0.1}))

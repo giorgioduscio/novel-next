@@ -3,7 +3,7 @@ import { useCommonPagesContext } from "@/app/data/CommonPagesContext";
 import { Book, Section, Paragraph, paragraph_schema, section_schema, Part } from "@/app/schemas/book_schema";
 import { useAgreeWrapper } from "@/app/shareds/Agree";
 import { useDotNotation } from "@/app/tools/reactCustomization";
-import { toast } from "@/app/tools/feedbacksUI";
+import { toast, ui_copy } from "@/app/tools/feedbacksUI";
 import { useState, useEffect, useMemo, useRef } from "react";
 import { safeParse } from "valibot";
 import { useKeyboardFeatures } from "./keyboardFeatures";
@@ -132,7 +132,13 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
     }
 
     // Copia nel sistema la struttura del libro
-    async copy() {
+    async copy(value?:string) {
+      if(value){
+        ui_copy(value);
+        toast.success("Copiato")
+        return;
+      }
+
       const section = getSection();
       if (!section) return console.error("Sezione non trovata");
 
@@ -281,9 +287,9 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
     }
 
     // Gestisce funzionalità speciali (es. Enter, Tab)
-    handleKey(e: React.KeyboardEvent<HTMLTextAreaElement>) {
+    handleKey(e: React.KeyboardEvent<HTMLTextAreaElement>, index:number, key: keyof Paragraph, paragraph: Paragraph) {
       if (!book.get) return console.error("Libro non disponibile");
-      return handleKeyboardFeature(e);
+      return handleKeyboardFeature(e, index, key, paragraph);
     }
 
     // Imposta il colore appropriato del testo
@@ -422,7 +428,13 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
   }, [book.get])
 
   // 5) AUTOCOMPLETE PER STILI RIPETUTI
-  class AUTOCOMPLETE {
+  class AutocompleteFeatures {
+    // Bind dei metodi per mantenere il contesto
+    constructor() {
+      this.setSuggestions = this.setSuggestions.bind(this);
+      this.insertClass = this.insertClass.bind(this);
+    }
+
     // Stili predefiniti
     standardStyles = [
       "sinistra", "destra", "centro",
@@ -442,12 +454,6 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
 
     // Suggerimenti attuali
     suggestions = useDotNotation<string[]>([]);
-
-    constructor() {
-      // Bind dei metodi per mantenere il contesto
-      this.setSuggestions = this.setSuggestions.bind(this);
-      this.handleClick = this.handleClick.bind(this);
-    }
 
     // Aggiorna i suggerimenti in base all'input
     setSuggestions(e: React.ChangeEvent<HTMLTextAreaElement>) {
@@ -493,361 +499,311 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
     }
 
     // Gestisce il click su un suggerimento
-    handleClick(e: React.MouseEvent<HTMLButtonElement>, p: Paragraph, index: number) {
-      const newClass = (e.target as HTMLDivElement).innerText;
-      const actualClasses = p.in_style.toLowerCase().split(" ");
+    insertClass(index: number, suggestedValue:string, paragraph: Paragraph) {
+      const actualClasses = paragraph.in_style.toLowerCase().split(" ");
+      const isCompositedClass = suggestedValue.includes(" ");
 
       // Aggiornamento delle classi
-      const update = actualClasses.map((cls) =>
-        newClass.includes(cls) ? newClass : cls
-      ).join(" ");
+      const update = isCompositedClass
+        ? suggestedValue
+        : actualClasses.map((cls) =>
+            suggestedValue.includes(cls) ? suggestedValue : cls
+          ).join(" ");          
 
       PARAG.update(index, "in_style", update);
       this.suggestions.set([]);
     }
   }
+  const AUTOCOMPLETE = new AutocompleteFeatures()
 
 
-  // 7) TROVA E SOSTITUISCI 
-  // Tipo per le occorrenze trovate
-  type FoundOccurrence = { type: 'text' | 'style', index: number } | { type: 'section-title' };
-  
-  class FIND_REPLACE {
-    constructor(){
-      this.next = this.next.bind(this);
-      this.previous = this.previous.bind(this);
-    };
-    
-    // CERCA
-    isVisible = useDotNotation(false); // mostra / nascondi sezione
-    previousQuery = useDotNotation({ value:"", caseSensitive:false, wholeWord:false });
-    search = useDotNotation({ value:"", caseSensitive:false, wholeWord:false });
-    currentIndex = useDotNotation(0);
-
-    // Resetta lo stato
-    reset() {
-      this.search.set(p=>({ ...p, value: "" }));
-      this.replaceQuery.set("");
-      this.currentIndex.set(0);
-    };
-
-
-    // Calcola le occorrenze trovate automaticamente con useMemo
-    foundIndices = useMemo(() => {
-      const query = this.search.get;
-      if (!query || !query.value.trim()) return [];
-
-      const occurrences: FoundOccurrence[] = [];
-      const searchValue = query.caseSensitive ? query.value : query.value.toLowerCase();
-
-      // Funzione helper per verificare se il testo contiene la query
-      function matchesQuery (text: string): boolean {
-        const searchText = query.caseSensitive ? text : text.toLowerCase();
-        if (query.wholeWord) {
-          const regex = new RegExp(`\\b${query.value}\\b`, query.caseSensitive ? "" : "i");
-          return regex.test(text);
-        } else {
-          return searchText.includes(searchValue);
-        }
-      };
-
-      // Cerca nel titolo della sezione
-      const sectionTitle = SECTION.mainTitle.get;
-      if (matchesQuery(sectionTitle)) {
-        occurrences.push({ type: 'section-title' });
-      }
-
-      // Cerca nei paragrafi (testo e stile)
-      getSection()?.paragraphs?.forEach((p, index) => {
-        // Cerca nel testo
-        if (matchesQuery(p.text)) {
-          occurrences.push({ type: 'text', index });
-        }
-
-        // Cerca nello stile
-        const style = p.in_style || "";
-        if (matchesQuery(style)) {
-          occurrences.push({ type: 'style', index });
-        }
-      });
-
-      return occurrences;
-    }, [this.search, book.get, SECTION.mainTitle.get]);
-  
-    // Cerca tutte le occorrenze nei paragrafi
-    executeSearch() {      
-      const query = this.search.get;
-      if (!query) {
-        this.reset();
-        return;
-      }
-
-      const previousQuery = this.previousQuery.get;
-      const isSameQuery = previousQuery.value === query.value
-        && previousQuery.caseSensitive === query.caseSensitive
-        && previousQuery.wholeWord === query.wholeWord;
-
-      // Se la query è la stessa, vai semplicemente al prossimo indice
-      const FIND_REPLACE = this, foundIndices = this.foundIndices;
-      function _makeFocus() {
-        const currentIndex = FIND_REPLACE.currentIndex.get;
-        
-        if (foundIndices.length === 0) return;
-        const newIndex = (currentIndex < foundIndices.length - 1) ? currentIndex + 1 : 0;
-        FIND_REPLACE.currentIndex.set(newIndex);
-    
-        setTimeout(() => {
-          const occurrence = foundIndices[newIndex];
-          // titolo sezione
-          if (occurrence.type === 'section-title') {
-            const titleInput = document.getElementById("section-title") as HTMLInputElement;
-            if (titleInput) {
-              titleInput.scrollIntoView({ behavior: "smooth", block: "center" });
-              titleInput.focus();
-            }
-    
-          // testo e stile
-          } else {
-            // testo
-            if (occurrence.type === 'text') {
-              const textInput =document.getElementById(`${occurrence.index}>text`);
-              if (!textInput) return console.error("input testuale non trovato");
-              setTimeout(() => {
-                textInput.scrollIntoView({ behavior: "smooth", block: "center" });
-              }, 100);
-            }
-
-            // stile
-            if (occurrence.type === 'style') {
-              PARAG.setStyleInput(occurrence.index) // apre il dropdown
-
-              setTimeout(() => {
-                const styleInput =document.getElementById(`${occurrence.index}>in_style`);
-                if (!styleInput) return console.error("input stile non trovato", occurrence);
-                
-                setTimeout(() => {
-                  styleInput.scrollIntoView({ behavior: "smooth", block: "center" });
-                }, 100);
-              }, 100);
-            }
-    
-          }
-        }, 100);
-      }
-
-      if (isSameQuery) {
-        _makeFocus()
-        return;
-      }
-
-      // Nuova query: resetta e scrolla al primo elemento
-      FIND_REPLACE.currentIndex.set(0);
-      FIND_REPLACE.previousQuery.set(p=>({ ...p, value:query.value, caseSensitive:query.caseSensitive, wholeWord:query.wholeWord }));
-
-      // Sposta il focus sul primo input trovato
-      if (this.foundIndices.length > 0) {
-        _makeFocus()
-      }
-    };
-
-    // Vai all'occorrenza precedente
-    previous() {
-      const FIND_REPLACE = this;
-      const currentIndex = FIND_REPLACE.currentIndex.get;
-
-      if (this.foundIndices.length === 0) return;
-      const newIndex = currentIndex > 0 ? currentIndex - 1 : this.foundIndices.length - 1;
-      FIND_REPLACE.currentIndex.set(newIndex);
-
-      setTimeout(() => {
-        const occurrence = this.foundIndices[newIndex];
-        if (occurrence.type === 'section-title') {
-          const titleInput = document.getElementById("section-title") as HTMLInputElement;
-          if (titleInput) titleInput.focus();
-        } else {
-          const inputId = occurrence.type === 'text' 
-            ? `${occurrence.index}>text` 
-            : `${occurrence.index}>in_style`;
-          const input = document.getElementById(inputId) as HTMLTextAreaElement;
-          if (!input) return;
-          input.scrollIntoView({ behavior: "smooth", block: "center" });
-          // Apri l'input dello stile se necessario
-          if (occurrence.type === 'style') {
-            PARAG.setStyleInput(occurrence.index);
-          }
-          // Fai focus sull'input
-          setTimeout(() => {
-            const focusedInput = document.getElementById(inputId) as HTMLTextAreaElement;
-            if (focusedInput) focusedInput.focus();
-          }, 50);
-        }
-      }, 100);
-    };
-
-    // Vai all'occorrenza successiva
-    next() {
-      const FIND_REPLACE = this;      
-      const currentIndex = FIND_REPLACE.currentIndex.get;
-
-      if (this.foundIndices.length === 0) return;
-      const newIndex = currentIndex < this.foundIndices.length - 1 ? currentIndex + 1 : 0;
-      FIND_REPLACE.currentIndex.set(newIndex);
-
-      setTimeout(() => {
-        const occurrence = this.foundIndices[newIndex];
-        if (occurrence.type === 'section-title') {
-          const titleInput = document.getElementById("section-title") as HTMLInputElement;
-          if (titleInput) titleInput.focus();
-        } else {
-          const inputId = occurrence.type === 'text' 
-            ? `${occurrence.index}>text` 
-            : `${occurrence.index}>in_style`;
-          const input = document.getElementById(inputId) as HTMLTextAreaElement;
-          if (!input) return;
-          input.scrollIntoView({ behavior: "smooth", block: "center" });
-          // Apri l'input dello stile se necessario
-          if (occurrence.type === 'style') {
-            PARAG.setStyleInput(occurrence.index);
-          }
-          // Fai focus sull'input
-          setTimeout(() => {
-            const focusedInput = document.getElementById(inputId) as HTMLTextAreaElement;
-            if (focusedInput) focusedInput.focus();
-          }, 50);
-        }
-      }, 100);
-    };
-
-    // SOSTITUZIONE
-    replaceQuery = useDotNotation("");
-    replaceAll(targets: FoundOccurrence[] = this.foundIndices) {
-      const FIND_REPLACE = this;
-      if (targets.length === 0) return;
-      const replaceText = FIND_REPLACE.replaceQuery.get;
-      const search = FIND_REPLACE.search.get;
-      if (!book.get) return;
-
-      // Funzione per sfuggire i caratteri speciali in una stringa per RegExp
-      function escapeRegExp(string: string): string {
-        return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      }
-
-      // Clona il libro una volta sola
-      const bookClone = structuredClone(book.get);
-      const sec = getSection(bookClone);
-      if (!sec?.paragraphs) return;
-
-      // Itera su tutte le occorrenze target
-      targets.forEach((occurrence) => {
-        if (occurrence.type === 'section-title') {
-          // Sostituisci nel titolo della sezione
-          let title = sec.title;
-          const searchValue = search.caseSensitive ? search.value : search.value.toLowerCase();
-          const escapedSearchValue = escapeRegExp(searchValue);
-
-          let regex: RegExp;
-          if (search.wholeWord) {
-            regex = new RegExp(`\\b${escapedSearchValue}\\b`, search.caseSensitive ? "g" : "gi");
-          } else {
-            regex = new RegExp(escapedSearchValue, search.caseSensitive ? "g" : "gi");
-          }
-
-          const newTitle = title.replace(regex, replaceText);
-          sec.title = newTitle;
-        } else {
-          // Sostituisci nei paragrafi
-          const paragraph = sec.paragraphs?.[occurrence.index];
-          if (!paragraph) return;
-
-          if (occurrence.type === 'text') {
-            let text = paragraph.text;
-            const searchValue = search.caseSensitive ? search.value : search.value.toLowerCase();
-            const escapedSearchValue = escapeRegExp(searchValue);
-
-            let regex: RegExp;
-            if (search.wholeWord) {
-              regex = new RegExp(`\\b${escapedSearchValue}\\b`, search.caseSensitive ? "g" : "gi");
-            } else {
-              regex = new RegExp(escapedSearchValue, search.caseSensitive ? "g" : "gi");
-            }
-
-            const newText = text.replace(regex, replaceText);
-            paragraph.text = newText;
-            PARAG.update(occurrence.index, "text", newText, true );
-          } else if (occurrence.type === 'style') {
-            let style = paragraph.in_style || "";
-            const searchValue = search.caseSensitive ? search.value : search.value.toLowerCase();
-            const escapedSearchValue = escapeRegExp(searchValue);
-
-            let regex: RegExp;
-            if (search.wholeWord) {
-              regex = new RegExp(`\\b${escapedSearchValue}\\b`, search.caseSensitive ? "g" : "gi");
-            } else {
-              regex = new RegExp(escapedSearchValue, search.caseSensitive ? "g" : "gi");
-            }
-
-            const newStyle = style.replace(regex, replaceText);
-            paragraph.in_style = newStyle;
-            PARAG.update(occurrence.index, "in_style", newStyle, false );
-          }
-        }
-      });
-
-      // Salva una volta sola su database
-      bookContext.updateBook(book_id, bookClone);
-      toast.success("Sostituite tutte le occorrenze");
-
-      // Reimposta la ricerca per aggiornare gli indici
-      FIND_REPLACE.executeSearch();
-    };
-
-    // Sostituisce la prima occorrenza
-    replace() {
-      const FIND_REPLACE = this;
-      const currentIndex = FIND_REPLACE.currentIndex.get;
-      const replaceText = FIND_REPLACE.replaceQuery.get;
-      const search = FIND_REPLACE.search.get;
-
-      if (this.foundIndices.length === 0 || currentIndex >= this.foundIndices.length) return;
-      if (!replaceText.trim()) return;
-
-      // Chiama replaceAll con un array contenente solo l'occorrenza corrente
-      FIND_REPLACE.replaceAll([this.foundIndices[currentIndex]]);
-
-      // Vai alla prossima occorrenza
-      const updatedIndex = FIND_REPLACE.currentIndex.get;
-      if (this.foundIndices.length > 0 && updatedIndex < this.foundIndices.length) {
-        const nextOccurrence = this.foundIndices[updatedIndex];
-        setTimeout(() => {
-          if (nextOccurrence.type === 'section-title') {
-            const titleInput = document.getElementById("section-title") as HTMLInputElement;
-            if (titleInput) {
-              titleInput.scrollIntoView({ behavior: "smooth", block: "center" });
-              titleInput.focus();
-            }
-          } else {
-            const inputId = nextOccurrence.type === 'text' 
-              ? `${nextOccurrence.index}>text` 
-              : `${nextOccurrence.index}>in_style`;
-            const nextInput = document.getElementById(inputId) as HTMLTextAreaElement;
-            if (!nextInput) return;
-            nextInput.scrollIntoView({ behavior: "smooth", block: "center" });
-            if (nextOccurrence.type === 'style') {
-              PARAG.setStyleInput(nextOccurrence.index);
-            }
-            setTimeout(() => {
-              const focusedInput = document.getElementById(inputId) as HTMLTextAreaElement;
-              if (focusedInput) focusedInput.focus();
-            }, 50);
-          }
-        }, 100);
-      }
-    };
-
-  };
 
   // 5.5) KEYBOARD FEATURES
-  const handleKeyboardFeature = useKeyboardFeatures(book_id, getSection, book.get, book.set, SECTION, PARAG);
+  const handleKeyboardFeature = useKeyboardFeatures(getSection, { book, SECTION, PARAG, AUTOCOMPLETE });
+
+  // 7) CERCA E SOSTITUISCI 
+  // Tipo per le occorrenze trovate
+  type FoundOccurrence = { type: 'text' | 'style', index: number } | { type: 'section-title' };
+class FIND_REPLACE {
+  constructor() {
+    this.next = this.next.bind(this);
+    this.previous = this.previous.bind(this);
+  };
+
+  // CERCA
+  isVisible = useDotNotation(false); // mostra / nascondi sezione
+  previousQuery = useDotNotation({ value: "", caseSensitive: false, wholeWord: false });
+  search = useDotNotation({ value: "", caseSensitive: false, wholeWord: false });
+  currentIndex = useDotNotation(0);
+
+  // Resetta lo stato
+  reset() {
+    this.search.set(p => ({ ...p, value: "" }));
+    this.replaceQuery.set("");
+    this.currentIndex.set(0);
+  };
+
+  // Calcola le occorrenze trovate automaticamente con useMemo
+  foundIndices = useMemo(() => {
+    const query = this.search.get;
+    if (!query || !query.value.trim()) return [];
+
+    const occurrences: FoundOccurrence[] = [];
+    const searchValue = query.caseSensitive ? query.value : query.value.toLowerCase();
+
+    // Funzione helper per verificare se il testo contiene la query
+    function matchesQuery(text: string): boolean {
+      const searchText = query.caseSensitive ? text : text.toLowerCase();
+      if (query.wholeWord) {
+        // Usa la query originale per la regex, ma gestisce caseSensitive
+        const escapedQuery = query.value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const regex = new RegExp(`\\b${escapedQuery}\\b`, query.caseSensitive ? "" : "i");
+        return regex.test(text);
+      } else {
+        return searchText.includes(searchValue);
+      }
+    };
+
+    // Cerca nel titolo della sezione
+    const sectionTitle = SECTION.mainTitle.get;
+    if (matchesQuery(sectionTitle)) {
+      occurrences.push({ type: 'section-title' });
+    }
+
+    // Cerca nei paragrafi (testo e stile)
+    getSection()?.paragraphs?.forEach((p, index) => {
+      // Cerca nel testo
+      if (matchesQuery(p.text)) {
+        occurrences.push({ type: 'text', index });
+      }
+
+      // Cerca nello stile
+      const style = p.in_style || "";
+      if (matchesQuery(style)) {
+        occurrences.push({ type: 'style', index });
+      }
+    });
+
+    return occurrences;
+  }, [this.search, book.get, SECTION.mainTitle.get]);
+
+  // Metodo unificato per gestire il focus
+  _makeFocus(direction: "next" | "previous") {
+    const currentIndex = this.currentIndex.get;
+    if (this.foundIndices.length === 0) return;
+
+    // Calcola il nuovo indice in base alla direzione
+    let newIndex: number;
+    if (direction === "next") {
+      newIndex = currentIndex < this.foundIndices.length - 1 ? currentIndex + 1 : 0;
+    } else {
+      newIndex = currentIndex > 0 ? currentIndex - 1 : this.foundIndices.length - 1;
+    }
+    this.currentIndex.set(newIndex);
+
+    setTimeout(() => {
+      const occurrence = this.foundIndices[newIndex];
+      // Titolo sezione
+      if (occurrence.type === 'section-title') {
+        const titleInput = document.getElementById("section-title") as HTMLInputElement;
+        if (titleInput) {
+          titleInput.scrollIntoView({ behavior: "smooth", block: "center" });
+          titleInput.focus();
+        }
+      } else {
+        // Testo
+        if (occurrence.type === 'text') {
+          const textInput = document.getElementById(`${occurrence.index}>text`);
+          if (!textInput) return console.error("Input testuale non trovato");
+          setTimeout(() => {
+            textInput.scrollIntoView({ behavior: "smooth", block: "center" });
+          }, 100);
+        }
+
+        // Stile
+        if (occurrence.type === 'style') {
+          PARAG.setStyleInput(occurrence.index); // Apri il dropdown
+          setTimeout(() => {
+            const styleInput = document.getElementById(`${occurrence.index}>in_style`);
+            if (!styleInput) return console.error("Input stile non trovato", occurrence);
+            setTimeout(() => {
+              styleInput.scrollIntoView({ behavior: "smooth", block: "center" });
+            }, 100);
+          }, 100);
+        }
+      }
+    }, 100);
+  }
+
+  // Cerca tutte le occorrenze nei paragrafi
+  executeSearch() {
+    const query = this.search.get;
+    if (!query) {
+      this.reset();
+      return;
+    }
+
+    const previousQuery = this.previousQuery.get;
+    const isSameQuery = previousQuery.value === query.value
+      && previousQuery.caseSensitive === query.caseSensitive
+      && previousQuery.wholeWord === query.wholeWord;
+
+    // Se la query è la stessa, vai semplicemente al prossimo indice
+    if (isSameQuery) {
+      this._makeFocus("next");
+      return;
+    }
+
+    // Nuova query: resetta e scrolla al primo elemento
+    this.currentIndex.set(0);
+    this.previousQuery.set(p => ({ ...p, value: query.value, caseSensitive: query.caseSensitive, wholeWord: query.wholeWord }));
+
+    // Sposta il focus sul primo input trovato
+    if (this.foundIndices.length > 0) {
+      this._makeFocus("next");
+    }
+  };
+
+  // Vai all'occorrenza precedente
+  previous() {
+    if (this.foundIndices.length === 0) return;
+    this._makeFocus("previous");
+  };
+
+  // Vai all'occorrenza successiva
+  next() {
+    if (this.foundIndices.length === 0) return;
+    this._makeFocus("next");
+  };
+
+  // SOSTITUZIONE
+  replaceQuery = useDotNotation("");
+
+  replaceAll(targets: FoundOccurrence[] = this.foundIndices) {
+    if (targets.length === 0) 
+      return console.error("[replaceAll] Nessuna occorrenza da sostituire.");
+    
+    const replaceText = this.replaceQuery.get;
+    const search = this.search.get;
+
+    if (!book.get) return console.error("Libro non disponibile.");
+    
+
+    // Funzione per sfuggire i caratteri speciali in una stringa per RegExp
+    function escapeRegExp(string: string): string {
+      return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+
+    // Clona il libro una volta sola
+    const bookClone = structuredClone(book.get);
+    const sec = getSection(bookClone);
+
+    if (!sec?.paragraphs) {
+      console.error("[replaceAll] Sezione senza paragrafi.");
+      return;
+    }
+
+    // Itera su tutte le occorrenze target
+    targets.forEach((occurrence, targetIndex) => {
+      // Costruisci la regex usando la query originale
+      const escapedSearchValue = escapeRegExp(search.value);
+      const regexFlags = search.caseSensitive ? "g" : "gi";
+      const regex = search.wholeWord
+        ? new RegExp(`\\b${escapedSearchValue}\\b`, regexFlags)
+        : new RegExp(escapedSearchValue, regexFlags);
+
+
+      // Sostituisci nel titolo della sezione
+      if (occurrence.type === 'section-title') {
+        let title = sec.title;
+        const newTitle = title.replace(regex, replaceText);
+        sec.title = newTitle;
+
+      // Sostituisci nei paragrafi
+      } else {
+        const paragraph = sec.paragraphs?.[occurrence.index];
+        if (!paragraph) {
+          console.error(`[replaceAll] Paragrafo non trovato all'indice ${occurrence.index}.`);
+          return;
+        }
+
+        if (occurrence.type === 'text') {
+          let text = paragraph.text;
+          const newText = text.replace(regex, replaceText);
+          paragraph.text = newText;
+
+          // Aggiorna l'interfaccia
+          PARAG.update(occurrence.index, "text", newText, true);
+
+        } else if (occurrence.type === 'style') {
+          let style = paragraph.in_style || "";
+          const newStyle = style.replace(regex, replaceText);
+          paragraph.in_style = newStyle;
+
+          // Aggiorna l'interfaccia
+          PARAG.update(occurrence.index, "in_style", newStyle, false);
+        }
+      }
+    });
+
+    // Salva una volta sola su database
+    bookContext.updateBook(book_id, bookClone);
+    toast.success("Sostituite tutte le occorrenze");
+
+    // Reimposta la ricerca per aggiornare gli indici
+    this.currentIndex.set(0); 
+    this.executeSearch();
+  };
+
+  // Sostituisce la prima occorrenza
+  replace() {
+    console.log("[replace] Avvio sostituzione singola.");
+
+    const currentIndex = this.currentIndex.get;
+    const replaceText = this.replaceQuery.get;
+    const search = this.search.get;
+
+    if (this.foundIndices.length === 0 || currentIndex >= this.foundIndices.length) {
+      console.error("[replace] Nessuna occorrenza valida da sostituire.");
+      return;
+    }
+
+    console.log(`[replace] Occorrenza corrente: ${currentIndex}`, this.foundIndices[currentIndex]);
+
+    // Chiama replaceAll con un array contenente solo l'occorrenza corrente
+    this.replaceAll([this.foundIndices[currentIndex]]);
+
+    // Vai alla prossima occorrenza
+    const updatedIndex = this.currentIndex.get;
+    if (this.foundIndices.length > 0 && updatedIndex < this.foundIndices.length) {
+      const nextOccurrence = this.foundIndices[updatedIndex];
+      setTimeout(() => {
+        if (nextOccurrence.type === 'section-title') {
+          const titleInput = document.getElementById("section-title") as HTMLInputElement;
+          if (titleInput) {
+            titleInput.scrollIntoView({ behavior: "smooth", block: "center" });
+            titleInput.focus();
+          }
+        } else {
+          const inputId = nextOccurrence.type === 'text'
+            ? `${nextOccurrence.index}>text`
+            : `${nextOccurrence.index}>in_style`;
+          const nextInput = document.getElementById(inputId) as HTMLTextAreaElement;
+          if (!nextInput) return;
+          nextInput.scrollIntoView({ behavior: "smooth", block: "center" });
+          if (nextOccurrence.type === 'style') {
+            PARAG.setStyleInput(nextOccurrence.index);
+          }
+          setTimeout(() => {
+            const focusedInput = document.getElementById(inputId) as HTMLTextAreaElement;
+            if (focusedInput) focusedInput.focus();
+          }, 50);
+        }
+      }, 100);
+    }
+  };
+};
+
 
   
   // 6) STORICO AZIONI
@@ -1007,7 +963,7 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
     SECTION,
     SHARED: new SHARED(),
     PARAG,
-    AUTOCOMPLETE: new AUTOCOMPLETE(),
+    AUTOCOMPLETE,
     FIND_REPLACE: new FIND_REPLACE(),
     canRead, canWrite,
 

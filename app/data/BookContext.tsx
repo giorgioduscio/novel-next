@@ -162,7 +162,7 @@ function bookContextValue() {
       return books;
     },
 
-    // Trova un libro per ID
+    // Cerca un libro per ID
     getBookById: function (id: string): Book | undefined {
       return books.find(function (book) { return book.id === id; });
     },

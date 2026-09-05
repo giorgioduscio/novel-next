@@ -145,15 +145,12 @@ export default function useSharedText() {
       sections: [],
     };
 
-    console.log("[MD_TO_PART] Input:", inputPart);
 
     // Divide l'input per "###" per separare le sezioni
     const sections = inputPart.split("###").slice(1); // Ignora la prima parte (titolo/note della parte)
-    console.log("[MD_TO_PART] Sezioni trovate:", sections.length);
 
     // Estrae titolo e note della parte (prima del primo "###")
     const partHeader = inputPart.split("###")[0].trim();
-    console.log("[MD_TO_PART] Header parte:", partHeader);
     
     partHeader.split("\n").forEach((line) => {
       const trimmedLine = line.trim();
@@ -169,25 +166,20 @@ export default function useSharedText() {
       }
     });
 
-    console.log("[MD_TO_PART] Titolo parte:", newPart.title);
-
     // Se la parte non ha un titolo valido, ritorna null
     if (!newPart.title || newPart.title.trim().length === 0) {
-      console.log("[MD_TO_PART] Parte senza titolo, ritorna null");
+      console.error("[MD_TO_PART] Parte senza titolo, ritorna null");
       return null;
     }
 
     // Elabora ogni sezione
     sections.forEach((sectionText) => {
-      console.log("[MD_TO_PART] Elaborazione sezione:", sectionText.substring(0, 50));
       // Ricostruisci il testo della sezione aggiungendo "###" all'inizio
       const fullSectionText = `###${sectionText}`;
       const section = md_to_section(fullSectionText);
-      console.log("[MD_TO_PART] Sezione creata:", section);
       newPart.sections.push(section);
     });
 
-    console.log("[MD_TO_PART] Parte finale:", newPart);
     return newPart;
   }
 
@@ -203,9 +195,8 @@ export default function useSharedText() {
       auth_write: "",
     };
 
-    console.log("[MD_TO_BOOK] Input completo:", input);
 
-    // Trova tutte le posizioni di "## " (all'inizio di una riga) per separare le parti correttamente
+    // Cerca tutte le posizioni di "## " (all'inizio di una riga) per separare le parti correttamente
     const partMatches = [];
     let match;
     const regex = /(?:^|\n)## /g;
@@ -213,12 +204,10 @@ export default function useSharedText() {
       // Aggiungi 1 se è all'inizio della riga (dopo \n) per saltare il \n
       partMatches.push(match.index + (match[0].startsWith('\n') ? 1 : 0));
     }
-    console.log("[MD_TO_BOOK] Posizioni delle parti ##:", partMatches);
 
     // Estrai l'header del libro (prima della prima "##")
     const firstPartIndex = partMatches.length > 0 ? partMatches[0] : input.length;
     const bookHeader = input.substring(0, firstPartIndex).trim();
-    console.log("[MD_TO_BOOK] Header libro:", bookHeader);
 
     bookHeader.split("\n").forEach((line) => {
       const trimmedLine = line.trim();
@@ -244,7 +233,6 @@ export default function useSharedText() {
       const startIndex = partMatches[i];
       const endIndex = i < partMatches.length - 1 ? partMatches[i + 1] : input.length;
       const partText = input.substring(startIndex, endIndex).trim();
-      console.log("[MD_TO_BOOK] Parte estratta:", partText.substring(0, 100));
 
       const part = md_to_part(partText);
       if (part) {
@@ -252,7 +240,6 @@ export default function useSharedText() {
       }
     }
 
-    console.log("[MD_TO_BOOK] Libro finale:", newBook);
     return newBook;
   }
 
@@ -269,17 +256,14 @@ export default function useSharedText() {
         if (files.length === 0) return;
 
         const file = files[0];
-        console.log("[UPLOAD] File selezionato:", file.name, file.type);
 
         const text = await file.text();
-        console.log("[UPLOAD] Contenuto del file (prime 200 caratteri):", text.substring(0, 200));
 
         // Rileva il tipo di file dall'estensione o dal contenuto
         const isJson = file.name.endsWith('.json') || file.name.endsWith('.json') ||
                        (file.type === 'application/json') ||
                        (text.trim().startsWith('{') && text.trim().endsWith('}'));
 
-        console.log("[UPLOAD] Rilevato come JSON:", isJson);
 
         let book: Book;
 
@@ -288,7 +272,6 @@ export default function useSharedText() {
           try {
             const jsonData = JSON.parse(text);
             book = jsonData as Book;
-            console.log("[UPLOAD] Book da JSON:", book);
           } catch (err) {
             console.error("[UPLOAD] Errore parsing JSON:", err);
             toast.danger("Errore nel parsing del file JSON");
@@ -296,15 +279,11 @@ export default function useSharedText() {
           }
         } else {
           // Parse Markdown
-          console.log("[UPLOAD] Parsing Markdown...");
           book = md_to_book(text);
-          console.log("[UPLOAD] Book da Markdown:", book);
         }
 
         // Valida il libro
-        console.log("[UPLOAD] Validazione del libro...");
         const validatedBook = bookContext.validateBook(book);
-        console.log("[UPLOAD] Libro validato:", validatedBook);
 
         if (!validatedBook) {
           console.error("[UPLOAD] Validazione fallita per il book:", book);
@@ -315,14 +294,11 @@ export default function useSharedText() {
         // Genera nuovo ID se esiste già
         const existingBook = bookContext.readAll().find((b) => b.id === validatedBook.id);
         if (existingBook) {
-          console.log("[UPLOAD] ID esistente, generazione nuovo ID");
           validatedBook.id = bookContext.createId();
         }
 
         // Aggiungi il libro
-        console.log("[UPLOAD] Aggiunta del libro alla lista...");
         const result = bookContext.addBook(validatedBook);
-        console.log("[UPLOAD] Risultato addBook:", result);
 
         if (!result) {
           console.error("[UPLOAD] Errore durante addBook");

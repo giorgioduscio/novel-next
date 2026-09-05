@@ -10,6 +10,7 @@ import { useSectionComponent, UseSectionComponentProps } from "./useSectionCompo
 import Link from "next/link";
 import UnathorizeComponent from "@/app/shareds/UnathorizeComponent";
 import React from "react";
+import { ui_copy } from "@/app/tools/feedbacksUI";
 
 interface AddParagraphButtonProps { handleCreate: Function; if: boolean; className?: string }
 function AddParagraphButton({ if: show, handleCreate, className = "" }: AddParagraphButtonProps) {
@@ -50,7 +51,7 @@ export default function SectionComponent(props: UseSectionComponentProps) {
   return (<>
     {/* NAVBAR */}
     <Navigation back_btn={{ href: `/books/${book_id}` }} page_title={SECTION.mainTitle.get}>
-      <button onClick={SHARED.copy}
+      <button onClick={()=> SHARED.copy()}
               className="p-2 bg-blue-900 text-sm truncate">
         <i className="bi bi-copy"></i>
         <span className="pl-2">Copia</span>
@@ -72,7 +73,7 @@ export default function SectionComponent(props: UseSectionComponentProps) {
     {/* STRUMENTI */}
     <div className="sticky top-[calc(45px+env(safe-area-inset-top))] z-20 mx-auto w-fit max-w-[800px]">
       <div className="bg-indigo-900 rounded-b-lg overflow-hidden">
-        {/* UNDO / REDO / SEGNALIBRI / TROVA */} 
+        {/* UNDO / REDO / SEGNALIBRI / CERCA */} 
         <Frag if={!FIND_REPLACE.isVisible.get}>
           <div className="flex items-center">
             <Frag if={canWrite}>
@@ -92,7 +93,7 @@ export default function SectionComponent(props: UseSectionComponentProps) {
               <button onClick={()=> FIND_REPLACE.isVisible.set(p=> !p)} 
                       className={`px-3 py-2 ${FIND_REPLACE.isVisible.get ?"bg-blue-800" :"bg-gray-800"}`}>
                 <i className="bi bi-search"></i> 
-                <span className="ms-1 hidden sm:inline">Trova</span>
+                <span className="ms-1 hidden sm:inline">Cerca</span>
               </button>
               <button onClick={HISTORY.redo} 
                       className="px-3 py-2 bg-indigo-900" 
@@ -103,7 +104,7 @@ export default function SectionComponent(props: UseSectionComponentProps) {
           </div>
         </Frag>
 
-        {/* TROVA E SOSTITUISCI */}
+        {/* CERCA E SOSTITUISCI */}
         <Frag if={canWrite && FIND_REPLACE.isVisible.get} className="p-1">
           {/* generali */}
           <div className="grid grid-cols-[1fr_auto] items-center">
@@ -130,7 +131,7 @@ export default function SectionComponent(props: UseSectionComponentProps) {
               <Field
                 input_class="w-[100px] py-2 px-3"
                 hide_label
-                label="Trova"
+                label="Cerca"
                 value={FIND_REPLACE.search.get.value}
                 disabled={!canWrite}
                 onInput={(e) => FIND_REPLACE.search.set(p=> ({ ...p, value: e.target.value }))}
@@ -334,11 +335,10 @@ export default function SectionComponent(props: UseSectionComponentProps) {
                     />
 
                     {/* TESTO PARAGRAFO */}
-                    <div onClick={PARAG.handleFocusText}
-                          >
+                    <div onClick={PARAG.handleFocusText}>
                       <div onClick={PARAG.handleFocusText} className={`block py-3 ${(p as any).ex_style}`}>
-                        <div  className={canWrite && PARAG.styleInput.get.index === paragraph_i ? 'outline-3 outline-dashed outline-black' : ''}>
-                          <div  onClick={PARAG.handleFocusText} className={`${canWrite && PARAG.styleInput.get.index === paragraph_i ? 'outline-3 outline-white' : ''}`}>
+                        <div className={canWrite && PARAG.styleInput.get.index === paragraph_i ? 'outline-3 outline-dashed outline-black' : ''}>
+                          <div onClick={PARAG.handleFocusText} className={`${canWrite && PARAG.styleInput.get.index === paragraph_i ? 'outline-3 outline-white' : ''}`}>
                             <Field
                               input_class={`text-center ${PARAG.parseStyle(p) || ""}`}
                               placeholder="Testo del paragrafo"
@@ -350,9 +350,9 @@ export default function SectionComponent(props: UseSectionComponentProps) {
                               type="textarea"
                               id={paragraph_i + ">text"}
                               onInput={(_e) => PARAG.update(paragraph_i, "text", _e.target.value)}
-                              onKeyDown={(_e: any) => PARAG.handleKey(_e)}
+                              onKeyDown={(_e: any) => PARAG.handleKey(_e, paragraph_i, "text", p)}
                               error_message={errors[`${paragraph_i}>text`]}
-                              onFocus={() => PARAG.setStyleInput(paragraph_i)}
+                              onFocus={(_e:any) =>{ PARAG.setStyleInput(paragraph_i); AUTOCOMPLETE.setSuggestions(_e)}}
                               onClick={PARAG.handleFocusText} data-focus-text
                             />
                           </div>
@@ -364,23 +364,25 @@ export default function SectionComponent(props: UseSectionComponentProps) {
                         <div className='absolute top-0 z-2 w-full' data-dropdown>
                           <div className="p-1 bg-white text-black outline rounded">
                             {/* CONSIGLIATI */}
-                            <div className="flex flex-wrap items-center gap-1">
-                              {AUTOCOMPLETE.suggestions.get.map((className, _i) => (
-                                <button key={_i}
-                                        onClick={_e=> AUTOCOMPLETE.handleClick(_e, p, paragraph_i)}
-                                        className={`px-2 rounded-full text-sm outline font-bold ${_i ?"bg-blue-300" :"bg-red-300"}`}
-                                        aria-label={`Applica stile: ${className}`}>
+                            <Frag if={!!AUTOCOMPLETE.suggestions.get.length}> 
+                              <div id="suggestionButtons" className="flex flex-wrap items-center gap-1">
+                                {AUTOCOMPLETE.suggestions.get.map((className, _i) => (
+                                  <button key={_i}
+                                          onClick={_e=> AUTOCOMPLETE.insertClass(paragraph_i, className, p)}
+                                          className={`px-2 flex-auto rounded text-sm outline font-bold ${_i ?"bg-blue-300" :"bg-red-300"}`}
+                                          aria-label={`Applica stile: ${className}`}>
 
-                                  <Frag if={!_i}>
-                                    <i className="px-1 me-1 bi bi-arrow-return-left bg-black/60 text-white rounded"></i>
-                                  </Frag>
-                                  
-                                  {className}
-                                </button>
-                              ))}
-                            </div>
+                                    <Frag if={!_i}>
+                                      <i className="px-1 me-1 bi bi-arrow-down bg-black/60 text-white rounded"></i>
+                                    </Frag>
+                                    
+                                    {className}
+                                  </button>
+                                ))}
+                              </div>
+                            </Frag>
 
-                            <div className="pt-2 grid gap-1 grid-cols-[auto_1fr] items-start">
+                            <div className="pt-1 grid gap-1 grid-cols-[auto_1fr] items-start">
                               {/* ICONA PALETTE */}
                               {p.in_style
                                 ?<button onClick={_=> PARAG.update(paragraph_i, "in_style", "")}
@@ -406,7 +408,7 @@ export default function SectionComponent(props: UseSectionComponentProps) {
                                   type="textarea"
                                   id={paragraph_i + ">in_style"}
                                   onChange={(_e) => PARAG.update(paragraph_i, "in_style", _e.target.value.toLowerCase())}
-                                  onKeyDown={(_e: any) => PARAG.handleKey(_e)}
+                                  onKeyDown={(_e: any) => PARAG.handleKey(_e, paragraph_i, "in_style", p)}
                                   onKeyUp={(_e: any) => AUTOCOMPLETE.setSuggestions(_e)}
                                   error_message={errors[`${paragraph_i}>in_style`]}
                                   onFocus={(_e:any) => PARAG.setStyleInput(paragraph_i) }
@@ -420,20 +422,25 @@ export default function SectionComponent(props: UseSectionComponentProps) {
                     </div>
 
                     {/* RIMUOVI PARAGRAFO / SEGNALIBRO */}
-                    <Frag if={canWrite} className="pr-1 pt-3 absolute top-0 end-0 z-1">
+                    <Frag if={canWrite} className="pr-1 pt-3 absolute top-0 end-0 z-2">
                       <div className="flex flex-col">
                         <button type="button" title="rimuovi paragrafo"
                                 onClick={() => PARAG.handleRemove(paragraph_i)}
-                                className="px-2 py-1 bg-gray-600 text-red-300 rounded-full">
+                                className="px-2 py-1 bg-gray-600/50 text-red-300 rounded-full">
                           <i className="bi bi-trash-fill"></i>
                         </button>
                         <button type="button" title={`${p.isMarcked ?"Rimuovi" :"Imposta"} segnalibro`}
                                 onClick={() => PARAG.update(paragraph_i,"isMarcked", !p.isMarcked)}
-                                className="px-2 py-1 bg-gray-600 text-green-300 rounded-full">
+                                className="px-2 py-1 bg-gray-600/50 text-green-300 rounded-full">
                           {p.isMarcked 
                             ?<i className="bi bi-bookmark-fill"></i>
                             :<i className="bi bi-bookmark"></i>
                           }
+                        </button>
+                        <button onClick={()=> SHARED.copy(p.in_style)} 
+                                title="Copia stile" 
+                                className="px-2 py-1 bg-gray-600/50 text-green-300 rounded-full">
+                          <i className="bi bi-copy"></i>
                         </button>
                       </div>
                     </Frag>
@@ -463,14 +470,14 @@ export default function SectionComponent(props: UseSectionComponentProps) {
                         title={`Sezione ${!i ?"precedente" :"successiva"}: ${_sec.section_title}${_sec.part_title !== part?.title ? ` (${_sec.part_title})` : ''}`}>
 
                     <Frag if={i===0}>
-                      <i className="bi bi-chevron-left text-lg flex-shrink-0"></i>
+                      <i className="bi bi-chevron-left text-lg "></i>
                     </Frag>
-                    <div className="flex flex-col min-w-0 text-left">
+                    <div className="flex flex-col text-left flex-1">
                       <span className="text-xs text-gray-300">{!i ?"Precedente" :"Successiva"}</span>
                       <span className="font-semibold truncate">{_sec.section_title}</span>
                     </div>
                     <Frag if={i===1}>
-                      <i className="bi bi-chevron-right text-lg flex-shrink-0"></i>
+                      <i className="bi bi-chevron-right text-lg "></i>
                     </Frag>
                   </Link>
 

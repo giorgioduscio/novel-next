@@ -25,7 +25,7 @@ export default function handleArrowKeyFocus(e: any) {
       )
     );
   
-    // 3) Trova l'indice dell'elemento corrente nella lista di tutti gli input/textarea
+    // 3) Cerca l'indice dell'elemento corrente nella lista di tutti gli input/textarea
     const currentIndex = allInputs.findIndex((el) => el === target);
     if (currentIndex === -1) return;
   

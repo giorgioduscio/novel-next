@@ -18,7 +18,7 @@ export function useBooksComponent() {
   const searchQuery = useDotNotation("");
   
   useEffect(() => {
-    // Trova tutti i libri per cui ha un codice di lettura
+    // Cerca tutti i libri per cui ha un codice di lettura
     const booksMatch = bookContext.readAll().filter(_book => canRead(_book));
     setBooks(booksMatch);
   }, [bookContext.books, canRead]);
