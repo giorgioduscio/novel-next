@@ -26,7 +26,7 @@ export function Breadcrumb({routes}: routerProp) {
   }, [routes])
 
   return (
-    <nav aria-label="Breadcrumb" className="p-2 bg-indigo-900 text-sm">
+    <nav aria-label="Breadcrumb" className="p-2 bg-indigo-900 text-sm print:hidden">
       <ol className="mx-auto container max-w-[800px] flex items-center flex-wrap gap-2 text-gray-400">
         {routesParsed.map((route, index) => (
           <li key={index}>

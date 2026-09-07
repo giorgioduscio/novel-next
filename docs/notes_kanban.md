@@ -12,7 +12,6 @@
 # Kanban - Novel Writer (Next.js)
 ## 📌 To Do
 
-* [5] (2h) opzione delle guide nell'editor
 * [5] elementi angolati
 * [?] layout mobile
   - fluidita input in fondo e tastiera digitale
@@ -59,3 +58,4 @@
 * Sistema di autenticazione minimale
 * gradiante nero: inserire uno sfondo nero lineare gradiante, dall'alto verso il basso, tra più paragrafi
 * implementare i segnalibro nelle sezioni
+* implementare stampa della sezione in formato verticale

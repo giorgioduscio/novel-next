@@ -1,6 +1,6 @@
 export default function BottomFooter() {
   return (
-    <footer className="bg-indigo-900 pb-[calc(1rem+env(safe-area-inset-bottom))]">
+    <footer className="bg-indigo-900 pb-[calc(1rem+env(safe-area-inset-bottom))] print:hidden">
       <div className="mx-auto p-4 max-w-[400px]">
         <div className="flex gap-2 justify-center items-center flex-wrap text-white text-center">
           

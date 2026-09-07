@@ -81,4 +81,18 @@ textarea
     clip-path: polygon(0% 0%,95% 0%,100% 100%,5% 100% )
 .r-slash-y
     clip-path: polygon(0% 10%,100% 0%,100% 90%,0% 100% )
-    
+
+
+// REGOLE DI STAMPA
+@media print
+    html:has(#SectionComponent), body:has(#SectionComponent)
+        -webkit-print-color-adjust: exact !important
+        print-color-adjust: exact !important
+
+    #SectionComponent
+        *
+            -webkit-print-color-adjust: exact !important
+            print-color-adjust: exact !important
+
+    nav, footer, #Navigation, #Bottombar, [aria-label="Breadcrumb"], .print-hidden
+        display: none !important

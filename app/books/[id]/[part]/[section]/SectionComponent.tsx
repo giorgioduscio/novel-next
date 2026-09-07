@@ -10,7 +10,6 @@ import { useSectionComponent, UseSectionComponentProps } from "./useSectionCompo
 import Link from "next/link";
 import UnathorizeComponent from "@/app/shareds/UnathorizeComponent";
 import React from "react";
-import { ui_copy } from "@/app/tools/feedbacksUI";
 
 interface AddParagraphButtonProps { handleCreate: Function; if: boolean; className?: string }
 function AddParagraphButton({ if: show, handleCreate, className = "" }: AddParagraphButtonProps) {
@@ -66,16 +65,17 @@ export default function SectionComponent(props: UseSectionComponentProps) {
     </Navigation>
 
 
-
     {/* BREADCRUMB */}
     <Breadcrumb routes={["Catalogo:/books", `${book.get?.title}:/${book.get?.id}`, `${part?.title}:/structure`, SECTION.mainTitle.get]} />
 
+
     {/* STRUMENTI */}
-    <div className="sticky top-[calc(45px+env(safe-area-inset-top))] z-20 mx-auto w-fit max-w-[800px]">
+    <div className="sticky top-[calc(45px+env(safe-area-inset-top))] z-20 mx-auto w-fit max-w-[800px] print:hidden">
       <div className="bg-indigo-900 rounded-b-lg overflow-hidden">
         {/* UNDO / REDO / SEGNALIBRI / CERCA */} 
         <Frag if={!FIND_REPLACE.isVisible.get}>
           <div className="flex items-center">
+            {/* UNDO */}
             <Frag if={canWrite}>
               <button onClick={HISTORY.undo} 
                       className="px-3 py-2 bg-indigo-900" 
@@ -83,18 +83,31 @@ export default function SectionComponent(props: UseSectionComponentProps) {
                 <i className="bi bi-arrow-90deg-left" style={{transform:"rotate(-90) !important"}}></i> 
               </button>
             </Frag>
+            {/* SEGNALIBRI */}
             <button onClick={()=> MARCKERS.isVisible.set(true)} 
                     className="px-3 py-2 bg-green-900" 
                     title="Segnalibri">
               <i className="bi bi-bookmarks-fill"></i> 
               <span className="ms-1 hidden sm:inline">Segnalibri</span>
             </button>
+            {/* stampa */}
+            <Frag if={!canWrite}>
+              <button onClick={() => SHARED.downloadAsImage()} 
+                      className={`px-3 py-2 bg-blue-800 `}>
+
+                  <i className="bi bi-file-earmark-arrow-down"></i>
+                  <span className="ms-1 hidden sm:inline">Scarica immagine</span>
+
+              </button>
+            </Frag>
+            {/* CERCA */}
             <Frag if={canWrite}>
               <button onClick={()=> FIND_REPLACE.isVisible.set(p=> !p)} 
                       className={`px-3 py-2 ${FIND_REPLACE.isVisible.get ?"bg-blue-800" :"bg-gray-800"}`}>
                 <i className="bi bi-search"></i> 
                 <span className="ms-1 hidden sm:inline">Cerca</span>
               </button>
+              {/* REDO */}
               <button onClick={HISTORY.redo} 
                       className="px-3 py-2 bg-indigo-900" 
                       title="Ripeti">
@@ -197,6 +210,7 @@ export default function SectionComponent(props: UseSectionComponentProps) {
       </div>
     </div>
 
+
     {/* SEGNALIBRI */}
     <Frag if={canRead && MARCKERS.isVisible.get}>
       <div className="fixed inset-0 z-50 flex">
@@ -246,10 +260,11 @@ export default function SectionComponent(props: UseSectionComponentProps) {
       </div>
     </Frag>
 
+
     <main id="SectionComponent" onClick={PARAG.closeTemplateInputStyle}>
       <div className="mx-auto container max-w-[400px]">
 
-        <section className="pb-50 min-h-dvh flex-1">
+        <section className="mb-50 min-h-dvh flex-1">
           {/* SEZIONE NON TROVATA */}
           <Frag if={!SECTION.bookSection}>
             <div className="py-10 text-center text-red-500">
@@ -260,9 +275,9 @@ export default function SectionComponent(props: UseSectionComponentProps) {
 
 
           {/* SEZIONE TROVATA */}
-          <Frag if={!!SECTION.bookSection}>
+          <Frag if={!!SECTION.bookSection} className=" bg-gray-600">
             {/* TITOLO SEZIONE */}
-            <div className="p-3 pb-60 text-center">
+            <div className="p-3 py-60 text-center">
               <div>
                 <Field
                   input_class="text-3xl font-bold text-center text-orange-500"
@@ -462,7 +477,7 @@ export default function SectionComponent(props: UseSectionComponentProps) {
             </Frag>
 
             {/* NAVIGAZIONE SEZIONI (PRECEDENTE / SUCCESSIVA) */}
-            <div className="mt-8 p-3 grid grid-cols-2 gap-3 text-sm">
+            <div className="mt-8 p-3 grid grid-cols-2 gap-3 text-sm print:hidden">
               {[NAVIGATION.prevSection, NAVIGATION.nextSection].map((_sec,i)=><React.Fragment key={i}>
                 {_sec ?(
                   <Link href={`/books/${book_id}/${_sec.part_id}/${_sec.section_id}`}

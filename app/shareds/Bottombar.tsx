@@ -35,7 +35,7 @@ export default function Bottombar() {
   }, [pathname, authContext, book])
 
   return (<>
-    <Frag if={pathname!=="/auth"} className="sticky bottom-0 z-30 w-fit">
+    <Frag if={pathname!=="/auth"} className="sticky bottom-0 z-30 w-fit print:hidden">
       <div className="relative">
         <div className="absolute bottom-0 left-0 text-white text-2xl">
           {/* codici */}
