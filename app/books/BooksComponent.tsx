@@ -7,12 +7,11 @@ import Frag from "../shareds/Frag";
 import { LoadingComponent } from "../shareds/LoadingComponent";
 import Navigation from "../shareds/Navigation";
 import { useBooksComponent } from "./useBooksComponent";
-import handleArrowKeyFocus from "../tools/handleArrowKeyFocus";
 import { useBookContext } from "../data/BookContext";
 import useSharedText from "../data/sharedText";
 
 export default function BooksComponent() {
-  const { page, books, filteredBooks, searchQuery, BOOKS, canWrite, errors } = useBooksComponent();
+  const { page, books, filteredBooks, searchQuery, BOOKS, canWrite, errors, authContext } = useBooksComponent();
   const bookContext = useBookContext();
   const { isEditMode } = page;
   const { upload } = useSharedText();
@@ -80,6 +79,20 @@ export default function BooksComponent() {
             <div className="mt-20 text-red-400 text-center">
               <i className="bi bi-exclamation-triangle me-1"></i>
               <span>Nessun libro trovato</span>
+            </div>
+          </Frag>
+
+          {/* NESSUN CODICE */}
+          <Frag if={authContext.codes.get.length === 0}>
+            <div className="mx-auto my-20 w-fit">
+              <div className="p-3 bg-orange-700 rounded">
+                <div className="grid grid-cols-[auto_1fr]">
+                  <i className="bi bi-exclamation-triangle me-1"></i>
+                  <span>Non hai ancora alcun codice. Alcuni libri privati non saranno disponibili</span> 
+                  <i />
+                  <Link href={"/auth"} className="underline">Aggiungi codice</Link>
+                </div>
+              </div>
             </div>
           </Frag>
 
@@ -172,7 +185,7 @@ export default function BooksComponent() {
               ))}
             </ol>
           </Frag>
-          {/* LIBRI */}
+          {/* LISTA LIBRI */}
         </section>
       </main>
     </>

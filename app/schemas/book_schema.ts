@@ -7,13 +7,14 @@ export const auth_code_schema = v.pipe(
   v.check((v) => v.length===0 || v.length >= 8, "auth_code: Il codice deve contenere almeno 8 caratteri")
 )
 
-export const permission_schema =v.object({
+export const code_schema = v.object({
+  id: v.pipe(v.string(), v.minLength(1, "id: L'id è obbligatorio")),
   title: v.string("title: Il titolo deve essere una stringa"),
   auth_code: auth_code_schema,
-})
+});
 
-export type Permission = v.InferOutput<typeof permission_schema>
-export type PermissionString = v.InferOutput<typeof auth_code_schema>
+export type Code = v.InferOutput<typeof code_schema>;
+export type CodeString = v.InferOutput<typeof auth_code_schema>;
 
 
 
@@ -176,7 +177,7 @@ function validateStyle(v:string){
   const result = classes.every((classeAttuale) => // verificare tutte le classi attuali
     // verificare che nessuna classe non permessa sia presente
     not_allowed_styles.every((notAllowedStyle) => {
-      const isBlocked = notAllowedStyle .includes(classeAttuale);
+      const isBlocked = classeAttuale.startsWith(notAllowedStyle);
       if (isBlocked) {
         console.error(`Classe bloccata: "${classeAttuale}" contiene "${notAllowedStyle}"`);
       }

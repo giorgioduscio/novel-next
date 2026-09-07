@@ -757,8 +757,6 @@ class FIND_REPLACE {
 
   // Sostituisce la prima occorrenza
   replace() {
-    console.log("[replace] Avvio sostituzione singola.");
-
     const currentIndex = this.currentIndex.get;
     const replaceText = this.replaceQuery.get;
     const search = this.search.get;
@@ -767,8 +765,6 @@ class FIND_REPLACE {
       console.error("[replace] Nessuna occorrenza valida da sostituire.");
       return;
     }
-
-    console.log(`[replace] Occorrenza corrente: ${currentIndex}`, this.foundIndices[currentIndex]);
 
     // Chiama replaceAll con un array contenente solo l'occorrenza corrente
     this.replaceAll([this.foundIndices[currentIndex]]);

@@ -3,22 +3,24 @@
 
 import { useMemo } from "react";
 import { useAuthContext } from "../data/AuthContext";
-import { Book, Permission, permission_schema } from "../schemas/book_schema";
+import { Book, Code, code_schema } from "../schemas/book_schema";
 import { useDotNotation } from "../tools/reactCustomization";
-import { toast } from "../tools/feedbacksUI";
+import { toast, debounce } from "../tools/feedbacksUI";
 import * as v from "valibot";
 import { useAgreeWrapper } from "../shareds/Agree";
-
+import { nanoid } from "nanoid";
 
 export default function useAuthComponent() {
-  const { LOCAL, permissions, CONTROLS} = useAuthContext();
+  const authcontext = useAuthContext();
   const agree = useAgreeWrapper();
-  const canRead =(book:Book)=> !!book && !!CONTROLS.canRead(book);
-  const canWrite =(book:Book)=> !!book && !!CONTROLS.canWrite(book);
+
+  const codes = authcontext.getCodes();
+  const canRead = (book: Book) => !!book && !!authcontext.CONTROLS.canRead(book);
+  const canWrite = (book: Book) => !!book && !!authcontext.CONTROLS.canWrite(book);
 
   const FORM = {
     isVisible: useDotNotation(false),
-    state: useDotNotation<{ key: keyof Permission; value: string; placeholder: string; label: string }[]>([
+    state: useDotNotation<{ key: "title" | "auth_code"; value: string; placeholder: string; label: string }[]>([
       { key: "title", value: "", placeholder: "Es: Signore degli anelli", label: "Titolo" },
       { key: "auth_code", value: "", placeholder: "Es: qk49-384i-gnd3-1h48", label: "Codice" },
     ]),
@@ -30,126 +32,140 @@ export default function useAuthComponent() {
     handleSubmit(e: React.FormEvent) {
       e.preventDefault();
       
-      if (!newPermission.success) {
-        console.error("Errore nella validazione:", newPermission.issues);
+      if (!newCode.success) {
+        console.error("Errore nella validazione:", newCode.issues);
         return;
       }
 
-      if(!newPermission.output.auth_code.length) 
+      const formTitle = newCode.output.title.trim();
+      const formCode = newCode.output.auth_code.trim();
+
+      if (!formTitle.length) 
+        return toast.danger("Titolo non valido");
+
+      if (!formCode.length) 
         return toast.danger("Codice non valido");
 
       // se ci sono due codici con lo stesso title
-      const existing = permissions.get.find((perm) => perm.title === newPermission.output.title);
+      const existing = codes.find(
+        (perm) => perm.title.trim().toLowerCase() === formTitle.toLowerCase()
+      );
       if (existing) return toast.danger("Titolo già esistente");
 
-      // aggiornamento
-      const updated = [...permissions.get, newPermission.output];
-      permissions.set(updated);
-      LOCAL.set(updated);
+      // creazione permesso con id
+      const created = authcontext.createCode({
+        id: nanoid(),
+        title: formTitle,
+        auth_code: formCode,
+      });
 
-      // feedback
-      const res = LOCAL.get().find((perm) => perm.title === newPermission.output.title);
-      if (!res) return toast.danger("Permesso non trovato");
+      if (!created) return toast.danger("Permesso non creato");
       toast.success("Permesso aggiunto");
       FORM.reset();
     },
   };
 
-  const newPermission = useMemo(() => {
-    let formValues: Record<string, string> = {};
+  const newCode = useMemo(() => {
+    let formValues: Record<string, string> = {
+      id: "placeholder-id",
+    };
 
     FORM.state.get.forEach((item) => {
       formValues[item.key] = item.value;
     });
     
-    return v.safeParse(permission_schema, formValues);
+    return v.safeParse(code_schema, formValues);
   }, [FORM.state.get]);
 
   const errors = useMemo(() => {
     const result: Record<string, string> = {};
     // form
-    for (let error of newPermission.issues || []) {
+    for (let error of newCode.issues || []) {
       const [field, message] = error.message.split(": ");
-      result[field] = message;
-      result["form>" + field] = message;
+      if (field && message && field !== "id") {
+        result[field] = message;
+        result["form>" + field] = message;
+      }
     }
-    // codici
-    for (let i = 0; i < permissions.get.length; i++) {
-      const code = permissions.get[i];
-      const parsedCode = v.safeParse(permission_schema, code);
+    // codici esistenti
+    for (let i = 0; i < codes.length; i++) {
+      const perm = codes[i];
+      const parsedCode = v.safeParse(code_schema, perm);
       if (!parsedCode.success) {
-        const [key, message] = parsedCode.issues[0].message.split(": ");
-        result[`${i}>${key}`] = message;
+        for (let issue of parsedCode.issues) {
+          const [key, message] = issue.message.split(": ");
+          if (key && message) {
+            result[`${perm.id}>${key}`] = message;
+          }
+        }
       }
     }
     return result;
-  }, [newPermission, permissions.get]);
+  }, [newCode, codes]);
+
+  // Feedback debouncato per gli update
+  const notifyUpdated = useMemo(
+    () =>
+      debounce(() => {
+        toast.success("Permesso aggiornato");
+      }, 800),
+    []
+  );
 
   // AZIONI
-  const checkedTargets = useDotNotation<number[]>([]);
+  const checkedTargets = useDotNotation<string[]>([]);
   const CRUD = {
-    async handleDelete(index: number) {
-      const target = permissions.get[index];
-      if (!target) return console.error("Codice non trovato");
-
-      if (!(await agree.danger(`Rimuovere '${target.title || target.auth_code}'?`, "Rimuovi"))) return;
-
-      const updated = permissions.get.filter((_, i) => i !== index);
-      permissions.set(updated);
-      LOCAL.set(updated);
-      // feedback
-      const res = LOCAL.get().find((perm) => perm.title === target.title);
-      if (res) return toast.danger("Eliminazione fallita");
-      toast.success("Permesso rimosso");
+    async handleDelete(id: string) {
+      await this.handleDeleteMany([id]);
     },
 
-    async handleDeleteMany() {
-      const targets = checkedTargets.get
-        .map((i) => permissions.get[i]?.title)
-        .filter(Boolean) as string[];
-      if (!targets.length) return console.error("Nessun target selezionato");
+    async handleDeleteMany(targetsParams?: string[] | unknown, clearManyDelete = true) {
+      const targetIds = Array.isArray(targetsParams) ? targetsParams : checkedTargets.get;
 
-      if (!(await agree.danger(`Rimuovere '${targets.join(", ")}'?`, "Rimuovi"))) return;
+      if (!targetIds.length) return console.error("Nessun target selezionato");
 
-      const updated = permissions.get.filter((_, i) => !checkedTargets.get.includes(i));
-      permissions.set(updated);
-      LOCAL.set(updated);
-      checkedTargets.set([]);
+      const targetCodes = codes.filter((p) => targetIds.includes(p.id));
+      const titles = targetCodes.map((p) => p.title).filter(Boolean);
+      const confirmLabel = titles.length > 0 ? titles.join(", ") : `${targetIds.length} permessi`;
+
+      if (!(await agree.danger(`Rimuovere '${confirmLabel}'?`, "Rimuovi"))) return;
+
+      const res = authcontext.deleteCodes(targetIds);
+
+      // reset facoltativo
+      if (clearManyDelete) {
+        checkedTargets.set(checkedTargets.get.filter((id) => !targetIds.includes(id)));
+      }
+
       // feedback
-      const res = LOCAL.get().filter((perm) => targets.includes(perm.title));
-      if (res.length > 0) return toast.danger("Eliminazione fallita");
+      if (!res) return toast.danger("Eliminazione fallita");
       toast.success("Permessi rimossi");
     },
 
-    handleUpdate(index: number, key: keyof Permission, newValue: string) {
-      const previousValue = structuredClone((permissions as any).get()[index][key]);
-      const updated = permissions.get.map((p, i) =>
-        i === index ? { ...p, [key]: newValue } : p
-      );
-      permissions.set(updated);
-      LOCAL.set(updated);
-      // feedback
-      const res = (LOCAL.get()[index] as any)[key] === previousValue;
-      if (res) return toast.danger("Aggiornamento fallito");
-      toast.success("Permesso aggiornato");
+    handleUpdate(id: string, key: keyof Code, newValue: string) {
+      const updated = authcontext.updateCode(id, { [key]: newValue });
+      if (!updated) return toast.danger("Aggiornamento fallito");
+      notifyUpdated();
     },
 
-    toggleTarget(index: number) {
+    toggleTarget(id: string) {
       const current = checkedTargets.get;
-      if (current.includes(index)) {
-        checkedTargets.set(current.filter((i) => i !== index));
+      if (current.includes(id)) {
+        checkedTargets.set(current.filter((i) => i !== id));
       } else {
-        checkedTargets.set([...current, index]);
+        checkedTargets.set([...current, id]);
       }
     },
   };
 
   return {
     FORM,
-    newPermission,
+    newCode,
     errors,
     CRUD,
-    canRead, canWrite,
+    canRead,
+    canWrite,
     checkedTargets,
-  }
+    codes: authcontext.codes,
+  };
 }

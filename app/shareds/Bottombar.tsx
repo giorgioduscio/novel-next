@@ -20,7 +20,7 @@ export default function Bottombar() {
   ,[book]) 
   const canWrite = useMemo(()=>
     authContext.CONTROLS.canWrite(book)
-  ,[book]) 
+  ,[pathname, authContext, book]) 
 
   
   const showEditmode = useMemo(()=>{
@@ -56,15 +56,15 @@ export default function Bottombar() {
               </button>
             </Frag>
 
-            {/* visualizzazione nel libro */}
-            <Frag if={pathname.includes("structure")}>
+            {/* impostazioni del libro */}
+            <Frag if={pathname.includes("structure") && canWrite}>
               <Link href={`/books/${book?.id || ''}/settings`}
                     className="m-1 py-1 px-2 bg-indigo-900 rounded-full">
                 <i className="bi bi-gear-fill"></i>
               </Link>
             </Frag>
 
-            {/* impostazioni del libro */}
+            {/* visualizzazione nel libro */}
             <Frag if={pathname.includes("settings")}>
               <Link href={`/books/${book?.id || ''}/structure`}
                     className="m-1 py-1 px-2 bg-indigo-900 rounded-full">

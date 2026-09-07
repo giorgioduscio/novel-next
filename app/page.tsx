@@ -28,13 +28,23 @@ export default function Home() {
             <p className="text-lg mb-12 text-gray-300">
               Un'applicazione per dare vita alle tue storie, con uno stile unico e divertente che richiama il mondo dei fumetti.
             </p>
-            <Link 
-              href="/books"
-              className="px-8 py-4 inline-block bg-orange-400 text-black font-bold text-xl transition-all transform hover:scale-105 rounded"
-            >
-              <i className="bi bi-book me-2"></i>
-              Inizia a leggere
-            </Link>
+
+            <div className="mx-auto w-fit text-xl text-black font-bold">
+              <div className="flex flex-wrap rounded overflow-hidden">
+                <Link href="/books"
+                      className="flex-auto px-3 py-2 bg-orange-400">
+                  <i className="bi bi-book me-2"></i>
+                  Inizia a leggere
+                </Link>
+
+                <Link href="/auth"
+                      className="flex-auto px-3 py-2 bg-blue-300">
+                  <i className="bi bi-person-vcard-fill me-2"></i>
+                  Codici
+                </Link>
+              </div>
+            </div>
+            
           </div>
         </div>
       </section>

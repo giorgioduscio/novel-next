@@ -65,15 +65,22 @@ export default function AuthFormComponent({ labelParam, book, attributeKey }: Pr
     const parsed = v.safeParse(auth_code_schema, _field.code.value);
     if (!parsed.success) return toast.danger("Codice non valido");
 
-    // 5) conferma
+    // 5) conferma e esecuzione
     if (!(await agree.warning(`Aggiornare '${labelParam}' da '${book.title}'?`, "Aggiorna"))) return;
 
     // aggiornamento tramite updateCode (con crittografia Argon2)
-    const res = await updateCode(attributeKey, book, parsed.output);
-    if (!res) return console.error("Errore nell'aggiornamento del libro");
-    // feedback
+    const bookResponce = await updateCode(attributeKey, book, parsed.output);
+    
+    // inserisce il codice nei codici locali
+    if(!(await agree.warning("Inserire il codice nei codici locali?", "Inserisci"))) return;
+    const newAuthCode ={ title: Date.now().toString(), auth_code: _field.code.value}
+    const authRespoce = authContext.createCode(newAuthCode);
+
+    // 6) feedback
     reset();
-    toast.success("Codice aggiornato con successo");
+    if(!bookResponce) return toast.danger("Inserimento remoto fallito")
+    else if(!authRespoce) return toast.danger("Inserimento locale fallito")
+    else toast.success("Codice aggiornato con successo");
   }
 
   return (

@@ -12,13 +12,17 @@ import ManySelect from "../shareds/ManySelect"
 
 
 export default function AuthComponent() {
-  const { FORM, CRUD, errors, checkedTargets } = useAuthComponent()
-  const { permissions } = useAuthContext()
+  const { FORM, CRUD, errors, checkedTargets } = useAuthComponent();
+  const { codes } = useAuthContext();
+
+  const hasFormErrors = Object.keys(errors).some((key) => key.startsWith("form>"));
 
   return <>
     <Frag if={checkedTargets.get.length === 0}>
       <Navigation page_title="Permessi" back_btn={{ href:'/' }}>
-        <Link href={"/books"} className="py-1 px-2 bg-orange-700 rounded">Catalogo</Link>
+        <Link href={"/books"} className="py-1 px-2 bg-orange-700 rounded">
+          Catalogo 
+        </Link>
       </Navigation>
     </Frag>
 
@@ -26,8 +30,8 @@ export default function AuthComponent() {
     <Frag if={checkedTargets.get.length > 0}>
       <ManySelect 
         targets={checkedTargets}
-        allItems={permissions.get.map((_, i) => i)}
-        onDeleteMany={CRUD.handleDeleteMany}
+        allItems={codes.get.map((p) => p.id)}
+        onDeleteMany={() => CRUD.handleDeleteMany()}
       />
     </Frag>
 
@@ -69,11 +73,12 @@ export default function AuthComponent() {
                       type={item.key ==="auth_code" ?"password" :"text"} 
                       label_class="pt-1 px-3 text-xs font-bold italic"
                       input_class="pb-2 px-3"
-                      id={item.key}
+                      id={`form-${item.key}`}
                       label={item.label}
                       placeholder={item.placeholder} 
                       value={item.value} 
                       onChange={(e) => FORM.state.set(prev => prev.map(i => i.key === item.key ? { ...i, value: e.target.value } : i))} 
+                      onInput={(e) => FORM.state.set(prev => prev.map(i => i.key === item.key ? { ...i, value: e.target.value } : i))} 
                       error_message={errors['form>'+item.key] || ""}
                     />
                   </div>
@@ -81,9 +86,9 @@ export default function AuthComponent() {
               ))}
 
               <div className="w-full">
-                <button className="py-1 px-2 bg-orange-600 rounded" 
+                <button className="py-1 px-2 bg-orange-600 rounded disabled:opacity-50" 
                         type="submit"
-                        disabled={Object.keys(errors).length>0}
+                        disabled={hasFormErrors}
                         >Aggiungi</button>
               </div>
             </form>
@@ -95,24 +100,24 @@ export default function AuthComponent() {
         <h3 className="mt-5 mb-3">Lista codici</h3>
 
         <ol className="flex gap-2 flex-wrap">
-          <Frag if={!permissions.get.length} className="p-3 w-full bg-sky-700 rounded flex gap-2">
+          <Frag if={!codes.get.length} className="p-3 w-full bg-sky-700 rounded flex gap-2">
             <i className="bi bi-info-circle"></i>
             <span>Nessun permesso trovato</span>
           </Frag>
 
-          {permissions.get.map((permession, i)=>
-            <li key={i + permession.title} className={`flex-1 min-w-[200px] p-1 rounded ${checkedTargets.get.includes(i) ? 'bg-red-200 outline' : 'bg-indigo-200'}`}>
+          {codes.get.map((code)=>
+            <li key={code.id} className={`flex-1 min-w-[200px] max-w-[400px] p-1 rounded ${checkedTargets.get.includes(code.id) ? 'bg-indigo-800' : ''}`}>
               <div className="grid grid-cols-[auto_1fr_auto] gap-1">
                 <div className="flex flex-col justify-between">
                   <input
                     type="checkbox"
-                    checked={checkedTargets.get.includes(i)}
-                    onChange={() => CRUD.toggleTarget(i)}
+                    checked={checkedTargets.get.includes(code.id)}
+                    onChange={() => CRUD.toggleTarget(code.id)}
                     className="block my-2 scale-150"
                   />
 
-                  <button onClick={() => CRUD.handleDelete(i)} 
-                          className="px-1 text-red-700 outline rounded"
+                  <button onClick={() => CRUD.handleDelete(code.id)} 
+                          className="px-1 text-red-400 outline rounded"
                           title="Rimuovi codice">
                     <i className="bi bi-trash"></i>
                   </button>
@@ -121,32 +126,32 @@ export default function AuthComponent() {
                 <div className="bg-white text-black outline rounded">
                   <div>
                     <Field
-                      input_class="pt-1 px-2  italic font-bold text-sm"
-                      id={permession.title}
-                      hide_label label={permession.title}
+                      input_class="pt-1 px-2 italic font-bold text-sm"
+                      id={`${code.id}-title`}
+                      hide_label label={code.title || "Titolo"}
                       type="text"
-                      placeholder={permession.title}
-                      value={permession.title}
-                      onChange={(e) => CRUD.handleUpdate(i, 'title', e.target.value)}
-                      error_message={errors[`${i}>title`]}
+                      placeholder="Titolo"
+                      value={code.title}
+                      onChange={(e) => CRUD.handleUpdate(code.id, 'title', e.target.value)}
+                      error_message={errors[`${code.id}>title`]}
                     />
                   </div>
                   <div className="relative">
                     <Field
                       input_class="pb-2 px-3"
-                      id={permession.auth_code}
-                      hide_label label={permession.auth_code}
+                      id={`${code.id}-auth_code`}
+                      hide_label label={code.auth_code || "Codice"}
                       type="password"
-                      placeholder={permession.auth_code}
-                      value={permession.auth_code}
-                      onChange={(e) => CRUD.handleUpdate(i, 'auth_code', e.target.value)}
-                      error_message={errors[`${i}>auth_code`]}
+                      placeholder="Codice"
+                      value={code.auth_code}
+                      onChange={(e) => CRUD.handleUpdate(code.id, 'auth_code', e.target.value)}
+                      error_message={errors[`${code.id}>auth_code`]}
                     />
                   </div>
                 </div>
 
                 <div className="text-black">
-                  <button onClick={()=> ui_copy(permession.auth_code)} 
+                  <button onClick={()=> ui_copy(code.auth_code)} 
                           className="px-1 bg-gray-200 outline rounded"
                           title="Copia codice">
                     <i className="bi bi-copy"></i>
