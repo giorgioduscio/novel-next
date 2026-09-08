@@ -17,6 +17,7 @@ export const {
     codes = useDotNotation<Code[]>([]);
     allowedReadIds = useDotNotation<string[]>([]);
     allowedWriteIds = useDotNotation<string[]>([]);
+    isAuthLoaded = useDotNotation<boolean>(false);
     
     constructor(){
       // Sincronizza i permessi con localStorage all'avvio
@@ -42,6 +43,7 @@ export const {
         const books = bookContext.books;
     
         const evaluateCodes = async ()=> {
+          this.isAuthLoaded.set(false);
           const readMatches: string[] = [];
           const writeMatches: string[] = [];
     
@@ -64,6 +66,7 @@ export const {
           if (!isCancelled) {
             this.allowedReadIds.set(readMatches);
             this.allowedWriteIds.set(writeMatches);
+            this.isAuthLoaded.set(true);
           }
         }
     

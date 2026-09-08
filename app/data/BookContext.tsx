@@ -52,12 +52,12 @@ const API_SERVICE = {
 
 function bookContextValue() {
   const [books, setBooks] = useState<Book[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [isBookLoaded, setIsBookLoaded] = useState(false);
   const [target, setTarget] = useState<Book | undefined>(undefined);
 
   // Carica i libri da Firebase all'avvio
   useEffect(()=> {
-    API.loadBooks();
+    API.loadBooks()
   }, []);
 
   // Valida un libro usando Valibot
@@ -124,7 +124,7 @@ function bookContextValue() {
 
     async loadBooks() {
       try {
-        setLoading(true);
+        setIsBookLoaded(false);
         const response = await fetch(`${FIREBASE_URL}.json`);
         if (!response.ok) return console.error("Caricamento non riuscito", response.status);
 
@@ -142,7 +142,7 @@ function bookContextValue() {
       } catch (error) {
         console.error("Errore nel caricamento delle api:", error);
       } finally {
-        setLoading(false);
+        setIsBookLoaded(true);
       }
     },
   };
@@ -328,7 +328,7 @@ function bookContextValue() {
 
   return {
     books,
-    loading,
+    isBookLoaded,
     ...CRUD,
     download,
     upload,

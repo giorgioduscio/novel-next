@@ -8,8 +8,10 @@ import { Breadcrumb } from "@/app/shareds/Breadcrumb";
 import Navigation from "@/app/shareds/Navigation";
 import { useSectionComponent, UseSectionComponentProps } from "./useSectionComponent";
 import Link from "next/link";
-import UnathorizeComponent from "@/app/shareds/UnathorizeComponent";
+import InsertAuthCodesComponent from "@/app/shareds/InsertAuthCodesComponent";
 import React from "react";
+import { useBookContext } from "@/app/data/BookContext";
+import { useAuthContext } from "@/app/data/AuthContext";
 
 interface AddParagraphButtonProps { handleCreate: Function; if: boolean; className?: string }
 function AddParagraphButton({ if: show, handleCreate, className = "" }: AddParagraphButtonProps) {
@@ -43,9 +45,13 @@ export default function SectionComponent(props: UseSectionComponentProps) {
     MARCKERS,
     NAVIGATION
   } = useSectionComponent(props); 
+  const bookContext = useBookContext()
+  const authContext = useAuthContext() // added authContext
 
-  if (!page.isPageLoaded) return <LoadingComponent />;
-  if (!canRead) return <UnathorizeComponent />
+  // feedback caricamento
+  if (!page.isPageLoaded || !bookContext.isBookLoaded || !authContext.isAuthLoaded.get) 
+    return <LoadingComponent />;
+  if (!!book.get && !canRead) return <InsertAuthCodesComponent targetId={book_id} />
 
   return (<>
     {/* NAVBAR */}

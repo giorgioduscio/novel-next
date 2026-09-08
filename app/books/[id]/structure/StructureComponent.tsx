@@ -13,7 +13,7 @@ import Field from "@/app/shareds/Field";
 import { useAuthContext } from "@/app/data/AuthContext";
 import { useCommonPagesContext } from "@/app/data/CommonPagesContext";
 import handleArrowKeyFocus from "@/app/tools/handleArrowKeyFocus";
-import UnathorizeComponent from "@/app/shareds/UnathorizeComponent";
+import InsertAuthCodesComponent from "@/app/shareds/InsertAuthCodesComponent";
 
 interface UseBookComponentProps { id: string }
 export default function StructureComponent(props: UseBookComponentProps) {
@@ -34,9 +34,10 @@ export default function StructureComponent(props: UseBookComponentProps) {
     !!page.isEditMode && !!book && !!authContext.CONTROLS.canWrite(book)
   , [book, authContext, page])
 
-
-  if (!page.isPageLoaded) return <LoadingComponent/>
-  if (!canRead) return <UnathorizeComponent />
+  // feedback caricamento
+  if (!page.isPageLoaded || !bookContext.isBookLoaded || !authContext.isAuthLoaded.get) 
+    return <LoadingComponent />
+  if (!!book && !canRead) return <InsertAuthCodesComponent targetId={props.id} />
   
   return <>
     <Navigation page_title={book?.title ||""} back_btn={{ href:"/books" }} />    

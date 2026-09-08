@@ -2,8 +2,6 @@
 
 * git reset head~1; git add .; git commit -m "deploy"; git push -f
 
-* leggi book_schema; controlla le pagine bookscomponent, bookcomponent, sectioncomponent. il tuo compito è assicurarti che le parti e le sezioni del libro, abbiano l'attributo 'note' e inserisci una textare reattiva per modificare il campo
-
 ### Connettersi al network
 * ipconfig
 * npm run dev -- --hostname 0.0.0.0 --port 3000
@@ -11,7 +9,9 @@
 
 # Kanban - Novel Writer (Next.js)
 ## 📌 To Do
-
+* [1] ottimizzare giro di autorizzazioni
+* [1] fix: rivedere logica dei suggerimenti e del "Caricamento"
+* [1] sectioncomponent layout per pc
 * [5] elementi angolati
 * [?] layout mobile
   - fluidita input in fondo e tastiera digitale
@@ -44,9 +44,6 @@
 * implementare salvataggio cloud (firebase)
 * separazione template e logica
 * implementare bredcrumb per migliorare l'accessibilità
-* Fix: migliorare e snellire la grafica
-* fix: se il libro che si cerca di caricare ha lo stesso id di uno già esistente -> esegue BookHook.createBook() del nuovoLibro
-* fix: implementare processo: aggiornamento stato -> validazione -> aggiornamento database -> feedback utente
 * Responsive design per pc
 * funzionalità copia e incolla nell'editor della sezione
 * colore testo automatico in base allo sfondo
@@ -59,3 +56,7 @@
 * gradiante nero: inserire uno sfondo nero lineare gradiante, dall'alto verso il basso, tra più paragrafi
 * implementare i segnalibro nelle sezioni
 * implementare stampa della sezione in formato verticale
+* semplificazione processo di autorizzazione:
+  - codice di lettura calcolato dal sistema
+  - libri liberi: accessibili / editabili da chiunque abbia il link 
+  - libri privati: serve un'autorizzazione in base all'azione 

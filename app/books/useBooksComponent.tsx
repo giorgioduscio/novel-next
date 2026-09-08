@@ -6,6 +6,8 @@ import { Book, book_schema } from "../schemas/book_schema";
 import { toast } from "../tools/feedbacksUI";
 import { useAuthContext } from "../data/AuthContext";
 import { useDotNotation } from "../tools/reactCustomization";
+import { nanoid } from "nanoid";
+import { hashWithArgon2 } from "../actions/argonActions";
 
 export function useBooksComponent() {
   const bookContext = useBookContext();
@@ -19,7 +21,10 @@ export function useBooksComponent() {
   
   useEffect(() => {
     // Cerca tutti i libri per cui ha un codice di lettura
-    const booksMatch = bookContext.readAll().filter(_book => canRead(_book));
+    // Esclude i libri con auth_read vuoto
+    const booksMatch = bookContext.readAll().filter(_book => 
+      _book.auth_read && _book.auth_read.length > 0 && canRead(_book)
+    );
     setBooks(booksMatch);
   }, [bookContext.books, canRead]);
 
@@ -35,25 +40,33 @@ export function useBooksComponent() {
 
   const BOOKS = {
     // Crea un nuovo libro con valori predefiniti
-    create() {
+    async create() {
+      // Genera codice di lettura univoco
+      const readCode = nanoid(16);
+      
+      // Hasha il codice di lettura
+      const hashedReadCode = await hashWithArgon2(readCode);
+      
       // Aggiornamento stato
       const clone = structuredClone(books);
-      clone.unshift({
+      const newBook = {
         id: bookContext.createId(),
         title: "",
         description: "",
         author_name: "",
-        auth_read: "",
+        auth_read: hashedReadCode,
         auth_write: "",
-      });
+      };
+      clone.unshift(newBook);
       setBooks(clone);
+
 
       // Feedback utente
       toast.success("Libro creato");
     },
 
     // Aggiorna un libro esistente
-    update(bookId: string, key: keyof Book, e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
+    async update(bookId: string, key: keyof Book, e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
       // Validazione
       const book = books.find(b => b.id === bookId);
       if (!book) throw new Error("Libro non valido");
@@ -63,9 +76,26 @@ export function useBooksComponent() {
 
       // Aggiorna il libro nello stato locale
       setBooks(prev => prev.map(_book => _book.id === bookId ? newBook : _book));
+      if(!newBook.title || !newBook.author_name) return;
+
+      // crea codice lettura
+      const isPresent = bookContext.books.find(_book => _book.id === bookId);
+      if(!isPresent){
+        // Genera codice di lettura univoco
+        const readCode = nanoid(16);
+        
+        // Hasha il codice di lettura
+        const hashedReadCode = await hashWithArgon2(readCode);
+        newBook.auth_read = hashedReadCode
+
+        // Salva il codice in chiaro in localStorage
+        authContext.createCode({
+          title: `${newBook.title}: lettura`,
+          auth_code: readCode,
+        }); 
+      }
 
       // Aggiorna database (se non esiste, crea, altrimenti aggiorna)
-      const isPresent = bookContext.books.find(_book => _book.id === bookId);
       const result = isPresent
         ? bookContext.updateBook(bookId, newBook)
         : bookContext.addBook(newBook);

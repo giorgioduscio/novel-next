@@ -15,6 +15,7 @@ import { useBookContext } from "@/app/data/BookContext";
 import { useRouter } from "next/navigation";
 import { useAgreeWrapper } from "@/app/shareds/Agree";
 import Navigation from "@/app/shareds/Navigation";
+import InsertAuthCodesComponent from "@/app/shareds/InsertAuthCodesComponent";
 import UnathorizeComponent from "@/app/shareds/UnathorizeComponent";
 
 export const settings_component_label_class="px-3 text-black text-sm font-bold italic"
@@ -23,9 +24,9 @@ export const settings_component_input_class="pb-2 px-3 text-black w-full"
 interface UseBookComponentProps { id: string }
 export default function SettingsComponent(props: UseBookComponentProps) {
   const { book, errors, handleUpdateBook } = useBookComponent(props);
+  const bookContext = useBookContext()
   const authContext = useAuthContext();
   const page = useCommonPagesContext();
-  const bookContext = useBookContext();
   const route = useRouter();
   const agree = useAgreeWrapper();
 
@@ -82,8 +83,11 @@ export default function SettingsComponent(props: UseBookComponentProps) {
     route.push("/books")
   }
 
-  if (!page.isPageLoaded) return <LoadingComponent />;
-  if(!canWrite) return <UnathorizeComponent />
+  // feedback caricamento
+  if (!page.isPageLoaded || !bookContext.isBookLoaded || !authContext.isAuthLoaded.get) 
+    return <LoadingComponent />;
+
+  if (!canRead || !canWrite) return <UnathorizeComponent />
 
   return (
     <>

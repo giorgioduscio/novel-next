@@ -16,8 +16,8 @@ export default function BooksComponent() {
   const { isEditMode } = page;
   const { upload } = useSharedText();
 
-  // Mostra il componente di caricamento se la pagina non è pronta o è in corso il caricamento
-  if (!page.isPageLoaded || bookContext.loading) {
+  // feedback per il caricamento
+  if (!page.isPageLoaded || !bookContext.isBookLoaded) {
     return <LoadingComponent />;
   }
 
@@ -50,7 +50,7 @@ export default function BooksComponent() {
               </Frag>
               {/* NUOVO LIBRO */}
               <Frag if={isEditMode}>
-                <button onClick={BOOKS.create} className="py-1 px-2 rounded bg-blue-800 whitespace-nowrap">
+                <button onClick={() => BOOKS.create()} className="py-1 px-2 rounded bg-blue-800 whitespace-nowrap">
                   <i className="me-2 bi bi-plus-lg"></i>
                   Crea Libro
                 </button>
