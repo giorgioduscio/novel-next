@@ -31,11 +31,11 @@ export default function StructureComponent(props: UseBookComponentProps) {
   , [book, authContext, page])
   
   const canEdit =useMemo(()=> 
-    !!page.isEditMode && !!book && !!authContext.CONTROLS.canWrite(book)
+    !!page.isEditMode.get && !!book && !!authContext.CONTROLS.canWrite(book)
   , [book, authContext, page])
 
   // feedback caricamento
-  if (!page.isPageLoaded || !bookContext.isBookLoaded || !authContext.isAuthLoaded.get) 
+  if (!page.isPageLoaded.get || !bookContext.isBookLoaded.get || !authContext.isAuthLoaded.get) 
     return <LoadingComponent />
   if (!!book && !canRead) return <InsertAuthCodesComponent targetId={props.id} />
   
@@ -92,7 +92,8 @@ export default function StructureComponent(props: UseBookComponentProps) {
                         <div className="p-2">
                           <button className="px-1 bg-gray-200 text-black outline rounded" 
                                   onClick={_e=> SHARE.copyPart(_e, part.id || "")}
-                                  title="Copia parte come json">
+                                  title="Copia parte come json" 
+                                  data-feedback>
                             <i className="bi bi-copy"></i>
                           </button>
                         </div>

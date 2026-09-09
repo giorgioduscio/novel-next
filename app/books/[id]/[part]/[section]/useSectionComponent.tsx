@@ -33,13 +33,13 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
   const canRead =useMemo(()=> 
     !!book.get && 
     !!authContext.CONTROLS.canRead(book.get)
-  , [book.get, authContext])
+  , [book.get?.id, authContext.allowedReadIds.get])
   
   const canWrite =useMemo(()=> 
     !!book.get 
     && !!authContext.CONTROLS.canWrite(book.get) 
-    && page.isEditMode
-  , [book.get, authContext, page])
+    && page.isEditMode.get
+  , [book.get?.id, authContext.allowedWriteIds.get, page.isEditMode.get])
 
   // restituisce la sezione corrente in base al libro
   function getPart(bookObj = book.get) :Part | undefined {
@@ -55,7 +55,7 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
   
   useEffect(() => {
     // Wait for books to load before attempting to find the book.get
-    if (bookContext.loading) return;
+    if (!bookContext.isBookLoaded.get) return;
 
     // libro
     const foundBook = bookContext.getBookById(book_id);
@@ -67,7 +67,7 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
     SECTION.mainTitle.set(sec.title || "");
     // condivide il target ad altri componenti
     bookContext.setTarget(foundBook);
-  }, [book_id, part_id, section_id, bookContext.loading, bookContext.getBookById, bookContext.setTarget]);
+  }, [book_id, part_id, section_id, bookContext.isBookLoaded.get, bookContext.getBookById, bookContext.setTarget]);
 
 
   // 2) SEZIONE
@@ -348,7 +348,7 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
 
     // Imposta l'input di stile
     setStyleInput(paragraph_i?: number) {
-      if (!page.isEditMode) return;
+      if (!page.isEditMode.get) return;
 
       // RESET
       if (paragraph_i === undefined) {
@@ -422,7 +422,7 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
       if (!textarea) return console.error("Textarea non trovata");
 
       // Fa tornare editmode
-      if (!page.isEditMode) page.toggleEditMode();
+      if (!page.isEditMode.get) page.toggleEditMode();
       // Applica il focus
       setTimeout(() => {
         const targetTextarea = (document.getElementById(textarea.id) as HTMLTextAreaElement) || textarea;
@@ -434,7 +434,7 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
 
   // 4) aggiunge dinamicamente glierrori dei paragrafi non validi
   const errors = useMemo(()=>{
-    if(!page.isEditMode) return {};
+    if(!page.isEditMode.get) return {};
 
     // 1) validazione paragrafi
     let result: Record<string, string> = {};
@@ -463,7 +463,6 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
   class AutocompleteFeatures {
     // Bind dei metodi per mantenere il contesto
     constructor() {
-      this.setSuggestions = this.setSuggestions.bind(this);
       this.insertClass = this.insertClass.bind(this);
     }
 
@@ -484,66 +483,67 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
         .filter(Boolean);
     }, [SECTION.bookSection?.paragraphs]);
 
-    // Suggerimenti attuali
-    suggestions = useDotNotation<string[]>([]);
-
-    // Aggiorna i suggerimenti in base all'input
-    setSuggestions(e: React.ChangeEvent<HTMLTextAreaElement>) {
-      // 1) Risorse
-      const target = e.target as HTMLTextAreaElement;
-      if (!target.name.includes("style")) return;
-      const inputValue = target.value;
-
-      // Classi dell'input
-      const paragraphClasses = inputValue.toLowerCase().trim().split(" ");
-
-      // Classi usate nei paragrafi
+    // suggerimenti
+    // filter: memorizza l'attuale classe che si sta modificando
+    inputValue = useDotNotation("");
+    // suggestions: memorizza tutte le classi usate e suggerisce quella più probabile
+    suggestions =useMemo(()=>{
+      //1) Classi usate nei paragrafi
       const usedStyles: string[] = this.usedStyles
         .map(input => input.split(" "))
         .flat();
-
       // Unione di classi usate e standard
       const merged = [
         ...usedStyles,
         ...this.standardStyles,
       ];
 
-      // 2) Filtraggio: classi che assomigliano all'input
-      const filtered = merged.filter(mergedStyle =>
-        paragraphClasses.some(paragraphClass =>
-          mergedStyle.includes(paragraphClass) &&
-          mergedStyle !== paragraphClass
-        )
+      // 2) Filtraggio: singole classi che si pensa che vengano inserite
+      const inputValue = this.inputValue.get;      
+      const singleClass_inputValue = inputValue.split(" ");
+      const singleClass_similiarFilter = merged.filter(mergedStyle =>
+        singleClass_inputValue.some(paragraphClass =>
+          mergedStyle.startsWith(paragraphClass) // "bg-re" => "bg-red-100"
+          // se il nome della classe è già completa, non suggerirla
+          && mergedStyle !== paragraphClass // "bg-red-100" => ""
+          // se una classe è già inclusa, non mostrarla
+          && !inputValue.includes(mergedStyle) 
+          // non devi suggerire ",,"
+          && !mergedStyle.includes(",,")
+        ) 
       );
 
       // 3) Aggiunge la classe ripetuta più simile
-      const similInput = this.usedStyles.find(usedStyle =>
-        usedStyle.includes(inputValue) &&
-        usedStyle !== inputValue
+      const repeatingClass_similialFilter = this.usedStyles.find(usedStyle =>
+        // "descrizione centro bg-r" -> "descrizione centro bg-red-100"
+        usedStyle.startsWith(inputValue) 
+        // "descrizione centro bg-red-100" ->
+        && usedStyle !== inputValue
       ) || "";
 
       // 4) Mostra 5 suggerimenti senza ripetizioni
-      const result = [...new Set([similInput, ...filtered])]
+      const result = [...new Set([repeatingClass_similialFilter, ...singleClass_similiarFilter])]
         .filter(Boolean)
         .splice(0, 5);
 
-      this.suggestions.set(result);
-    }
+      return result
+    },[this.usedStyles, this.inputValue.get])
+
 
     // Gestisce il click su un suggerimento
-    insertClass(index: number, suggestedValue:string, paragraph: Paragraph) {
-      const actualClasses = paragraph.in_style.toLowerCase().split(" ");
-      const isCompositedClass = suggestedValue.includes(" ");
+    insertClass(index: number, suggestedValue:string) {
+      const actualClasses = this.inputValue.get.toLowerCase().split(" ");
+      const isCompositedClass = suggestedValue.includes(" ");      
 
       // Aggiornamento delle classi
       const update = isCompositedClass
         ? suggestedValue
         : actualClasses.map((cls) =>
             suggestedValue.includes(cls) ? suggestedValue : cls
-          ).join(" ");          
-
+          ).join(" ");
+      
       PARAG.update(index, "in_style", update);
-      this.suggestions.set([]);
+      this.inputValue.set(update) // risulta un cambiamento anche in AUTOCOMPLETE
     }
   }
   const AUTOCOMPLETE = new AutocompleteFeatures()

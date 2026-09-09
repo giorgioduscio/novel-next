@@ -27,9 +27,6 @@
         margin-left: auto
         margin-right: auto
 
-    div:has(.spazio-schermo)
-        padding-bottom: 40dvh
-
     // 2) FUMETTO DESCRIZIONE
     .desc, .descrizione
         padding: 1rem 
@@ -59,6 +56,26 @@
         font-weight: bold
         clip-path: polygon(50% 0%, 58% 18%, 72% 5%, 73% 22%, 92% 14%, 82% 32%, 100% 35%, 82% 45%, 96% 58%, 78% 58%, 88% 80%, 68% 70%, 65% 100%, 50% 82%, 35% 100%, 32% 78%, 12% 86%, 20% 64%, 0% 60%, 18% 45%, 3% 32%, 23% 28%, 14% 8%, 40% 18%)
     
+    // 6) lista
+    [data-external-style]:has(textarea.lista) 
+        padding-left: 3rem
+        padding-right: 2rem
+        position: relative
+
+        & textarea
+            text-align: left !important
+
+        &::before  // Usiamo ::before invece di ::after per posizionare il puntino a SINISTRA
+            content: "•"  // Puntino Unicode (alt: "\2022" o "*")
+            display: inline-block
+            position: absolute
+            left: 1.5rem
+            top: 0  // Allinea verticalmente al centro
+            color: inherit  // Eredita il colore del testo
+            font-size: 1.5em  // Dimensione leggermente maggiore per visibilità
+            line-height: 1  // Evita spazi indesiderati
+
+
     // 6) Sfondo gradiente
     .bg-black-b 
         background: linear-gradient(180deg, transparent 0%, #000 100%)

@@ -84,7 +84,7 @@ export default function SettingsComponent(props: UseBookComponentProps) {
   }
 
   // feedback caricamento
-  if (!page.isPageLoaded || !bookContext.isBookLoaded || !authContext.isAuthLoaded.get) 
+  if (!page.isPageLoaded.get || !bookContext.isBookLoaded.get || !authContext.isAuthLoaded.get) 
     return <LoadingComponent />;
 
   if (!canRead || !canWrite) return <UnathorizeComponent />

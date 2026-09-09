@@ -6,7 +6,7 @@ import * as v from "valibot";
 import { nanoid } from "nanoid";
 import { ui_upload, ui_download, debounce, toast } from "../tools/feedbacksUI";
 import { sanitizeAccessCode, isValidAccessCode } from "@/lib/security";
-import { generateContext } from "../tools/reactCustomization";
+import { generateContext, useDotNotation } from "../tools/reactCustomization";
 
 const FIREBASE_URL = "https://books-3e4c3-default-rtdb.europe-west1.firebasedatabase.app/books";
 
@@ -52,7 +52,7 @@ const API_SERVICE = {
 
 function bookContextValue() {
   const [books, setBooks] = useState<Book[]>([]);
-  const [isBookLoaded, setIsBookLoaded] = useState(false);
+  const isBookLoaded = useDotNotation(false);
   const [target, setTarget] = useState<Book | undefined>(undefined);
 
   // Carica i libri da Firebase all'avvio
@@ -124,7 +124,7 @@ function bookContextValue() {
 
     async loadBooks() {
       try {
-        setIsBookLoaded(false);
+        isBookLoaded.set(false);
         const response = await fetch(`${FIREBASE_URL}.json`);
         if (!response.ok) return console.error("Caricamento non riuscito", response.status);
 
@@ -142,7 +142,7 @@ function bookContextValue() {
       } catch (error) {
         console.error("Errore nel caricamento delle api:", error);
       } finally {
-        setIsBookLoaded(true);
+        isBookLoaded.set(true);
       }
     },
   };

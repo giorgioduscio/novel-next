@@ -75,7 +75,7 @@ export const {
         return () => {
           isCancelled = true;
         };
-      }, [this.codes.get, bookContext.books]);
+      }, [this.codes.get, bookContext.isBookLoaded.get]);
     }
 
     // gestione del localStorage

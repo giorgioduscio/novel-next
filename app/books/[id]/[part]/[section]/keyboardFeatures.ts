@@ -58,15 +58,12 @@ export function useKeyboardFeatures(getSection: Function, dependencies: Pick<Mai
         key === "in_style" && ["Enter","ArrowUp"].includes(e.key),
         function enterStyle(){
           e.preventDefault(); 
-          
-          PARAG.update(index, key, value)
+
+          PARAG.update(index, key, value.toLowerCase())
 
           if(e.key==="ArrowUp"){
             _changeFocus("this", "__|", index)  
           } 
-          // else if(e.key==="ArrowDown"){
-          //   _changeFocus("down", "|__", index)
-          // }
         }
       ],
       [
@@ -75,10 +72,10 @@ export function useKeyboardFeatures(getSection: Function, dependencies: Pick<Mai
         function autocompleteStyle(){
           e.preventDefault();
 
-          const suggestion = AUTOCOMPLETE.suggestions.get;
+          const suggestion = AUTOCOMPLETE.suggestions;
           if(!suggestion.length) return console.error("Suggerimenti non trovati");
-          
-          AUTOCOMPLETE.insertClass(index, suggestion[0], paragraph);
+                    
+          AUTOCOMPLETE.insertClass(index, suggestion[0]);
         }
       ],
       [

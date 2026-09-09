@@ -47,9 +47,9 @@ export default function SectionComponent(props: UseSectionComponentProps) {
   } = useSectionComponent(props); 
   const bookContext = useBookContext()
   const authContext = useAuthContext() // added authContext
-
+    
   // feedback caricamento
-  if (!page.isPageLoaded || !bookContext.isBookLoaded || !authContext.isAuthLoaded.get) 
+  if (!page.isPageLoaded.get || !bookContext.isBookLoaded.get || !authContext.isAuthLoaded.get) 
     return <LoadingComponent />;
   if (!!book.get && !canRead) return <InsertAuthCodesComponent targetId={book_id} />
 
@@ -57,7 +57,7 @@ export default function SectionComponent(props: UseSectionComponentProps) {
     {/* NAVBAR */}
     <Navigation back_btn={{ href: `/books/${book_id}` }} page_title={SECTION.mainTitle.get}>
       <button onClick={()=> SHARED.copy()}
-              className="p-2 bg-blue-900 text-sm truncate">
+              className="p-2 bg-blue-900 text-sm truncate" data-feedback>
         <i className="bi bi-copy"></i>
         <span className="pl-2">Copia</span>
       </button>
@@ -329,25 +329,27 @@ export default function SectionComponent(props: UseSectionComponentProps) {
 
             {/* WRAPPER PARAGRAFI */}
             <Frag if={PARAG.showParagraphs} className="pb-10">
+              {/* NESSUN PARAGRAFO */}
               <Frag.Else>
                 <div className="py-10 text-center">
                   <i className="me-1 bi bi-file-text"></i>
                   Nessun paragrafo
                 </div>
                 <Frag if={!!canWrite} className="flex justify-center">
-                  <button
-                    onClick={() => PARAG.handleCreate()}
-                    className="py-2 px-3 border rounded bg-blue-500/30 text-blue-300"
-                  >
+                  <button onClick={() => PARAG.handleCreate()}
+                          className="py-2 px-3 border rounded bg-blue-500/30 text-blue-300">
                     <i className="bi bi-plus-lg"></i>
                     Aggiungi paragrafo
                   </button>
                 </Frag>
               </Frag.Else>
 
+
+              {/* LISTA PARAGRAFI */}
               <ol ref={PARAG.listReference}>
                 {SECTION.bookSection?.paragraphs?.map((p, paragraph_i) => (
-                  <li key={paragraph_i} className="relative">
+                  <li key={paragraph_i} className="relative pb-1">
+
                     {/* PULSANTE INSERIMENTO */}
                     <AddParagraphButton
                       if={canWrite && paragraph_i === 0}
@@ -357,7 +359,7 @@ export default function SectionComponent(props: UseSectionComponentProps) {
 
                     {/* TESTO PARAGRAFO */}
                     <div onClick={PARAG.handleFocusText}>
-                      <div onClick={PARAG.handleFocusText} className={`block py-3 ${(p as any).ex_style}`}>
+                      <div onClick={PARAG.handleFocusText} data-external-style className={`${(p as any).ex_style}`}>
                         <div className={canWrite && PARAG.styleInput.get.index === paragraph_i ? 'outline-3 outline-dashed outline-black' : ''}>
                           <div onClick={PARAG.handleFocusText} className={`${canWrite && PARAG.styleInput.get.index === paragraph_i ? 'outline-3 outline-white' : ''}`}>
                             <Field
@@ -373,7 +375,7 @@ export default function SectionComponent(props: UseSectionComponentProps) {
                               onInput={(_e) => PARAG.update(paragraph_i, "text", _e.target.value)}
                               onKeyDown={(_e: any) => PARAG.handleKey(_e, paragraph_i, "text", p)}
                               error_message={errors[`${paragraph_i}>text`]}
-                              onFocus={(_e:any) =>{ PARAG.setStyleInput(paragraph_i); AUTOCOMPLETE.setSuggestions(_e)}}
+                              onFocus={(_e:any) =>{ PARAG.setStyleInput(paragraph_i)}}
                               onClick={PARAG.handleFocusText} data-focus-text
                             />
                           </div>
@@ -385,12 +387,12 @@ export default function SectionComponent(props: UseSectionComponentProps) {
                         <div className='absolute top-0 z-2 w-full' data-dropdown>
                           <div className="p-1 bg-white text-black outline rounded">
                             {/* CONSIGLIATI */}
-                            <Frag if={!!AUTOCOMPLETE.suggestions.get.length}> 
+                            <Frag if={!!AUTOCOMPLETE.suggestions.length}> 
                               <div id="suggestionButtons" className="flex flex-wrap items-center gap-1">
-                                {AUTOCOMPLETE.suggestions.get.map((className, _i) => (
+                                {AUTOCOMPLETE.suggestions.map((className, _i) => (
                                   <button key={_i}
-                                          onClick={_e=> AUTOCOMPLETE.insertClass(paragraph_i, className, p)}
-                                          className={`px-2 flex-auto rounded text-sm outline font-bold ${_i ?"bg-blue-300" :"bg-red-300"}`}
+                                          onClick={_e=> AUTOCOMPLETE.insertClass(paragraph_i, className)}
+                                          className={`px-2 flex-auto rounded text-sm outline font-bold ${className.includes(" ") ?"bg-red-300" :"bg-blue-300"}`}
                                           aria-label={`Applica stile: ${className}`}>
 
                                     <Frag if={!_i}>
@@ -428,11 +430,11 @@ export default function SectionComponent(props: UseSectionComponentProps) {
                                   asterisk
                                   type="textarea"
                                   id={paragraph_i + ">in_style"}
-                                  onChange={(_e) => PARAG.update(paragraph_i, "in_style", _e.target.value.toLowerCase())}
-                                  onKeyDown={(_e: any) => PARAG.handleKey(_e, paragraph_i, "in_style", p)}
-                                  onKeyUp={(_e: any) => AUTOCOMPLETE.setSuggestions(_e)}
                                   error_message={errors[`${paragraph_i}>in_style`]}
-                                  onFocus={(_e:any) => PARAG.setStyleInput(paragraph_i) }
+                                  onChange={(_e) =>     PARAG.update(paragraph_i, "in_style", _e.target.value.toLowerCase())}
+                                  onFocus={(_e:any) =>  PARAG.setStyleInput(paragraph_i) }
+                                  onKeyDown={(_e: any)=>PARAG.handleKey(_e, paragraph_i, "in_style", p)}
+                                  onKeyUp={(_e: any)=>  AUTOCOMPLETE.inputValue.set(_e.target.value.toLowerCase().trim())                                  }
                                 />
                               </div>
 
@@ -443,33 +445,44 @@ export default function SectionComponent(props: UseSectionComponentProps) {
                     </div>
 
                     {/* RIMUOVI PARAGRAFO / SEGNALIBRO */}
-                    <Frag if={canWrite} className="pr-1 pt-3 absolute top-0 end-0 z-2">
-                      <div className="flex flex-col">
-                        <button type="button" title="rimuovi paragrafo"
-                                onClick={() => PARAG.handleRemove(paragraph_i)}
-                                className="px-2 py-1 bg-gray-600/50 text-red-300 rounded-full">
-                          <i className="bi bi-trash-fill"></i>
-                        </button>
-                        <button type="button" title={`${p.isMarcked ?"Rimuovi" :"Imposta"} segnalibro`}
-                                onClick={() => PARAG.update(paragraph_i,"isMarcked", !p.isMarcked)}
-                                className="px-2 py-1 bg-gray-600/50 text-green-300 rounded-full">
-                          {p.isMarcked 
-                            ?<i className="bi bi-bookmark-fill"></i>
-                            :<i className="bi bi-bookmark"></i>
-                          }
-                        </button>
-                        <button onClick={()=> SHARED.copy(p.in_style)} 
-                                title="Copia stile" 
-                                className="px-2 py-1 bg-gray-600/50 text-green-300 rounded-full">
-                          <i className="bi bi-copy"></i>
-                        </button>
+                    <div className="absolute top-0 end-0 z-2">
+                      <div className="rounded overflow-hidden shadow-lg hover:bg-gray-600">
+                        <Frag if={canWrite}>
+                          {/* rimuovi */}
+                          <button type="button" 
+                                  title="rimuovi paragrafo"
+                                  onClick={() => PARAG.handleRemove(paragraph_i)}
+                                  className="px-2 py-1 bg-gray-600/50 text-red-300">
+                            <i className="bi bi-trash"></i>
+                          </button>
+                          {/* copia stile */}
+                          <button onClick={()=> SHARED.copy(p.in_style)} 
+                                  title="Copia stile"  
+                                  data-feedback
+                                  className="px-2 py-1 bg-gray-600/50 text-blue-300">
+                            <i className="bi bi-copy"></i>
+                          </button>
+                        </Frag>
+
+                        {/* pulsante segnalibro */}
+                        <Frag if={canWrite==true || p.isMarcked===true }>
+                          <button type="button" 
+                                  title={`${p.isMarcked ?"Rimuovi" :"Imposta"} segnalibro`}
+                                  onClick={() => PARAG.update(paragraph_i,"isMarcked", !p.isMarcked)}
+                                  disabled={!canWrite}
+                                  className={`px-2 py-1 text-green-300 ${canWrite ?'bg-gray-600/50' :''}`}>
+                            
+                            <Frag if={p.isMarcked===true}>
+                              <i className="bi bi-bookmark-fill" />
+                            </Frag>
+                            <Frag if={canWrite && p.isMarcked===false}>
+                              <i className="bi bi-bookmark" />
+                            </Frag>
+                          </button>
+                        </Frag>
+
                       </div>
-                    </Frag>
-                    <Frag if={!canWrite && !!p.isMarcked} className="pr-1 pt-3 absolute top-0 end-0 z-1 pointer-events-none">
-                      <div className="px-2 py-1 bg-gray-600/60 text-green-300 rounded-full">
-                        <i className="bi bi-bookmark-fill"></i>
-                      </div>
-                    </Frag>
+                    </div>
 
                     {/* PULSANTE INSERIMENTO */}
                     <AddParagraphButton

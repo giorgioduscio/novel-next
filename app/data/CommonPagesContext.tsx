@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { generateContext } from "../tools/reactCustomization";
+import React, { useState, useEffect } from "react";
+import { generateContext, useDotNotation } from "../tools/reactCustomization";
+import { ui_addCopyFeedback } from "../tools/feedbacksUI";
 
 export const {
   provider: CommonPagesProvider,
@@ -9,53 +10,61 @@ export const {
 } = generateContext(useCommonPagesContextLogic);
 
 function useCommonPagesContextLogic() {
-  // Stato di caricamento della pagina
-  const [isPageLoaded, setIsPageLoaded] = useState(false);
-  // Larghezza e altezza schermo
-  const [screenWidth, setScreenWidth] = useState(400);
-  const [screenHeight, setScreenHeight] = useState(400);
-  
-  // Modalità editing o view - letta da localStorage
-  const [isEditMode, setIsEditMode] = useState(false);
-  function toggleEditMode() {
-    setIsEditMode((prev) => {
-      const newEditMode = !prev;
-      if (typeof window !== "undefined") {
-        localStorage.setItem("isEditMode", newEditMode ? "true" : "false");
-      }
-      return newEditMode;
-    });
+  class Common {
+    constructor() {
+      this.toggleEditMode = this.toggleEditMode.bind(this);
+      this.addCopyFeedback = this.addCopyFeedback.bind(this);
+      
+      useEffect(() => {
+        if (typeof window === "undefined") return;
+        // feedback per pulsanti copia
+        document.addEventListener("click",(e)=> this.addCopyFeedback(e))
+    
+        // Leggi lo stato iniziale da localStorage
+        const storedEditMode = localStorage.getItem("isEditMode") === "true";
+        this.isEditMode.set(storedEditMode);
+        this.isPageLoaded.set(true);
+    
+        // Dimensioni schermo
+        const setWidth = () => this.screenWidth.set(window.innerWidth);
+        const setHeight = () =>
+          this.screenHeight.set(Math.floor(window.visualViewport?.height || window.innerHeight));
+    
+        setWidth();
+        setHeight();
+        window.addEventListener("resize", setWidth);
+        window.addEventListener("resize", setHeight);
+        return () => {
+          window.removeEventListener("resize", setWidth);
+          window.removeEventListener("resize", setHeight);
+        };
+      }, []);
+    }
+
+    // Stato di caricamento della pagina
+    isPageLoaded = useDotNotation(false);
+    // Larghezza e altezza schermo
+    screenWidth = useDotNotation(400);
+    screenHeight = useDotNotation(400);
+    
+    // Modalità editing o view - letta da localStorage
+    isEditMode = useDotNotation(false);
+    
+    toggleEditMode() {
+      this.isEditMode.set((prev) => {
+        const newEditMode = !prev;
+        if (typeof window !== "undefined") {
+          localStorage.setItem("isEditMode", newEditMode ? "true" : "false");
+        }
+        return newEditMode;
+      });
+    }
+
+    // aggiunge un feedback a tutti i pulsanti di copia
+    addCopyFeedback(e: Event){
+      return ui_addCopyFeedback(e)
+    }
   }
 
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    // Leggi lo stato iniziale da localStorage
-    const storedEditMode = localStorage.getItem("isEditMode") === "true";
-    setIsEditMode(storedEditMode);
-    setIsPageLoaded(true);
-
-    // Dimensioni schermo
-    const setWidth = () => setScreenWidth(window.innerWidth);
-    const setHeight = () =>
-      setScreenHeight(Math.floor(window.visualViewport?.height || window.innerHeight));
-
-    setWidth();
-    setHeight();
-    window.addEventListener("resize", setWidth);
-    window.addEventListener("resize", setHeight);
-    return () => {
-      window.removeEventListener("resize", setWidth);
-      window.removeEventListener("resize", setHeight);
-    };
-  }, []);
-
-  return {
-      isEditMode,
-      toggleEditMode,
-      setIsEditMode,
-      isPageLoaded,
-      screenWidth,
-      screenHeight,
-    };
+  return new Common()
 }

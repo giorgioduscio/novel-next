@@ -17,7 +17,7 @@ export default function BooksComponent() {
   const { upload } = useSharedText();
 
   // feedback per il caricamento
-  if (!page.isPageLoaded || !bookContext.isBookLoaded) {
+  if (!page.isPageLoaded.get || !bookContext.isBookLoaded.get) {
     return <LoadingComponent />;
   }
 
@@ -43,13 +43,13 @@ export default function BooksComponent() {
             <div className="my-3 flex gap-2 justify-between items-center">
               <h1 className="text-2xl font-bold truncate text-orange-500">Gestione Catalogo</h1>
 
-              <Frag if={!isEditMode && books.length > 0}>
+              <Frag if={!isEditMode.get && books.length > 0}>
                 <div className="py-1 px-2 rounded outline rounded-full text-xs text-gray-300 text-nowrap">
                   Catalogo: {filteredBooks.length}
                 </div>
               </Frag>
               {/* NUOVO LIBRO */}
-              <Frag if={isEditMode}>
+              <Frag if={isEditMode.get}>
                 <button onClick={() => BOOKS.create()} className="py-1 px-2 rounded bg-blue-800 whitespace-nowrap">
                   <i className="me-2 bi bi-plus-lg"></i>
                   Crea Libro
@@ -112,8 +112,8 @@ export default function BooksComponent() {
                   <div className="outline rounded overflow-hidden">
                     {/* Visualizzazione o modifica dei dettagli del libro */}
                     <Link
-                      href={isEditMode && canWrite(book) ? "" : `/books/${book.id}/structure`}
-                      aria-disabled={!isEditMode && !canWrite(book)}
+                      href={isEditMode.get && canWrite(book) ? "" : `/books/${book.id}/structure`}
+                      aria-disabled={!isEditMode.get && !canWrite(book)}
                       className="block p-2 bg-indigo-600"
                     >
                       {/* MODIFICA LIBRO */}
@@ -123,11 +123,11 @@ export default function BooksComponent() {
                         label="Titolo del libro"
                         type="textarea"
                         input_class={`p-2 text-center text-2xl font-bold ${
-                          isEditMode && canWrite(book)
+                          isEditMode.get && canWrite(book)
                             ? "bg-white text-black outline rounded"
                             : "pointer-events-none"
                         }`}
-                        disabled={!isEditMode && !canWrite(book)}
+                        disabled={!isEditMode.get && !canWrite(book)}
                         placeholder="Inserisci il titolo"
                         value={book.title}
                         onChange={(e) => BOOKS.update(book.id, "title", e)}
@@ -140,11 +140,11 @@ export default function BooksComponent() {
                         label="Autore del libro"
                         type="textarea"
                         input_class={`p-2 text-center italic border-t ${
-                          isEditMode && canWrite(book)
+                          isEditMode.get && canWrite(book)
                             ? "bg-white text-gray-800 outline rounded"
                             : "pointer-events-none"
                         }`}
-                        disabled={!isEditMode && !canWrite(book)}
+                        disabled={!isEditMode.get && !canWrite(book)}
                         placeholder="Inserisci l'autore"
                         value={book.author_name}
                         onChange={(e) => BOOKS.update(book.id, "author_name", e)}
@@ -153,7 +153,7 @@ export default function BooksComponent() {
                     </Link>
 
                     {/* DOWNLOAD */}
-                    <Frag if={isEditMode && canWrite(book)}>
+                    <Frag if={isEditMode.get && canWrite(book)}>
                       <Frag.Else>
                         <div className="grid grid-cols-2 justify-between items-center">
                           <button

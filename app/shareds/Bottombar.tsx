@@ -50,9 +50,9 @@ export default function Bottombar() {
             {/* editmode */}
             <Frag if={(showEditmode)}>
               <button onClick={page.toggleEditMode}
-                      title={page.isEditMode ? "Modalità editing" : "Modalità lettura"}
-                      className={`py-2 px-3 rounded-full ${page.isEditMode ? "bg-orange-700" : "bg-indigo-900"}`}>
-                <i className={`bi ${page.isEditMode  ?"bi-eye" :"bi-pencil"}`}></i>
+                      title={page.isEditMode.get ? "Modalità editing" : "Modalità lettura"}
+                      className={`py-2 px-3 rounded-full ${page.isEditMode.get ? "bg-orange-700" : "bg-indigo-900"}`}>
+                <i className={`bi ${page.isEditMode.get  ?"bi-eye" :"bi-pencil"}`}></i>
               </button>
             </Frag>
 

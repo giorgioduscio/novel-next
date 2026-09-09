@@ -153,7 +153,7 @@ export default function AuthComponent() {
                 <div className="text-black">
                   <button onClick={()=> ui_copy(code.auth_code)} 
                           className="px-1 bg-gray-200 outline rounded"
-                          title="Copia codice">
+                          title="Copia codice" data-feedback>
                     <i className="bi bi-copy"></i>
                   </button>
                 </div>

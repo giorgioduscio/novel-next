@@ -858,30 +858,51 @@ async function executeUpload<T = string>({
 
 // copia la stringa nel  sistema
 export async function ui_copy(text: string): Promise<boolean> {
-    // Try modern Clipboard API first
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      try {
-        await navigator.clipboard.writeText(text);
-        return true;
-      } catch (err) {
-        console.warn("Clipboard API failed, trying fallback:", err);
-      }
-    }
-
-    // Fallback for browsers that don't support Clipboard API
+  // Try modern Clipboard API first
+  if (navigator.clipboard && navigator.clipboard.writeText) {
     try {
-      const textarea = document.createElement('textarea');
-      textarea.value = text;
-      textarea.style.position = 'fixed';
-      textarea.style.left = '-999999px';
-      textarea.style.top = '-999999px';
-      document.body.appendChild(textarea);
-      textarea.select();
-      const successful = document.execCommand('copy');
-      document.body.removeChild(textarea);
-      return successful;
+      await navigator.clipboard.writeText(text);
+      return true;
     } catch (err) {
-      console.error("Fallback copy failed:", err);
-      return false;
+      console.warn("Clipboard API failed, trying fallback:", err);
     }
   }
+
+  // Fallback for browsers that don't support Clipboard API
+  try {
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.style.position = 'fixed';
+    textarea.style.left = '-999999px';
+    textarea.style.top = '-999999px';
+    document.body.appendChild(textarea);
+    textarea.select();
+    const successful = document.execCommand('copy');
+    document.body.removeChild(textarea);
+    return successful;
+  } catch (err) {
+    console.error("Fallback copy failed:", err);
+    return false;
+  }
+}
+
+// aggiunge un feedback a tutti i pulsanti di copia
+export function ui_addCopyFeedback(e: Event){
+  // cerca il pulsante container
+  const copyButton = (e.target as HTMLElement).closest("[data-feedback]");
+  if(!copyButton) return;
+
+  // cerca l'icona
+  const copyIcon = copyButton.querySelector("i.bi-copy");     
+  if(!copyIcon || !copyIcon.classList.contains("bi-copy")) return;
+  
+  // rimuove bi-copy e aggiunge bi-check
+  copyIcon.classList.remove("bi-copy");
+  copyIcon.classList.add("bi-check-lg");
+  
+  // rimuove bi-check e aggiunge bi-copy
+  setTimeout(() => {
+    copyIcon.classList.remove("bi-check-lg");
+    copyIcon.classList.add("bi-copy");
+  }, 1500); 
+}

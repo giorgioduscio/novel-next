@@ -9,8 +9,6 @@
 
 # Kanban - Novel Writer (Next.js)
 ## 📌 To Do
-* [1] ottimizzare giro di autorizzazioni
-* [1] fix: rivedere logica dei suggerimenti e del "Caricamento"
 * [1] sectioncomponent layout per pc
 * [5] elementi angolati
 * [?] layout mobile
