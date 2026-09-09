@@ -98,11 +98,11 @@ export default function SectionComponent(props: UseSectionComponentProps) {
             </button>
             {/* stampa */}
             <Frag if={!canWrite}>
-              <button onClick={() => SHARED.downloadAsImage()} 
+              <button onClick={() => SHARED.print()} 
                       className={`px-3 py-2 bg-blue-800 `}>
 
                   <i className="bi bi-file-earmark-arrow-down"></i>
-                  <span className="ms-1 hidden sm:inline">Scarica immagine</span>
+                  <span className="ms-1 hidden sm:inline">Scarica</span>
 
               </button>
             </Frag>

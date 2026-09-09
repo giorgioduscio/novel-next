@@ -125,7 +125,7 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
   const SECTION = new SectionFeature()
 
   // 3) copia e incolla
-  class SHARED {
+  class SharedFeatures {
     constructor() {
       // Bind dei metodi per mantenere il contesto
       this.copy = this.copy.bind(this);
@@ -203,6 +203,11 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
         .catch((err: Error) => {
           console.error("| Errore nella generazione dell'immagine:", err);
         });
+    }
+
+    // esegue la stampa del documento
+    print(){
+      window.print();
     }
   }
 
@@ -989,7 +994,7 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
     part_id,
     section_id,
     SECTION,
-    SHARED: new SHARED(),
+    SHARED: new SharedFeatures(),
     PARAG,
     AUTOCOMPLETE,
     FIND_REPLACE: new FIND_REPLACE(),
