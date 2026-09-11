@@ -13,7 +13,7 @@ interface Props {
   attributeKey: keyof Book;
 }
 
-export default function AuthFormComponent({ labelParam, book, attributeKey }: Props) {
+export default function SettingsCodesFormComponent({ labelParam, book, attributeKey }: Props) {
   const authContext = useAuthContext();
   const { verify, updateCode } = authContext.CONTROLS;
   const agree = useAgreeWrapper();
@@ -73,8 +73,8 @@ export default function AuthFormComponent({ labelParam, book, attributeKey }: Pr
     
     // inserisce il codice nei codici locali
     if(!(await agree.warning("Inserire il codice nei codici locali?", "Inserisci"))) return;
-    const newAuthCode ={ title: Date.now().toString(), auth_code: _field.code.value}
-    const authRespoce = authContext.createCode(newAuthCode);
+    const action = (attributeKey==="auth_read") ?"read" :"write"
+    const authRespoce = authContext.createOrUpdateBookCode(book, _field.code.value, action)
 
     // 6) feedback
     reset();

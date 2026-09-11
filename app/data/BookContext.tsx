@@ -10,6 +10,14 @@ import { generateContext, useDotNotation } from "../tools/reactCustomization";
 
 const FIREBASE_URL = "https://books-3e4c3-default-rtdb.europe-west1.firebasedatabase.app/books";
 
+/**
+ * Generates a secure random key for authentication
+ * @returns A random string of 16 characters
+ */
+export function generateSecureKey(): string {
+  return Math.random().toString(36).slice(2, 18);
+}
+
 // Servizio API separato dal ciclo di vita del hook
 const API_SERVICE = {
   async saveSingleBook(book: Book) {

@@ -8,7 +8,17 @@
 * http://[IP]:3000 # sull'altro dispositivo della rete
 
 # Kanban - Novel Writer (Next.js)
-## 📌 To Do
+## 📌 To Do 
+
+* [1] visualizzazione libri (in bookscomponents.tsx)
+situazione: al momento i libri vengono mostrati solo in base a quelli che l'utente può leggere, se ha un codice uguale a auth_read del libro
+problema: se un libro ha auth_read="", non lo vedrà mai
+soluzione: deve esserci una lista locale di libri che l'utente può visualizzare. quando l'utente può leggere un libro, viene aggiunto alla lista locale. un libro può essere aggiunto anche quando l'utente cerca il titolo di un libro e preme su "aggiungi alla lista"
+  - implementa l'utilizzo di un array di id di libri (array di stringhe) sincronizzato con localstorage
+  - le card che non fanno parte della lista, vengono mostrate solo se l'utente cerca nel filtro. hanno un pulsante "aggiungi alla lista"
+  - dei libri possono essere  rimossi dalla lista attraverso un pulsante "bi bi-x-lg"
+  - rimuovi la logica di editMode nella pagina dei libri. quando si clicca su "aggiungi libro", il sistema deve visualizzare questo libro nella pagina "books/id_book/structure" con dei valori di default tipo "inserire_titolo"
+  
 * [1] sectioncomponent layout per pc
 * [5] elementi angolati
 * [?] layout mobile
@@ -55,6 +65,7 @@
 * implementare i segnalibro nelle sezioni
 * implementare stampa della sezione in formato verticale
 * semplificazione processo di autorizzazione:
-  - codice di lettura calcolato dal sistema
+  - codice di lettura generato dal sistema
   - libri liberi: accessibili / editabili da chiunque abbia il link 
-  - libri privati: serve un'autorizzazione in base all'azione 
+  - libri privati: serve un'autorizzazione per effettuare un'operazione 
+  - eliminazione libro: se esiste un codice di scrittura, lo richiede pure per l'eliminazione

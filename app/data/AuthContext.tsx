@@ -134,6 +134,17 @@ export const {
       return codeWithId;
     }
 
+    createOrUpdateBookCode(book: Book, authCode: string, type: 'read' | 'write'): Code {
+      const title = `${book.id}:${type === 'read' ? 'lettura' : 'scrittura'}`;
+      const existingCode = this.codes.get.find((c) => c.title === title);
+      
+      if (existingCode) {
+        return this.updateCode(existingCode.id, { auth_code: authCode }) || existingCode;
+      }
+      
+      return this.createCode({ title, auth_code: authCode });
+    }
+
     updateCode(
       idOrCode: string | Code,
       updated?: Partial<Omit<Code, "id">>

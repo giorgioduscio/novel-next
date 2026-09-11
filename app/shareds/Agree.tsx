@@ -22,7 +22,7 @@ function AgreeComponent({ title, message, btn_label, btn_color, callback, onCanc
 
   return (
     <div id="AgreeComponent" role="dialog" aria-modal="true" aria-labelledby="agree-title" aria-describedby="agree-message">
-      <div className="mt-15 text-center rounded-lg bg-indigo-900 text-white shadow-lg overflow-hidden">
+      <div className="max-w-[400px] mt-15 text-center rounded-lg bg-indigo-900 text-white shadow-lg overflow-hidden">
         {/* HEADER */}
         <div className={`px-4 py-3 ${colors[btn_color]}`}>
           <h2 id="agree-title" className="text-xl font-semibold">{title}</h2>

@@ -68,6 +68,11 @@ export default function SectionComponent(props: UseSectionComponentProps) {
           <span className="pl-2">Incolla</span>
         </button>
       </Frag>
+      <Link href={`/books/${book_id}/settings`}
+            className="p-2 bg-indigo-900"
+            title="Vai alle impostazioni">
+        <i className="bi bi-gear"></i>
+      </Link>
     </Navigation>
 
 

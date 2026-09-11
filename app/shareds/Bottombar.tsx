@@ -40,7 +40,8 @@ export default function Bottombar() {
         <div className="absolute bottom-0 left-0 text-white text-2xl">
           {/* codici */}
           <div>
-            <Link href="/auth" className="ml-2 mb-2 py-1 px-2 bg-indigo-900 rounded-full">
+            <Link href="/auth" className="ml-2 mb-2 py-1 px-2 bg-indigo-900 rounded-full"
+                  title="Mostra codici">
               <i className="bi bi-person-vcard-fill"></i>
             </Link>
           </div>
@@ -59,7 +60,8 @@ export default function Bottombar() {
             {/* impostazioni del libro */}
             <Frag if={pathname.includes("structure") && canWrite}>
               <Link href={`/books/${book?.id || ''}/settings`}
-                    className="m-1 py-1 px-2 bg-indigo-900 rounded-full">
+                    className="m-1 py-1 px-2 bg-indigo-900 rounded-full"
+                    title="Vai alle impostazioni">
                 <i className="bi bi-gear-fill"></i>
               </Link>
             </Frag>
@@ -67,7 +69,8 @@ export default function Bottombar() {
             {/* visualizzazione nel libro */}
             <Frag if={pathname.includes("settings")}>
               <Link href={`/books/${book?.id || ''}/structure`}
-                    className="m-1 py-1 px-2 bg-indigo-900 rounded-full">
+                    className="m-1 py-1 px-2 bg-indigo-900 rounded-full"
+                    title="Vai al libro">
                 <i className="bi bi-bar-chart-steps"></i>
               </Link>
             </Frag>
