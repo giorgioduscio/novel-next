@@ -7,13 +7,14 @@ import Frag from "../shareds/Frag";
 import { LoadingComponent } from "../shareds/LoadingComponent";
 import Navigation from "../shareds/Navigation";
 import { useBooksComponent } from "./useBooksComponent";
-import { useBookContext } from "../data/BookContext";
 import useSharedText from "../data/sharedText";
+import { useCommonPagesContext } from "../data/CommonPagesContext";
+import { useBookContext } from "../data/BookContext";
 
 export default function BooksComponent() {
-  const { page, books, filteredBooks, searchQuery, BOOKS, canWrite, errors, authContext } = useBooksComponent();
+  const page = useCommonPagesContext();
   const bookContext = useBookContext();
-  const { isEditMode } = page;
+  const { books, filteredBooks, searchQuery, createVoidBook, isInList, removeFromList, addToList } = useBooksComponent();
   const { upload } = useSharedText();
 
   // feedback per il caricamento
@@ -27,34 +28,29 @@ export default function BooksComponent() {
 
       <Breadcrumb routes={["Catalogo"]} />
 
-      {/* UPLOAD */}
-      <div className="py-2 flex justify-center items-center gap-2">
-        <button onClick={upload} className="py-2 px-3 text-sm rounded bg-green-800">
-          <i className="me-2 bi bi-upload"></i>
-          <span>Upload (.json / .md)</span>
-        </button>
-      </div>
-      {/* UPLOAD */}
-
       <main id="BooksTemplate" className="mx-auto container max-w-[800px]">
         <section className="p-2 min-h-dvh">
           {/* HEAD */}
           <div className="mx-auto max-w-[400px]">
-            <div className="my-3 flex gap-2 justify-between items-center">
+            <div className="my-3 flex flex-wrap gap-2 justify-between items-center">
               <h1 className="text-2xl font-bold truncate text-orange-500">Gestione Catalogo</h1>
 
-              <Frag if={!isEditMode.get && books.length > 0}>
+              {/* NUOVO LIBRO */}
+              <button onClick={() => createVoidBook()} className="py-1 px-2 rounded bg-blue-800 whitespace-nowrap">
+                <i className="me-2 bi bi-plus-lg"></i>
+                Aggiungi Libro
+              </button>
+              
+              <Frag if={books.get.length > 0}>
                 <div className="py-1 px-2 rounded outline rounded-full text-xs text-gray-300 text-nowrap">
                   Catalogo: {filteredBooks.length}
                 </div>
               </Frag>
-              {/* NUOVO LIBRO */}
-              <Frag if={isEditMode.get}>
-                <button onClick={() => BOOKS.create()} className="py-1 px-2 rounded bg-blue-800 whitespace-nowrap">
-                  <i className="me-2 bi bi-plus-lg"></i>
-                  Crea Libro
-                </button>
-              </Frag>
+
+              <button onClick={upload} className="py-2 px-3 text-sm rounded bg-green-800">
+                <i className="me-2 bi bi-upload"></i>
+                <span>Upload (.json / .md)</span>
+              </button>
             </div>
             
             {/* SEARCH INPUT */}
@@ -75,29 +71,15 @@ export default function BooksComponent() {
 
           {/* LIBRI */}
           {/* NESSUN LIBRO TROVATO */}
-          <Frag if={books.length === 0}>
+          <Frag if={books.get.length === 0}>
             <div className="mt-20 text-red-400 text-center">
               <i className="bi bi-exclamation-triangle me-1"></i>
               <span>Nessun libro trovato</span>
             </div>
           </Frag>
 
-          {/* NESSUN CODICE */}
-          <Frag if={authContext.codes.get.length === 0}>
-            <div className="mx-auto my-20 w-fit">
-              <div className="p-3 bg-orange-700 rounded">
-                <div className="grid grid-cols-[auto_1fr]">
-                  <i className="bi bi-exclamation-triangle me-1"></i>
-                  <span>Non hai ancora alcun codice. Alcuni libri privati non saranno disponibili</span> 
-                  <i />
-                  <Link href={"/auth"} className="underline">Aggiungi codice</Link>
-                </div>
-              </div>
-            </div>
-          </Frag>
-
           {/* NESSUN RISULTATO RICERCA */}
-          <Frag if={books.length > 0 && filteredBooks.length === 0}>
+          <Frag if={books.get.length > 0 && filteredBooks.length === 0}>
             <div className="mt-20 text-yellow-400 text-center">
               <i className="bi bi-search me-1"></i>
               <span>Nessun libro corrisponde alla ricerca</span>
@@ -108,80 +90,71 @@ export default function BooksComponent() {
           <Frag if={filteredBooks.length > 0}>
             <ol className="flex flex-wrap gap-2 items-start justify-around">
               {filteredBooks.map((book, book_i) => (
-                <li key={book.id} className="w-full sm:w-[48%]">
-                  <div className="outline rounded overflow-hidden">
-                    {/* Visualizzazione o modifica dei dettagli del libro */}
-                    <Link
-                      href={isEditMode.get && canWrite(book) ? "" : `/books/${book.id}/structure`}
-                      aria-disabled={!isEditMode.get && !canWrite(book)}
-                      className="block p-2 bg-indigo-600"
-                    >
-                      {/* MODIFICA LIBRO */}
-                      <Field
-                        id={`${book.id}-title`}
-                        hide_label
-                        label="Titolo del libro"
-                        type="textarea"
-                        input_class={`p-2 text-center text-2xl font-bold ${
-                          isEditMode.get && canWrite(book)
-                            ? "bg-white text-black outline rounded"
-                            : "pointer-events-none"
-                        }`}
-                        disabled={!isEditMode.get && !canWrite(book)}
-                        placeholder="Inserisci il titolo"
-                        value={book.title}
-                        onChange={(e) => BOOKS.update(book.id, "title", e)}
-                        error_message={errors[`${book.id}>title`]}
-                      />
-
-                      <Field
-                        id={`${book.id}-author_name`}
-                        hide_label
-                        label="Autore del libro"
-                        type="textarea"
-                        input_class={`p-2 text-center italic border-t ${
-                          isEditMode.get && canWrite(book)
-                            ? "bg-white text-gray-800 outline rounded"
-                            : "pointer-events-none"
-                        }`}
-                        disabled={!isEditMode.get && !canWrite(book)}
-                        placeholder="Inserisci l'autore"
-                        value={book.author_name}
-                        onChange={(e) => BOOKS.update(book.id, "author_name", e)}
-                        error_message={errors[`${book.id}>author_name`]}
-                      />
-                    </Link>
-
-                    {/* DOWNLOAD */}
-                    <Frag if={isEditMode.get && canWrite(book)}>
-                      <Frag.Else>
-                        <div className="grid grid-cols-2 justify-between items-center">
-                          <button
-                            onClick={() => bookContext.download.json.execute(book.id)}
-                            className="p-1 bg-green-800 truncate"
-                          >
-                            Json <i className="bi bi-download"></i>
-                          </button>
-
-                          <button
-                            onClick={() => bookContext.download.md.execute(book.id)}
-                            className="p-1 bg-blue-800 truncate"
-                          >
-                            Markdown <i className="bi bi-markdown"></i>
-                          </button>
-                        </div>
-                      </Frag.Else>
-
+                  <li key={book.id} className="w-full sm:w-[48%]">
+                    <div className="outline rounded overflow-hidden">
+                      {/* Visualizzazione dei dettagli del libro */}
                       <Link
                         href={`/books/${book.id}/structure`}
-                        className="py-1 px-2 bg-green-700 flex justify-between w-full"
+                        className="block p-2 bg-indigo-600"
                       >
-                        Vai al libro
-                        <i className="ms-auto bi bi-caret-right-fill"></i>
+                        {/* TITOLO LIBRO */}
+                        <div className="p-2 text-center text-2xl font-bold pointer-events-none">
+                          {book.title || "Senza titolo"}
+                        </div>
+
+                        {/* AUTORE LIBRO */}
+                        <div className="p-2 text-center italic border-t pointer-events-none">
+                          {book.author_name || "Autore sconosciuto"}
+                        </div>
                       </Link>
-                    </Frag>
-                  </div>
-                </li>
+
+                      {/* AZIONI */}
+                      <div className="grid grid-cols-2 justify-between items-center">
+                        {/* DOWNLOAD */}
+                        <button
+                          onClick={() => bookContext.download.json.execute(book.id)}
+                          className="p-1 bg-green-800 truncate"
+                        >
+                          Json <i className="bi bi-download"></i>
+                        </button>
+
+                        <button
+                          onClick={() => bookContext.download.md.execute(book.id)}
+                          className="p-1 bg-blue-800 truncate"
+                        >
+                          Markdown <i className="bi bi-markdown"></i>
+                        </button>
+                      </div>
+
+                      {/* PULSANTE AGGIUNGI/RIMUOVI DALLA LISTA */}
+                      <div className="flex justify-between items-center">
+                        <Link href={`/books/${book.id}/structure`}
+                              className="py-1 px-2 bg-green-700 flex justify-between w-full">
+                          Vai al libro
+                          <i className="ms-auto bi bi-caret-right-fill"></i>
+                        </Link>
+                        
+                        {/* Pulsante rimuovi dalla lista (solo se nella lista) */}
+                        <Frag if={isInList(book.id)}>
+                          <button onClick={() => removeFromList(book.id)}
+                                  className="py-1 px-2 bg-red-700 text-nowrap"
+                                  title="Rimuovi dalla lista">
+                            <i className="me-1 bi bi-x-lg"></i>
+                            <span>Rimuovi</span>
+                          </button>
+                        </Frag>
+                        
+                        {/* Pulsante aggiungi alla lista (solo se non in lista e si sta cercando) */}
+                        <Frag if={!isInList(book.id) && searchQuery.get.trim().length > 0}>
+                          <button onClick={() => addToList(book.id)}
+                                  className="py-1 px-2 bg-orange-700"
+                                  title="Aggiungi alla lista">
+                            <i className="bi bi-plus-lg"></i>
+                          </button>
+                        </Frag>
+                      </div>
+                    </div>
+                  </li>
               ))}
             </ol>
           </Frag>

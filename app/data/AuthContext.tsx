@@ -18,11 +18,17 @@ export const {
     allowedReadIds = useDotNotation<string[]>([]);
     allowedWriteIds = useDotNotation<string[]>([]);
     isAuthLoaded = useDotNotation<boolean>(false);
+    bookList = useDotNotation<string[]>([]);
     
     constructor(){
       // Sincronizza i permessi con localStorage all'avvio
       useEffect(() => {
         this.codes.set(this.LOCAL.get());
+      }, []);
+
+      // Sincronizza la lista libri con localStorage all'avvio
+      useEffect(() => {
+        this.bookList.set(this.LOCAL_BOOK_LIST.get());
       }, []);
 
       // Sincronizza tra tab tramite storage event
@@ -31,11 +37,14 @@ export const {
           if (e.key === this.LOCAL.codes_title) {
             this.codes.set(this.LOCAL.get());
           }
+          if (e.key === this.LOCAL_BOOK_LIST.book_list_title) {
+            this.bookList.set(this.LOCAL_BOOK_LIST.get());
+          }
         };
         window.addEventListener("storage", handleStorage);
         return () => window.removeEventListener("storage", handleStorage);
       }, []);
-  
+
       // Sincronizza i permessi dell'utente con i libri
       useEffect(() => {
         let isCancelled = false;
@@ -67,6 +76,14 @@ export const {
             this.allowedReadIds.set(readMatches);
             this.allowedWriteIds.set(writeMatches);
             this.isAuthLoaded.set(true);
+            
+            // Aggiungi automaticamente i libri leggibili alla lista locale
+            const currentBookList = this.bookList.get;
+            const newBookList = [...new Set([...currentBookList, ...readMatches])];
+            if (newBookList.length !== currentBookList.length) {
+              this.bookList.set(newBookList);
+              this.LOCAL_BOOK_LIST.set(newBookList);
+            }
           }
         }
     
@@ -109,6 +126,28 @@ export const {
           localStorage.setItem(this.codes_title, JSON.stringify(codes));
         } catch (error) {
           console.error("Errore nel salvataggio dei permessi:", error);
+        }
+      },
+    };
+
+    LOCAL_BOOK_LIST = {
+      book_list_title: "book_list",
+      get(): string[] {
+        if (typeof window === "undefined") return [];
+        try {
+          const res = localStorage.getItem(this.book_list_title);
+          return res ? JSON.parse(res) : [];
+        } catch (error) {
+          console.error("Errore nel parsing della lista libri:", error);
+          return [];
+        }
+      },
+      set(bookList: string[]) {
+        if (typeof window === "undefined") return;
+        try {
+          localStorage.setItem(this.book_list_title, JSON.stringify(bookList));
+        } catch (error) {
+          console.error("Errore nel salvataggio della lista libri:", error);
         }
       },
     };
@@ -194,8 +233,28 @@ export const {
       });
       return true;
     }
+
+    addBookToList(bookId: string): void {
+      this.bookList.set((prev) => {
+        if (prev.includes(bookId)) return prev;
+        const next = [...prev, bookId];
+        this.LOCAL_BOOK_LIST.set(next);
+        return next;
+      });
+    }
+
+    removeBookFromList(bookId: string): void {
+      this.bookList.set((prev) => {
+        const next = prev.filter((id) => id !== bookId);
+        this.LOCAL_BOOK_LIST.set(next);
+        return next;
+      });
+    }
+
+    isInBookList(bookId: string): boolean {
+      return this.bookList.get.includes(bookId);
+    }
   
-    // Funzioni stabilizzate con useCallback
     canRead = useCallback(
       (book: Book | undefined): boolean => {
         if (!book) return false;
@@ -214,7 +273,6 @@ export const {
       [this.allowedWriteIds.get]
     );
   
-    // Oggetto CONTROLS con funzioni stabilizzate
     CONTROLS = {
       canRead: this.canRead,
       canWrite: this.canWrite,

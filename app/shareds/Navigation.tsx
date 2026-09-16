@@ -1,13 +1,12 @@
 'use client';
 
-import Link from 'next/link';
 import React, { useEffect, useState } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useCommonPagesContext } from '../data/CommonPagesContext';
 
 interface NavigationProps {
   page_title: string;
-  back_btn?: { icon?:string, label?:string, href:string };
+  back_btn?: { icon?:string, label?:string };
   children?: React.ReactNode;
 }
 
@@ -16,6 +15,7 @@ export default function Navigation(props: NavigationProps) {
   const {page_title, back_btn, children} = props;
   const [title, setTitle] = useState('');
   const pathname = usePathname();
+  const router = useRouter();
   const page = useCommonPagesContext();
   
 
@@ -23,18 +23,22 @@ export default function Navigation(props: NavigationProps) {
     setTitle(page_title || document.title);
   }, [pathname, page_title]);
   
+  const handleBack = () => {
+    router.back();
+  };
+  
   return (
     <nav id="Navigation" className="sticky top-0 z-50 pt-[env(safe-area-inset-top)] print:hidden">
       <div className="w-full bg-indigo-900 border-b border-black">
         <div className="mx-auto container max-w-[800px]">
           <div className="px-2 flex items-center min-h-[44px]">
 
-            {/* se esiste almeno l'href */}
-            {(back_btn && back_btn.href) &&(
-              <Link href={back_btn.href} className="p-2 bg-indigo-900">
+            {/* pulsante indietro con cronologia */}
+            {back_btn &&(
+              <button onClick={handleBack} className="p-2 bg-indigo-900">
                 <i className={`${back_btn.icon || 'bi-chevron-left'} bi me-1`}></i>
                 <span className='truncate'>{back_btn.label ||''}</span>
-              </Link>
+              </button>
             )}
 
             {title && (

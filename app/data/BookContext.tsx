@@ -18,6 +18,29 @@ export function generateSecureKey(): string {
   return Math.random().toString(36).slice(2, 18);
 }
 
+// Gestione del localStorage per la lista libri
+const LOCAL_BOOK_LIST = {
+  book_list_title: "book_list",
+  get(): string[] {
+    if (typeof window === "undefined") return [];
+    try {
+      const res = localStorage.getItem(this.book_list_title);
+      return res ? JSON.parse(res) : [];
+    } catch (error) {
+      console.error("Errore nel parsing della lista libri:", error);
+      return [];
+    }
+  },
+  set(bookList: string[]) {
+    if (typeof window === "undefined") return;
+    try {
+      localStorage.setItem(this.book_list_title, JSON.stringify(bookList));
+    } catch (error) {
+      console.error("Errore nel salvataggio della lista libri:", error);
+    }
+  },
+};
+
 // Servizio API separato dal ciclo di vita del hook
 const API_SERVICE = {
   async saveSingleBook(book: Book) {
@@ -62,10 +85,27 @@ function bookContextValue() {
   const [books, setBooks] = useState<Book[]>([]);
   const isBookLoaded = useDotNotation(false);
   const [target, setTarget] = useState<Book | undefined>(undefined);
+  const bookList = useDotNotation<string[]>([]);
 
   // Carica i libri da Firebase all'avvio
   useEffect(()=> {
     API.loadBooks()
+  }, []);
+
+  // Sincronizza la lista libri con localStorage all'avvio
+  useEffect(() => {
+    bookList.set(LOCAL_BOOK_LIST.get());
+  }, []);
+
+  // Sincronizza tra tab tramite storage event
+  useEffect(() => {
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === LOCAL_BOOK_LIST.book_list_title) {
+        bookList.set(LOCAL_BOOK_LIST.get());
+      }
+    };
+    window.addEventListener("storage", handleStorage);
+    return () => window.removeEventListener("storage", handleStorage);
   }, []);
 
   // Valida un libro usando Valibot
@@ -233,6 +273,30 @@ function bookContextValue() {
     },
   };
 
+  // Funzioni per gestire la lista locale dei libri
+  const bookListManager = {
+    addBookToList(bookId: string): void {
+      bookList.set((prev) => {
+        if (prev.includes(bookId)) return prev;
+        const next = [...prev, bookId];
+        LOCAL_BOOK_LIST.set(next);
+        return next;
+      });
+    },
+
+    removeBookFromList(bookId: string): void {
+      bookList.set((prev) => {
+        const next = prev.filter((id) => id !== bookId);
+        LOCAL_BOOK_LIST.set(next);
+        return next;
+      });
+    },
+
+    isInBookList(bookId: string): boolean {
+      return bookList.get.includes(bookId);
+    },
+  };
+
   // Oggetto download
   const download = {
     _json_to_text: function (data: Book, isMarkdownFormat = false) {
@@ -344,6 +408,7 @@ function bookContextValue() {
     target,
     setTarget,
     verifyAccessCode,
+    ...bookListManager,
   };
 }
 
