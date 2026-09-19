@@ -5,15 +5,14 @@ import Navigation from "@/app/shareds/Navigation";
 import { Breadcrumb } from "@/app/shareds/Breadcrumb";
 import Frag from "@/app/shareds/Frag";
 import { Dropdown, DropdownContent, DropdownSummary } from "@/app/shareds/Dropdown";
-import { LoadingComponent } from "@/app/shareds/LoadingComponent";
 import { useMemo } from "react";
 import Link from "next/link";
-import { Book } from "@/app/schemas/book_schema";
 import Field from "@/app/shareds/Field";
 import { useAuthContext } from "@/app/data/AuthContext";
-import { useCommonPagesContext } from "@/app/data/CommonPagesContext";
+import { EditModeToggleButton, useCommonPagesContext } from "@/app/data/CommonPagesContext";
 import handleArrowKeyFocus from "@/app/tools/handleArrowKeyFocus";
 import InsertAuthCodesComponent from "@/app/shareds/InsertAuthCodesComponent";
+import Bottombar from "@/app/shareds/Bottombar";
 
 interface UseBookComponentProps { id: string }
 export default function StructureComponent(props: UseBookComponentProps) {
@@ -34,13 +33,19 @@ export default function StructureComponent(props: UseBookComponentProps) {
     !!page.isEditMode.get && !!book && !!authContext.CONTROLS.canWrite(book)
   , [book, authContext, page])
 
-  // feedback caricamento
-  if (!page.isPageLoaded.get || !bookContext.isBookLoaded.get || !authContext.isAuthLoaded.get) 
-    return <LoadingComponent />
   if (!!book && !canRead) return <InsertAuthCodesComponent targetId={props.id} />
   
   return <>
-    <Navigation page_title={book?.title ||""} back_btn={{ href:"/books" }} />    
+    <Navigation page_title={book?.title ||""} back_btn={{ href:"/books" }}>
+      {/* impostazioni del libro */}
+      <Frag if={canWrite}>
+        <Link href={`/books/${book?.id || ''}/settings`}
+              className="m-1 py-1 px-2 bg-indigo-900 rounded-full"
+              title="Vai alle impostazioni">
+          <i className="bi bi-three-dots-vertical"></i>
+        </Link>
+      </Frag>
+    </Navigation>
     
     <Breadcrumb routes={["Catalogo:/books", book?.title || "Libro", "Struttura"]} />
 
@@ -227,6 +232,14 @@ export default function StructureComponent(props: UseBookComponentProps) {
         </section>
       </Frag>
     </main>
-    
+
+    <Bottombar>
+      <Link href={"/auth"} className="circle bg-indigo-700" title="Mostra codici">
+        <i className="bi bi-person-vcard-fill"></i>
+      </Link>
+      <Frag if={canWrite}>
+        <EditModeToggleButton />
+      </Frag>
+    </Bottombar>    
   </>;
 }

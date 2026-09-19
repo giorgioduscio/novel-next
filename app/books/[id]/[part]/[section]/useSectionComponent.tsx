@@ -4,7 +4,7 @@ import { Book, Section, Paragraph, paragraph_schema, section_schema, Part } from
 import { useAgreeWrapper } from "@/app/shareds/Agree";
 import { useDotNotation } from "@/app/tools/reactCustomization";
 import { toast, ui_copy } from "@/app/tools/feedbacksUI";
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { safeParse } from "valibot";
 import { useKeyboardFeatures } from "./keyboardFeatures";
 import { useAuthContext } from "@/app/data/AuthContext";
@@ -38,8 +38,12 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
   const canWrite =useMemo(()=> 
     !!book.get 
     && !!authContext.CONTROLS.canWrite(book.get) 
+  , [book.get?.id, authContext.allowedWriteIds.get])
+
+  const section_isEditMode =useMemo(()=> 
+    canWrite
     && page.isEditMode.get
-  , [book.get?.id, authContext.allowedWriteIds.get, page.isEditMode.get])
+  , [canWrite, page.isEditMode.get])
 
   // restituisce la sezione corrente in base al libro
   function getPart(bookObj = book.get) :Part | undefined {
@@ -262,10 +266,6 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
       }, [book.get, this.showParagraphs]);
     }
 
-    // Input di stile
-    styleInput = useDotNotation({ index: -1, isVisible: false });
-
-
     // Aggiorna un paragrafo e salva
     update(index: number, key: keyof Paragraph, value: string | boolean, safe = true) {
       const clone = structuredClone(book.get!);
@@ -324,8 +324,9 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
     }
 
     // Gestisce funzionalità speciali (es. Enter, Tab)
-    handleKey(e: React.KeyboardEvent<HTMLTextAreaElement>, index:number, key: keyof Paragraph, paragraph: Paragraph) {
-      if (!book.get) return console.error("Libro non disponibile");
+    handleKey(e: React.KeyboardEvent<HTMLTextAreaElement>, index:number, key: keyof Paragraph, paragraph?: Paragraph) {
+      if (!book.get || !paragraph) return console.error("Libro non disponibile");
+      
       return handleKeyboardFeature(e, index, key, paragraph);
     }
 
@@ -351,17 +352,19 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
       return in_style + textColor;
     }
 
+    // Input di stile
+    styleInput = useDotNotation<{index:number, isVisible:boolean, target: Paragraph | undefined}>({ index: -1, isVisible: false, target:undefined });
     // Imposta l'input di stile
     setStyleInput(paragraph_i?: number) {
       if (!page.isEditMode.get) return;
 
       // RESET
       if (paragraph_i === undefined) {
-        this.styleInput.set(prev => ({
-          ...prev,
+        this.styleInput.set({
           isVisible: false,
           index: -1,
-        }));
+          target: undefined
+        });
         return;
       }
 
@@ -369,11 +372,11 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
       const target = SECTION.bookSection?.paragraphs?.[paragraph_i];
       if (!target) return console.error("Paragrafo non trovato");
 
-      this.styleInput.set(prev => ({
-        ...prev,
+      this.styleInput.set({
         isVisible: true,
         index: paragraph_i,
-      }));
+        target
+      });
     }
 
     // Chiude l'input di stile attraverso <main>
@@ -410,7 +413,7 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
 
     // Applica il focus sul testo del paragrafo
     handleFocusText(e: React.MouseEvent | React.FocusEvent) {
-      if (!authContext.CONTROLS.canWrite(book.get!))
+      if (!authContext.CONTROLS.canRead(book.get!))
         return console.error("Permesso negato");
 
       // Seleziona textarea del testo del paragrafo
@@ -941,7 +944,7 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
 
       setTimeout(() => {
         input?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        if(canWrite) input?.focus();
+        if(section_isEditMode) input?.focus();
       }, 100);
     }
   };
@@ -998,7 +1001,7 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
     PARAG,
     AUTOCOMPLETE,
     FIND_REPLACE: new FIND_REPLACE(),
-    canRead, canWrite,
+    canRead, canWrite, section_isEditMode,
 
     HISTORY: new HISTORY(),
     MARCKERS: new MARCKERS(),

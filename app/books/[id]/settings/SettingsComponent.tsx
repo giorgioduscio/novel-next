@@ -2,7 +2,6 @@
 
 import { Breadcrumb } from "@/app/shareds/Breadcrumb";
 import Frag from "@/app/shareds/Frag";
-import { LoadingComponent } from "@/app/shareds/LoadingComponent";
 import React, { useMemo } from "react";
 import { Book } from "@/app/schemas/book_schema";
 import { useBookComponent } from "../useBookComponent";
@@ -19,6 +18,8 @@ import UnathorizeComponent from "@/app/shareds/UnathorizeComponent";
 import { generateSecureKey } from "@/app/data/BookContext";
 import { toast } from "@/app/tools/feedbacksUI";
 import { useDotNotation } from "@/app/tools/reactCustomization";
+import Bottombar from "@/app/shareds/Bottombar";
+import Link from "next/link";
 
 export const settings_component_label_class="px-3 text-black text-sm font-bold italic"
 export const settings_component_input_class="pb-2 px-3 text-black w-full"
@@ -173,15 +174,11 @@ export default function SettingsComponent(props: UseBookComponentProps) {
     await navigator.clipboard.writeText(link);
   }
 
-  // feedback caricamento
-  if (!page.isPageLoaded.get || !bookContext.isBookLoaded.get || !authContext.isAuthLoaded.get) 
-    return <LoadingComponent />;
-
   if (!canRead || !canWrite) return <UnathorizeComponent />
 
   return (
     <>
-      <Navigation page_title={book?.title ||""} back_btn={{ href:"/books" }} />    
+      <Navigation page_title={book?.title ||""} />    
 
       <Breadcrumb routes={["Catalogo:/books", `${book?.title}:/${book?.id}/structure`, "Impostazioni"]} />
 
@@ -359,6 +356,17 @@ export default function SettingsComponent(props: UseBookComponentProps) {
           </section>
         </Frag>
       </main>
+
+    <Bottombar>
+      <Link href={"/auth"} className="circle bg-indigo-700" title="Mostra codici">
+        <i className="bi bi-person-vcard-fill"></i>
+      </Link>
+      <Link href={`/books/${book?.id}/structure`} 
+            className="circle bg-orange-600" 
+            title="Torna al libro">
+        <i className="bi bi-book"></i>
+      </Link>
+    </Bottombar>
     </>
   );
 }

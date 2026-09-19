@@ -4,23 +4,17 @@ import Link from "next/link";
 import { Breadcrumb } from "../shareds/Breadcrumb";
 import Field from "../shareds/Field";
 import Frag from "../shareds/Frag";
-import { LoadingComponent } from "../shareds/LoadingComponent";
 import Navigation from "../shareds/Navigation";
 import { useBooksComponent } from "./useBooksComponent";
 import useSharedText from "../data/sharedText";
-import { useCommonPagesContext } from "../data/CommonPagesContext";
 import { useBookContext } from "../data/BookContext";
+import Bottombar from "../shareds/Bottombar";
 
 export default function BooksComponent() {
-  const page = useCommonPagesContext();
   const bookContext = useBookContext();
   const { books, filteredBooks, searchQuery, createVoidBook, isInList, removeFromList, addToList } = useBooksComponent();
   const { upload } = useSharedText();
 
-  // feedback per il caricamento
-  if (!page.isPageLoaded.get || !bookContext.isBookLoaded.get) {
-    return <LoadingComponent />;
-  }
 
   return (
     <>
@@ -161,6 +155,12 @@ export default function BooksComponent() {
           {/* LISTA LIBRI */}
         </section>
       </main>
+
+      <Bottombar>
+        <Link href={"/auth"} className="circle bg-indigo-700">
+          <i className="bi bi-person-vcard-fill"></i>
+        </Link>
+      </Bottombar>
     </>
   );
 }

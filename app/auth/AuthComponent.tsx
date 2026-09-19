@@ -9,6 +9,7 @@ import { useAuthContext } from "../data/AuthContext"
 import Link from "next/link"
 import { ui_copy } from "../tools/feedbacksUI"
 import ManySelect from "../shareds/ManySelect"
+import Bottombar from "../shareds/Bottombar"
 
 
 export default function AuthComponent() {
@@ -19,11 +20,7 @@ export default function AuthComponent() {
 
   return <>
     <Frag if={checkedTargets.get.length === 0}>
-      <Navigation page_title="Permessi" back_btn={{ href:'/' }}>
-        <Link href={"/books"} className="py-1 px-2 bg-orange-700 rounded">
-          Catalogo 
-        </Link>
-      </Navigation>
+      <Navigation page_title="Permessi"/>
     </Frag>
 
     {/* AZIONI MULTIPLE */}
@@ -163,5 +160,11 @@ export default function AuthComponent() {
         </ol>
       </section>
     </main>
+
+    <Bottombar>
+      <Link href={"/books"} className="circle bg-orange-700">
+        <i className="bi bi-book-fill"></i>
+      </Link>
+    </Bottombar>
   </>
 }

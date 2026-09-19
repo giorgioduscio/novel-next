@@ -12,8 +12,7 @@
   
 * [1] sectioncomponent layout per pc
 * [5] elementi angolati
-* [?] layout mobile
-  - fluidita input in fondo e tastiera digitale
+* sostituire firebase con alternative già sicure
 
 ## 🔄 In Progress (max 2-3)
 

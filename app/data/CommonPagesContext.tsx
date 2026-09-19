@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { generateContext, useDotNotation } from "../tools/reactCustomization";
 import { ui_addCopyFeedback } from "../tools/feedbacksUI";
 
@@ -67,4 +67,19 @@ function useCommonPagesContextLogic() {
   }
 
   return new Common()
+}
+
+export function EditModeToggleButton() {
+  const page = useCommonPagesContext();
+  const iem = page.isEditMode.get
+  return <>
+    <button onClick={page.toggleEditMode} 
+            className={`circle ${page.isEditMode.get ?"bg-orange-500":"bg-gray-700"}`}
+            title={iem ?"Abilita lettura" :"Abilita editing"}>
+      {page.isEditMode.get
+        ?<i className="bi bi-pen"></i>
+        :<i className="bi bi-eye-fill"></i>
+      }
+    </button>
+  </>
 }

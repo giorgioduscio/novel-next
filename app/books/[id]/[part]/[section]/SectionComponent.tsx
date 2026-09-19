@@ -3,15 +3,13 @@
 import "./Section.sass";
 import Field from "@/app/shareds/Field";
 import Frag from "@/app/shareds/Frag";
-import { LoadingComponent } from "@/app/shareds/LoadingComponent";
-import { Breadcrumb } from "@/app/shareds/Breadcrumb";
 import Navigation from "@/app/shareds/Navigation";
 import { useSectionComponent, UseSectionComponentProps } from "./useSectionComponent";
 import Link from "next/link";
 import InsertAuthCodesComponent from "@/app/shareds/InsertAuthCodesComponent";
 import React from "react";
-import { useBookContext } from "@/app/data/BookContext";
-import { useAuthContext } from "@/app/data/AuthContext";
+import { EditModeToggleButton } from "@/app/data/CommonPagesContext";
+import Bottombar from "@/app/shareds/Bottombar";
 
 interface AddParagraphButtonProps { handleCreate: Function; if: boolean; className?: string }
 function AddParagraphButton({ if: show, handleCreate, className = "" }: AddParagraphButtonProps) {
@@ -41,16 +39,13 @@ export default function SectionComponent(props: UseSectionComponentProps) {
     AUTOCOMPLETE,
     HISTORY,
     FIND_REPLACE,
-    canRead, canWrite,
+    canRead, canWrite, section_isEditMode,
     MARCKERS,
     NAVIGATION
   } = useSectionComponent(props); 
-  const bookContext = useBookContext()
-  const authContext = useAuthContext() // added authContext
     
-  // feedback caricamento
-  if (!page.isPageLoaded.get || !bookContext.isBookLoaded.get || !authContext.isAuthLoaded.get) 
-    return <LoadingComponent />;
+  const styleInput = PARAG.styleInput.get
+
   if (!!book.get && !canRead) return <InsertAuthCodesComponent targetId={book_id} />
 
   return (<>
@@ -61,7 +56,7 @@ export default function SectionComponent(props: UseSectionComponentProps) {
         <i className="bi bi-copy"></i>
         <span className="pl-2">Copia</span>
       </button>
-      <Frag if={canWrite}>
+      <Frag if={section_isEditMode}>
         <button onClick={SHARED.paste}
                 className="p-2 bg-green-900 text-sm truncate">
           <i className="bi bi-clipboard"></i>
@@ -71,23 +66,23 @@ export default function SectionComponent(props: UseSectionComponentProps) {
       <Link href={`/books/${book_id}/settings`}
             className="p-2 bg-indigo-900"
             title="Vai alle impostazioni">
-        <i className="bi bi-gear"></i>
+        <i className="bi bi-three-dots-vertical"></i>
       </Link>
     </Navigation>
 
 
     {/* BREADCRUMB */}
-    <Breadcrumb routes={["Catalogo:/books", `${book.get?.title}:/${book.get?.id}`, `${part?.title}:/structure`, SECTION.mainTitle.get]} />
+    {/* <Breadcrumb routes={["Catalogo:/books", `${book.get?.title}:/${book.get?.id}`, `${part?.title}:/structure", SECTION.mainTitle.get]} /> */}
 
 
     {/* STRUMENTI */}
-    <div className="sticky top-[calc(45px+env(safe-area-inset-top))] z-20 mx-auto w-fit max-w-[800px] print:hidden">
-      <div className="bg-indigo-900 rounded-b-lg overflow-hidden">
+    <div className="fixed top-[50px] left-0 right-0 z-20 mx-auto print:hidden" data-toptools>
+      <div className="mx-auto w-max bg-indigo-900 rounded-b-lg overflow-hidden">
         {/* UNDO / REDO / SEGNALIBRI / CERCA */} 
         <Frag if={!FIND_REPLACE.isVisible.get}>
           <div className="flex items-center">
             {/* UNDO */}
-            <Frag if={canWrite}>
+            <Frag if={section_isEditMode}>
               <button onClick={HISTORY.undo} 
                       className="px-3 py-2 bg-indigo-900" 
                       title="Annulla">
@@ -102,7 +97,7 @@ export default function SectionComponent(props: UseSectionComponentProps) {
               <span className="ms-1 hidden sm:inline">Segnalibri</span>
             </button>
             {/* stampa */}
-            <Frag if={!canWrite}>
+            <Frag if={!section_isEditMode}>
               <button onClick={() => SHARED.print()} 
                       className={`px-3 py-2 bg-blue-800 `}>
 
@@ -112,7 +107,7 @@ export default function SectionComponent(props: UseSectionComponentProps) {
               </button>
             </Frag>
             {/* CERCA */}
-            <Frag if={canWrite}>
+            <Frag if={section_isEditMode}>
               <button onClick={()=> FIND_REPLACE.isVisible.set(p=> !p)} 
                       className={`px-3 py-2 ${FIND_REPLACE.isVisible.get ?"bg-blue-800" :"bg-gray-800"}`}>
                 <i className="bi bi-search"></i> 
@@ -129,7 +124,7 @@ export default function SectionComponent(props: UseSectionComponentProps) {
         </Frag>
 
         {/* CERCA E SOSTITUISCI */}
-        <Frag if={canWrite && FIND_REPLACE.isVisible.get} className="p-1">
+        <Frag if={section_isEditMode && FIND_REPLACE.isVisible.get} className="p-1">
           {/* generali */}
           <div className="grid grid-cols-[1fr_auto] items-center">
             <h4 className="p-3 font-bold text-sm">
@@ -157,7 +152,7 @@ export default function SectionComponent(props: UseSectionComponentProps) {
                 hide_label
                 label="Cerca"
                 value={FIND_REPLACE.search.get.value}
-                disabled={!canWrite}
+                disabled={!section_isEditMode}
                 onInput={(e) => FIND_REPLACE.search.set(p=> ({ ...p, value: e.target.value }))}
                 error_message={""}
                 id={"find-search"}
@@ -193,7 +188,7 @@ export default function SectionComponent(props: UseSectionComponentProps) {
                 hide_label
                 label="Sostituisci"
                 value={FIND_REPLACE.replaceQuery.get}
-                disabled={!canWrite}
+                disabled={!section_isEditMode}
                 onInput={(e) => FIND_REPLACE.replaceQuery.set(e.target.value)}
                 error_message={""}
                 id={"find-replace"}
@@ -295,7 +290,7 @@ export default function SectionComponent(props: UseSectionComponentProps) {
                   hide_label
                   label="Titolo della sezione"
                   value={SECTION.mainTitle.get}
-                  disabled={!canWrite}
+                  disabled={!section_isEditMode}
                   asterisk
                   onInput={(_e) => SECTION.update("title", _e.target.value.trim())}
                   error_message={errors["section>section-title"]}
@@ -307,7 +302,7 @@ export default function SectionComponent(props: UseSectionComponentProps) {
               </div>
 
               <div className="mt-5 border-t border-gray-500 relative">
-                <Frag if={canWrite} className="absolute z-2">
+                <Frag if={section_isEditMode} className="absolute z-2">
                   <div className="py-1 flex flex-wrap gap-1 justify-around">
                     <b className="px-2 bg-blue-300 text-sm text-black outline rounded-full">Paragrafi: {SECTION.bookSection?.paragraphs?.length}</b>
                     <b className="px-2 bg-green-300 text-sm text-black outline rounded-full">Lettere: {SECTION.words}</b>
@@ -320,7 +315,7 @@ export default function SectionComponent(props: UseSectionComponentProps) {
                       id={"section-note"}
                       label="Nota della sezione"
                       value={SECTION.bookSection?.note || ""}
-                      disabled={!canWrite}
+                      disabled={!section_isEditMode}
                       type={"textarea"}
                       rows={4}
                       placeholder={"Visualizzato solo dagli scrittori. Inserire sintesi o modifiche da implementare"}
@@ -340,7 +335,7 @@ export default function SectionComponent(props: UseSectionComponentProps) {
                   <i className="me-1 bi bi-file-text"></i>
                   Nessun paragrafo
                 </div>
-                <Frag if={!!canWrite} className="flex justify-center">
+                <Frag if={!!section_isEditMode} className="flex justify-center">
                   <button onClick={() => PARAG.handleCreate()}
                           className="py-2 px-3 border rounded bg-blue-500/30 text-blue-300">
                     <i className="bi bi-plus-lg"></i>
@@ -357,7 +352,7 @@ export default function SectionComponent(props: UseSectionComponentProps) {
 
                     {/* PULSANTE INSERIMENTO */}
                     <AddParagraphButton
-                      if={canWrite && paragraph_i === 0}
+                      if={section_isEditMode && paragraph_i === 0}
                       className="top-0 -translate-y-1"
                       handleCreate={() => PARAG.handleCreate("top")}
                     />
@@ -365,13 +360,13 @@ export default function SectionComponent(props: UseSectionComponentProps) {
                     {/* TESTO PARAGRAFO */}
                     <div onClick={PARAG.handleFocusText}>
                       <div onClick={PARAG.handleFocusText} data-external-style className={`${(p as any).ex_style}`}>
-                        <div className={canWrite && PARAG.styleInput.get.index === paragraph_i ? 'outline-3 outline-dashed outline-black' : ''}>
-                          <div onClick={PARAG.handleFocusText} className={`${canWrite && PARAG.styleInput.get.index === paragraph_i ? 'outline-3 outline-white' : ''}`}>
+                        <div className={section_isEditMode && PARAG.styleInput.get.index === paragraph_i ? 'outline-3 outline-dashed outline-black' : ''}>
+                          <div onClick={PARAG.handleFocusText} className={`${section_isEditMode && PARAG.styleInput.get.index === paragraph_i ? 'outline-3 outline-white' : ''}`}>
                             <Field
                               input_class={`text-center ${PARAG.parseStyle(p) || ""}`}
                               placeholder="Testo del paragrafo"
                               value={p.text}
-                              readOnly={!canWrite}
+                              readOnly={!section_isEditMode}
                               hide_label
                               label="Descrivi la scena"
                               asterisk
@@ -387,72 +382,12 @@ export default function SectionComponent(props: UseSectionComponentProps) {
                         </div>
                       </div>
 
-                      {/* STILE PARAGRAFO */}
-                      <Frag if={canWrite && PARAG.styleInput.get.index === paragraph_i} className="mx-8 relative">
-                        <div className='absolute top-0 z-2 w-full' data-dropdown>
-                          <div className="p-1 bg-white text-black outline rounded">
-                            {/* CONSIGLIATI */}
-                            <Frag if={!!AUTOCOMPLETE.suggestions.length}> 
-                              <div id="suggestionButtons" className="flex flex-wrap items-center gap-1">
-                                {AUTOCOMPLETE.suggestions.map((className, _i) => (
-                                  <button key={_i}
-                                          onClick={_e=> AUTOCOMPLETE.insertClass(paragraph_i, className)}
-                                          className={`px-2 flex-auto rounded text-sm outline font-bold ${className.includes(" ") ?"bg-red-300" :"bg-blue-300"}`}
-                                          aria-label={`Applica stile: ${className}`}>
-
-                                    <Frag if={!_i}>
-                                      <i className="px-1 me-1 bi bi-arrow-down bg-black/60 text-white rounded"></i>
-                                    </Frag>
-                                    
-                                    {className}
-                                  </button>
-                                ))}
-                              </div>
-                            </Frag>
-
-                            <div className="pt-1 grid gap-1 grid-cols-[auto_1fr] items-start">
-                              {/* ICONA PALETTE */}
-                              {p.in_style
-                                ?<button onClick={_=> PARAG.update(paragraph_i, "in_style", "")}
-                                        className="p-1 text-red-700 rounded-lg relative outline"
-                                        aria-label="Resetta stile">
-                                  <i className="bi bi-x-lg absolute top-1 start-1"></i>
-                                  <i className="bi bi-palette"></i>
-                                </button>
-                                :<label htmlFor={paragraph_i + ">in_style"}
-                                        className="p-1 bi bi-palette-fill"
-                                        aria-label="Seleziona stile"></label>
-                              }
-                              {/* INPUT STILE */}
-                              <div>
-                                <Field
-                                  input_class="p-1"
-                                  placeholder="Stile tailwind del paragrafo"
-                                  value={p.in_style || ''}
-                                  disabled={!canWrite}
-                                  hide_label
-                                  label="Stile tailwind del paragrafo"
-                                  asterisk
-                                  type="textarea"
-                                  id={paragraph_i + ">in_style"}
-                                  error_message={errors[`${paragraph_i}>in_style`]}
-                                  onChange={(_e) =>     PARAG.update(paragraph_i, "in_style", _e.target.value.toLowerCase())}
-                                  onFocus={(_e:any) =>  PARAG.setStyleInput(paragraph_i) }
-                                  onKeyDown={(_e: any)=>PARAG.handleKey(_e, paragraph_i, "in_style", p)}
-                                  onKeyUp={(_e: any)=>  AUTOCOMPLETE.inputValue.set(_e.target.value.toLowerCase().trim())                                  }
-                                />
-                              </div>
-
-                            </div>
-                          </div>
-                        </div>
-                      </Frag>
                     </div>
 
                     {/* RIMUOVI PARAGRAFO / SEGNALIBRO */}
                     <div className="absolute top-0 end-0 z-2">
                       <div className="rounded overflow-hidden shadow-lg hover:bg-gray-600">
-                        <Frag if={canWrite}>
+                        <Frag if={section_isEditMode}>
                           {/* rimuovi */}
                           <button type="button" 
                                   title="rimuovi paragrafo"
@@ -470,17 +405,17 @@ export default function SectionComponent(props: UseSectionComponentProps) {
                         </Frag>
 
                         {/* pulsante segnalibro */}
-                        <Frag if={canWrite==true || p.isMarcked===true }>
+                        <Frag if={section_isEditMode==true || p.isMarcked===true }>
                           <button type="button" 
                                   title={`${p.isMarcked ?"Rimuovi" :"Imposta"} segnalibro`}
                                   onClick={() => PARAG.update(paragraph_i,"isMarcked", !p.isMarcked)}
-                                  disabled={!canWrite}
-                                  className={`px-2 py-1 text-green-300 ${canWrite ?'bg-gray-600/50' :''}`}>
+                                  disabled={!section_isEditMode}
+                                  className={`px-2 py-1 text-green-300 ${section_isEditMode ?'bg-gray-600/50' :''}`}>
                             
                             <Frag if={p.isMarcked===true}>
                               <i className="bi bi-bookmark-fill" />
                             </Frag>
-                            <Frag if={canWrite && p.isMarcked===false}>
+                            <Frag if={section_isEditMode && p.isMarcked===false}>
                               <i className="bi bi-bookmark" />
                             </Frag>
                           </button>
@@ -491,7 +426,7 @@ export default function SectionComponent(props: UseSectionComponentProps) {
 
                     {/* PULSANTE INSERIMENTO */}
                     <AddParagraphButton
-                      if={canWrite}
+                      if={section_isEditMode}
                       className="bottom-0"
                       handleCreate={() => PARAG.handleCreate(paragraph_i)}
                     />
@@ -529,5 +464,75 @@ export default function SectionComponent(props: UseSectionComponentProps) {
 
       </div>
     </main>
+
+
+    <Bottombar>
+      {/* INPUT STILE NELLA BOTTOMBAR */}
+      <Frag if={section_isEditMode && styleInput.isVisible && !!styleInput.target}>
+        <div className="flex-1 bg-white text-black outline rounded p-2">
+          {/* CONSIGLIATI */}
+          <Frag if={!!AUTOCOMPLETE.suggestions.length}> 
+            <div id="suggestionButtons" className="flex flex-wrap items-center gap-1 mb-2">
+              {AUTOCOMPLETE.suggestions.map((className, _i) => (
+                <button key={_i}
+                        onClick={_e=> AUTOCOMPLETE.insertClass(styleInput.index, className)}
+                        className={`px-2 flex-auto rounded text-sm outline font-bold ${className.includes(" ") ?"bg-red-300" :"bg-blue-300"}`}
+                        aria-label={`Applica stile: ${className}`}>
+                  <Frag if={!_i}>
+                    <i className="px-1 me-1 bi bi-arrow-down bg-black/60 text-white rounded"></i>
+                  </Frag>
+                  {className}
+                </button>
+              ))}
+            </div>
+          </Frag>
+          <div className="grid gap-1 grid-cols-[auto_1fr] items-start">
+            {/* ICONA PALETTE */}
+            {styleInput.target?.in_style
+              ?<button onClick={_=> PARAG.update(styleInput.index, "in_style", "")}
+                      className="p-1 text-red-700 rounded-lg relative outline"
+                      aria-label="Resetta stile">
+                <i className="bi bi-x-lg absolute top-1 start-1"></i>
+                <i className="bi bi-palette"></i>
+              </button>
+              :<label htmlFor={styleInput.index + ">in_style"}
+                      className="p-1 bi bi-palette-fill"
+                      aria-label="Seleziona stile"></label>
+            }
+            {/* INPUT STILE */}
+            <div>
+              <Field
+                input_class="p-1"
+                placeholder="Stile tailwind del paragrafo"
+                value={styleInput.target?.in_style || ''}
+                disabled={!section_isEditMode}
+                hide_label
+                label="Stile tailwind del paragrafo"
+                asterisk
+                type="textarea"
+                id={styleInput.index + ">in_style"}
+                error_message={errors[`${styleInput.index}>in_style`]}
+                onChange={(_e) => PARAG.update(styleInput.index, "in_style", _e.target.value.toLowerCase())}
+                onFocus={(_e:any) => PARAG.setStyleInput(styleInput.index)}
+                onKeyDown={(_e: any) => PARAG.handleKey(_e, styleInput.index, "in_style", styleInput.target)}
+                onKeyUp={(_e: any) => AUTOCOMPLETE.inputValue.set(_e.target.value.toLowerCase().trim())}
+              />
+            </div>
+          </div>
+        </div>
+      </Frag>
+
+      {/* Codici: nascondi, quando c'è lo stile */}
+      <Frag if={!PARAG.styleInput.get.isVisible}>
+        <Link href={"/auth"} className="circle bg-indigo-700" title="Mostra codici">
+          <i className="bi bi-person-vcard-fill"></i>
+        </Link>
+      </Frag>
+
+      {/* editmode */}
+      <Frag if={canWrite}>
+        <EditModeToggleButton />
+      </Frag>
+    </Bottombar>       
   </>);
 }

@@ -4,9 +4,35 @@ html
   scroll-behavior: smooth
   scroll-padding-top: calc(3.5rem + env(safe-area-inset-top))
   scroll-padding-bottom: calc(4rem + env(safe-area-inset-bottom))
+  scrollbar-width: thin
+  scrollbar-color: rgba(156, 163, 175, 0.5) transparent
 
 body
   min-height: 100dvh
+
+// Scrollbar moderne
+::-webkit-scrollbar
+  width: 8px
+  height: 8px
+
+::-webkit-scrollbar-track
+  background: transparent
+
+::-webkit-scrollbar-thumb
+  background: rgba(156, 163, 175, 0.5)
+  border-radius: 4px
+
+  &:hover
+    background: rgba(156, 163, 175, 0.8)
+
+@media print
+    // nasconde le barre di scroll durante la stampa
+    html, body
+        overflow: hidden !important
+        scrollbar-width: none !important
+    
+    ::-webkit-scrollbar
+        display: none !important
 
 button, a
     &:not(:disabled)
