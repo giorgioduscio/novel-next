@@ -270,7 +270,7 @@ export default function SectionComponent(props: UseSectionComponentProps) {
     <main id="SectionComponent" onClick={PARAG.closeTemplateInputStyle}>
       <div className="mx-auto container max-w-[400px]">
 
-        <section className="mb-50 min-h-dvh flex-1">
+        <section className="min-h-dvh flex-1">
           {/* SEZIONE NON TROVATA */}
           <Frag if={!SECTION.bookSection}>
             <div className="py-10 text-center text-red-500">
@@ -363,7 +363,7 @@ export default function SectionComponent(props: UseSectionComponentProps) {
                         <div className={section_isEditMode && PARAG.styleInput.get.index === paragraph_i ? 'outline-3 outline-dashed outline-black' : ''}>
                           <div onClick={PARAG.handleFocusText} className={`${section_isEditMode && PARAG.styleInput.get.index === paragraph_i ? 'outline-3 outline-white' : ''}`}>
                             <Field
-                              input_class={`text-center ${PARAG.parseStyle(p) || ""}`}
+                              input_class={`text-center ${p.scripted_style || ""} ${PARAG.parseStyle(p) || ""}`}
                               placeholder="Testo del paragrafo"
                               value={p.text}
                               readOnly={!section_isEditMode}
@@ -436,7 +436,7 @@ export default function SectionComponent(props: UseSectionComponentProps) {
             </Frag>
 
             {/* NAVIGAZIONE SEZIONI (PRECEDENTE / SUCCESSIVA) */}
-            <div className="mt-8 p-3 grid grid-cols-2 gap-3 text-sm print:hidden">
+            <Frag if={!!NAVIGATION.prevSection || !!NAVIGATION.nextSection} className="mt-8 p-3 grid grid-cols-2 gap-3 text-sm print:hidden">
               {[NAVIGATION.prevSection, NAVIGATION.nextSection].map((_sec,i)=><React.Fragment key={i}>
                 {_sec ?(
                   <Link href={`/books/${book_id}/${_sec.part_id}/${_sec.section_id}`}
@@ -457,7 +457,7 @@ export default function SectionComponent(props: UseSectionComponentProps) {
 
                 ) : <div /> }
               </React.Fragment> )}
-            </div>
+            </Frag>
 
           </Frag>
         </section>
@@ -469,23 +469,18 @@ export default function SectionComponent(props: UseSectionComponentProps) {
     <Bottombar>
       {/* INPUT STILE NELLA BOTTOMBAR */}
       <Frag if={section_isEditMode && styleInput.isVisible && !!styleInput.target}>
-        <div className="flex-1 bg-white text-black outline rounded p-2">
+        <div className="w-[75vw] max-w-[400px] p-1 bg-white text-black outline rounded">
           {/* CONSIGLIATI */}
-          <Frag if={!!AUTOCOMPLETE.suggestions.length}> 
-            <div id="suggestionButtons" className="flex flex-wrap items-center gap-1 mb-2">
-              {AUTOCOMPLETE.suggestions.map((className, _i) => (
-                <button key={_i}
-                        onClick={_e=> AUTOCOMPLETE.insertClass(styleInput.index, className)}
-                        className={`px-2 flex-auto rounded text-sm outline font-bold ${className.includes(" ") ?"bg-red-300" :"bg-blue-300"}`}
-                        aria-label={`Applica stile: ${className}`}>
-                  <Frag if={!_i}>
-                    <i className="px-1 me-1 bi bi-arrow-down bg-black/60 text-white rounded"></i>
-                  </Frag>
-                  {className}
-                </button>
-              ))}
-            </div>
-          </Frag>
+          <div className="pb-2 flex justify-between align-center">
+            {AUTOCOMPLETE.actualGroups?.map(_group=>(
+              <button className="flex-1 px-2 bg-gray-300" key={_group.title}
+                      title={_group?.title}
+                      onClick={(e)=>AUTOCOMPLETE.toggleGroup(_group.key)}>
+                <i className={`bi ${_group?.icon}`} />
+              </button>
+            ))}
+          </div>
+          
           <div className="grid gap-1 grid-cols-[auto_1fr] items-start">
             {/* ICONA PALETTE */}
             {styleInput.target?.in_style
@@ -504,7 +499,10 @@ export default function SectionComponent(props: UseSectionComponentProps) {
               <Field
                 input_class="p-1"
                 placeholder="Stile tailwind del paragrafo"
-                value={styleInput.target?.in_style || ''}
+                value={styleInput.target?.ex_style 
+                  ? `${styleInput.target.in_style} ,, ${styleInput.target.ex_style}` 
+                  : (styleInput.target?.in_style || '')
+                }
                 disabled={!section_isEditMode}
                 hide_label
                 label="Stile tailwind del paragrafo"

@@ -128,6 +128,8 @@ export default function useSharedText() {
         newSection?.paragraphs?.push({
           id: bookContext.createId(),
           in_style: p.startsWith("* ") ? "dialogo sinistra" : "",
+          ex_style: "",
+          scripted_style: "",
           text: p.replace("* ", ""),
           isMarcked: false,
         });
@@ -370,11 +372,17 @@ export default function useSharedText() {
           toast.danger("Parte non valida");
           return null;
         }
-        // Assicura che tutti i paragrafi abbiano isMarcked
+        // Assicura che tutti i paragrafi abbiano isMarcked, ex_style e scripted_style
         newPart.sections.forEach(section => {
           section.paragraphs?.forEach(p => {
             if (p.isMarcked === undefined) {
               p.isMarcked = false;
+            }
+            if (p.ex_style === undefined) {
+              p.ex_style = "";
+            }
+            if (p.scripted_style === undefined) {
+              p.scripted_style = "";
             }
           });
         });
@@ -418,10 +426,16 @@ export default function useSharedText() {
           toast.danger("Sezione non valida");
           return null;
         }
-        // Assicura che tutti i paragrafi abbiano isMarcked
+        // Assicura che tutti i paragrafi abbiano isMarcked, ex_style e scripted_style
         newSection.paragraphs.forEach(p => {
           if (p.isMarcked === undefined) {
             p.isMarcked = false;
+          }
+          if (p.ex_style === undefined) {
+            p.ex_style = "";
+          }
+          if (p.scripted_style === undefined) {
+            p.scripted_style = "";
           }
         });
         toast.success("Sezione incollata con successo!");

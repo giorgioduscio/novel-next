@@ -111,6 +111,39 @@ function bookContextValue() {
   // Valida un libro usando Valibot
   function validateBook(book: unknown): Book | null {
     try {
+      // Migrazione automatica per paragrafi senza ex_style e scripted_style
+      if (book && typeof book === "object") {
+        const bookObj = book as any;
+        if (bookObj.parts) {
+          bookObj.parts.forEach((part: any) => {
+            if (part.sections) {
+              part.sections.forEach((section: any) => {
+                if (section.paragraphs) {
+                  section.paragraphs.forEach((paragraph: any) => {
+                    // Se in_style non esiste, inizializzalo
+                    if (paragraph.in_style === undefined) {
+                      paragraph.in_style = "";
+                    }
+                    // Se ex_style non esiste, inizializzalo
+                    if (paragraph.ex_style === undefined) {
+                      paragraph.ex_style = "";
+                    }
+                    // Se scripted_style non esiste, inizializzalo
+                    if (paragraph.scripted_style === undefined) {
+                      paragraph.scripted_style = "";
+                    }
+                    // Se isMarcked non esiste, inizializzalo
+                    if (paragraph.isMarcked === undefined) {
+                      paragraph.isMarcked = false;
+                    }
+                  });
+                }
+              });
+            }
+          });
+        }
+      }
+
       const result = v.safeParse(book_schema, book);
       if (!result.success) {
         console.error("Validation error:", result.issues);

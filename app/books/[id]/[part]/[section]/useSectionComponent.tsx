@@ -4,12 +4,14 @@ import { Book, Section, Paragraph, paragraph_schema, section_schema, Part } from
 import { useAgreeWrapper } from "@/app/shareds/Agree";
 import { useDotNotation } from "@/app/tools/reactCustomization";
 import { toast, ui_copy } from "@/app/tools/feedbacksUI";
-import { useEffect, useMemo, useRef } from "react";
+import React, { useEffect, useMemo, useRef } from "react";
 import { safeParse } from "valibot";
 import { useKeyboardFeatures } from "./keyboardFeatures";
 import { useAuthContext } from "@/app/data/AuthContext";
 import useSharedText from "@/app/data/sharedText";
 import { toPng } from 'html-to-image';
+import { join } from "node:path";
+import { GROUPS, TailwindGroup } from "./TailwindClassGroups";
 
 export interface UseSectionComponentProps {
   book_id: string;
@@ -82,17 +84,14 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
       const result = getSection();
       if (!result) return undefined;
       if (!result.paragraphs) result.paragraphs = [];
-      
-      // recupera solo le classi che cominciano per 'ex:'
+
+      // inizializza isMarcked se non esiste
       for (const paragraph of result.paragraphs){
-        const [in_, ex_] = paragraph.in_style.split(",,");
-        (paragraph as any).ex_style = ex_ || "";
-        // inizializza isMarcked se non esiste
         if (paragraph.isMarcked === undefined) {
           paragraph.isMarcked = false;
         }
       }
-      
+
       return result;
     }, [book.get, part_id, section_id, this.mainTitle]);
 
@@ -277,7 +276,15 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
         console.error("Tipo non valido");
         return;
       }
-      (sec.paragraphs as any)[index][key] = value;
+
+      // Gestione speciale per in_style con separatore ",,"
+      if (key === "in_style" && typeof value === "string" && value.includes(",,")) {
+        const [inPart, exPart] = value.split(",,");
+        (sec.paragraphs as any)[index].in_style = inPart || "";
+        (sec.paragraphs as any)[index].ex_style = exPart || "";
+      } else {
+        (sec.paragraphs as any)[index][key] = value;
+      }
 
       book.set(clone);
 
@@ -298,6 +305,8 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
       const newParagraph: Paragraph = {
         id: bookContext.createId(),
         in_style: "",
+        ex_style: "",
+        scripted_style: "text-center margini-standard",
         text: paragraphText || "",
         isMarcked: false
       };
@@ -326,14 +335,13 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
     // Gestisce funzionalità speciali (es. Enter, Tab)
     handleKey(e: React.KeyboardEvent<HTMLTextAreaElement>, index:number, key: keyof Paragraph, paragraph?: Paragraph) {
       if (!book.get || !paragraph) return console.error("Libro non disponibile");
-      
+
       return handleKeyboardFeature(e, index, key, paragraph);
     }
 
     // Imposta il colore appropriato del testo
     parseStyle(paragraph: Paragraph): string {
-      // Estrai solo la parte prima di ',,' per lo stile principale
-      const [in_style] = paragraph.in_style.split(",,");
+      const in_style = paragraph.in_style;
 
       // Sfondo bianco
       if (in_style?.includes("bg-white")) {
@@ -353,7 +361,12 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
     }
 
     // Input di stile
-    styleInput = useDotNotation<{index:number, isVisible:boolean, target: Paragraph | undefined}>({ index: -1, isVisible: false, target:undefined });
+    styleInput = useDotNotation<{
+      index:number,
+      isVisible:boolean,
+      target?: Paragraph,
+    }>({ index: -1, isVisible: false });
+
     // Imposta l'input di stile
     setStyleInput(paragraph_i?: number) {
       if (!page.isEditMode.get) return;
@@ -363,13 +376,13 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
         this.styleInput.set({
           isVisible: false,
           index: -1,
-          target: undefined
         });
         return;
       }
 
-      // Cerca paragrafo
-      const target = SECTION.bookSection?.paragraphs?.[paragraph_i];
+      // Cerca paragrafo direttamente da book.get per avere sempre i dati più recenti
+      const section = getSection(book.get);
+      const target = section?.paragraphs?.[paragraph_i];
       if (!target) return console.error("Paragrafo non trovato");
 
       this.styleInput.set({
@@ -437,7 +450,7 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
         targetTextarea?.focus();
       }, 200);
     }
-  }  
+  }
   const PARAG =new Parag()
 
   // 4) aggiunge dinamicamente glierrori dei paragrafi non validi
@@ -553,13 +566,89 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
       PARAG.update(index, "in_style", update);
       this.inputValue.set(update) // risulta un cambiamento anche in AUTOCOMPLETE
     }
+
+    
+    actualGroups = useMemo(()=>{
+      const input = PARAG.styleInput.get;
+      if(!input.isVisible) return null;
+
+      const section = getSection(book.get);
+      const paragraph = section?.paragraphs?.[input.index];
+      const style = paragraph?.scripted_style || '';
+
+      const matches :(TailwindGroup & {key:string})[] =[]
+      for(const groupKey in GROUPS){
+        const matchIndex = GROUPS[groupKey].findIndex(_g=> {
+          // Se il valore è vuoto, matcha solo se nessun altro valore del gruppo è presente
+          if (_g.value === '') {
+            return !GROUPS[groupKey].some(g => 
+              g.value !== '' && style.includes(g.value)
+            );
+          }
+          // Altrimenti controlla se il valore è incluso nello style
+          return style.includes(_g.value);
+        });
+        if(matchIndex<0) return console.warn(`${groupKey}: nessun elemento`);
+        
+        matches.push({...GROUPS[groupKey][matchIndex], key: groupKey});
+      }
+      return matches
+    }, [book.get, PARAG.styleInput.get.index, SECTION.bookSection])
+    
+    
+    toggleGroup(groupKey:string){
+      // input col focus
+      const input = PARAG.styleInput.get;
+
+      // Legge direttamente dal libro per avere dati freschi
+      const section = getSection(book.get);
+      const paragraph = section?.paragraphs?.[input.index];
+      let resultStyle = paragraph?.scripted_style || '';
+
+      // Trova l'indice attuale: cerca il valore più specifico (con più classi) che matcha
+      const matches = GROUPS[groupKey]
+        .map((g, i) => ({ ...g, index: i }))
+        .filter(g => {
+          if (g.value === '') {
+            return !GROUPS[groupKey].some(h =>
+              h.value !== '' && resultStyle.includes(h.value)
+            );
+          }
+          return resultStyle.includes(g.value);
+        })
+        .sort((a, b) => b.value.split(' ').length - a.value.split(' ').length); // Ordina per numero di classi (decrescente)
+
+      const current_index = matches[0]?.index ?? 0;
+      const current_group = GROUPS[groupKey][current_index];
+
+      // prossimo gruppo di classi
+      const next_index = (current_index === GROUPS[groupKey].length-1) ?0 :current_index +1;
+      const next_group = GROUPS[groupKey][next_index];
+      if(!next_group) return console.error("nextGroup non disponibile");
+
+      // Rimuove tutte le classi che appartengono al valore corrente del gruppo
+      if (current_group.value !== '') {
+        const currentClasses = current_group.value.split(' ');
+        resultStyle = resultStyle.split(' ')
+          .filter((cls: string) => !currentClasses.includes(cls))
+          .join(' ')
+          .trim();
+      }
+      resultStyle = `${resultStyle} ${next_group.value}`.trim();
+
+      // Aggiorna il target per renderlo reattivo
+      console.log(`○ ${resultStyle}`);
+      PARAG.update(PARAG.styleInput.get.index, "scripted_style", resultStyle.trim())
+      PARAG.setStyleInput(PARAG.styleInput.get.index);
+
+    }
   }
   const AUTOCOMPLETE = new AutocompleteFeatures()
 
 
 
   // 5.5) KEYBOARD FEATURES
-  const handleKeyboardFeature = useKeyboardFeatures(getSection, { book, SECTION, PARAG, AUTOCOMPLETE });
+  const handleKeyboardFeature = useKeyboardFeatures(getSection, { book, SECTION, PARAG });
 
   // 7) CERCA E SOSTITUISCI 
   // Tipo per le occorrenze trovate

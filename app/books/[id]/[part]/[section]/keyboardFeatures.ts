@@ -5,9 +5,9 @@ import { useCallback } from "react";
 
 type Main = ReturnType<typeof useSectionComponent>;
 
-export function useKeyboardFeatures(getSection: Function, dependencies: Pick<Main, 'book' | 'SECTION' | 'PARAG' | 'AUTOCOMPLETE'>) {
+export function useKeyboardFeatures(getSection: Function, dependencies: Pick<Main, 'book' | 'SECTION' | 'PARAG'>) {
   const bookContext = useBookContext();
-  const { book, SECTION, PARAG, AUTOCOMPLETE } = dependencies;
+  const { book, SECTION, PARAG } = dependencies;
 
   // CHANGEFOCUS helper per cambiare il focus
   function _changeFocus(direction: "up" | "down" | "this", from: "|__" | "__|" | number, index:number, key: keyof Paragraph ="text") {  
@@ -57,25 +57,13 @@ export function useKeyboardFeatures(getSection: Function, dependencies: Pick<Mai
       [
         key === "in_style" && ["Enter","ArrowUp"].includes(e.key),
         function enterStyle(){
-          e.preventDefault(); 
+          e.preventDefault();
 
           PARAG.update(index, key, value.toLowerCase())
 
           if(e.key==="ArrowUp"){
-            _changeFocus("this", "__|", index)  
-          } 
-        }
-      ],
-      [
-        e.key==="ArrowDown" && key === "in_style"
-        && textarea.selectionEnd === textarea.value.length,
-        function autocompleteStyle(){
-          e.preventDefault();
-
-          const suggestion = AUTOCOMPLETE.suggestions;
-          if(!suggestion.length) return console.error("Suggerimenti non trovati");
-                    
-          AUTOCOMPLETE.insertClass(index, suggestion[0]);
+            _changeFocus("this", "__|", index)
+          }
         }
       ],
       [
@@ -108,12 +96,15 @@ export function useKeyboardFeatures(getSection: Function, dependencies: Pick<Mai
             const text_after = value.substring(end);
 
             // Aggiorna il testo corrente
-            sec.paragraphs[index].text = text_before; 
+            sec.paragraphs[index].text = text_before;
             // inserisce il nuovo paragrafo dopo quello corrente
-            sec.paragraphs.splice(index + 1, 0, { 
+            sec.paragraphs.splice(index + 1, 0, {
               id: bookContext.createId(),
-              text: text_after, 
-              in_style: sec.paragraphs[index].in_style || "", 
+              text: text_after,
+              in_style: sec.paragraphs[index].in_style || "",
+              ex_style: sec.paragraphs[index].ex_style || "",
+              scripted_style: sec.paragraphs[index].scripted_style || "",
+              isMarcked: false,
             } as Paragraph);
             
             book.set(updatedBook); // Aggiorna lo stato

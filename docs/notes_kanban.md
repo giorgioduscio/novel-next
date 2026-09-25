@@ -10,7 +10,8 @@
 # Kanban - Novel Writer (Next.js)
 ## 📌 To Do 
   
-* [1] sectioncomponent layout per pc
+
+* [5] sectioncomponent layout per pc
 * [5] elementi angolati
 * sostituire firebase con alternative già sicure
 
@@ -60,3 +61,4 @@
   - libri privati: serve un'autorizzazione per effettuare un'operazione 
   - eliminazione libro: se esiste un codice di scrittura, lo richiede pure per l'eliminazione
 * BooksComponent.tsx gestisce una lista locale di libri 
+* SectionComponent: implementare seletori per l'inserimento dello stile del paragrafo

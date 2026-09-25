@@ -198,6 +198,10 @@ export const paragraph_schema = v.object({
   in_style: v.pipe(v.string(), 
     v.check((v) => validateStyle(v), "in_style: Solo stili standard o ornamentali")
   ),
+  ex_style: v.pipe(v.string(), 
+    v.check((v) => validateStyle(v), "ex_style: Solo stili standard o ornamentali")
+  ),
+  scripted_style: v.string(),
   text: v.string(),
   isMarcked: v.boolean(),
 });
