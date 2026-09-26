@@ -5,7 +5,7 @@ export interface TailwindGroup {
     value:string 
 }
 
-export const GROUPS :Record<string, TailwindGroup[]> ={
+export const GROUPS_DATAS :Record<string, TailwindGroup[]> ={
     JUSTIFY :[
         {
             title:"Texto a sinistra",

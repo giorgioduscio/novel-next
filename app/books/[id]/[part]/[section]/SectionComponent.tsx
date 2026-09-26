@@ -33,10 +33,10 @@ export default function SectionComponent(props: UseSectionComponentProps) {
     book, part,
     book_id,  section_id,  page,
     SECTION,
-    SHARED,  
-    PARAG, 
+    SHARED,
+    PARAG,
     errors,
-    AUTOCOMPLETE,
+    GROUPS,
     HISTORY,
     FIND_REPLACE,
     canRead, canWrite, section_isEditMode,
@@ -472,10 +472,10 @@ export default function SectionComponent(props: UseSectionComponentProps) {
         <div className="w-[75vw] max-w-[400px] p-1 bg-white text-black outline rounded">
           {/* CONSIGLIATI */}
           <div className="pb-2 flex justify-between align-center">
-            {AUTOCOMPLETE.actualGroups?.map(_group=>(
+            {GROUPS.actualGroups?.map(_group=>(
               <button className="flex-1 px-2 bg-gray-300" key={_group.title}
                       title={_group?.title}
-                      onClick={(e)=>AUTOCOMPLETE.toggleGroup(_group.key)}>
+                      onClick={(e)=>GROUPS.toggleGroup(_group.key)}>
                 <i className={`bi ${_group?.icon}`} />
               </button>
             ))}
@@ -513,7 +513,6 @@ export default function SectionComponent(props: UseSectionComponentProps) {
                 onChange={(_e) => PARAG.update(styleInput.index, "in_style", _e.target.value.toLowerCase())}
                 onFocus={(_e:any) => PARAG.setStyleInput(styleInput.index)}
                 onKeyDown={(_e: any) => PARAG.handleKey(_e, styleInput.index, "in_style", styleInput.target)}
-                onKeyUp={(_e: any) => AUTOCOMPLETE.inputValue.set(_e.target.value.toLowerCase().trim())}
               />
             </div>
           </div>

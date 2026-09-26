@@ -11,7 +11,7 @@ import { useAuthContext } from "@/app/data/AuthContext";
 import useSharedText from "@/app/data/sharedText";
 import { toPng } from 'html-to-image';
 import { join } from "node:path";
-import { GROUPS, TailwindGroup } from "./TailwindClassGroups";
+import { GROUPS_DATAS, TailwindGroup } from "./TailwindClassGroups";
 
 export interface UseSectionComponentProps {
   book_id: string;
@@ -480,94 +480,13 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
     return result;
   }, [book.get])
 
-  // 5) AUTOCOMPLETE PER STILI RIPETUTI
-  class AutocompleteFeatures {
+  // 5) GROUPS_DATAS 
+  class GroupsFeature {
     // Bind dei metodi per mantenere il contesto
     constructor() {
-      this.insertClass = this.insertClass.bind(this);
+      this.toggleGroup = this.toggleGroup.bind(this);
     }
 
-    // Stili predefiniti
-    standardStyles = [
-      "sinistra", "destra", "centro",
-      "descrizione", "esclamazione", "dialogo", "sussurro",
-      // Gradiazioni
-      "bg-black-b", "bg-black-t", "bg-fade-10"
-    ] as const;
-
-    // Stili usati nei paragrafi
-    usedStyles = useMemo(() => {
-      const paragraphs = SECTION.bookSection?.paragraphs;
-      if (!paragraphs) return [];
-      return paragraphs
-        .map(p => p.in_style?.trim() || "")
-        .filter(Boolean);
-    }, [SECTION.bookSection?.paragraphs]);
-
-    // suggerimenti
-    // filter: memorizza l'attuale classe che si sta modificando
-    inputValue = useDotNotation("");
-    // suggestions: memorizza tutte le classi usate e suggerisce quella più probabile
-    suggestions =useMemo(()=>{
-      //1) Classi usate nei paragrafi
-      const usedStyles: string[] = this.usedStyles
-        .map(input => input.split(" "))
-        .flat();
-      // Unione di classi usate e standard
-      const merged = [
-        ...usedStyles,
-        ...this.standardStyles,
-      ];
-
-      // 2) Filtraggio: singole classi che si pensa che vengano inserite
-      const inputValue = this.inputValue.get;      
-      const singleClass_inputValue = inputValue.split(" ");
-      const singleClass_similiarFilter = merged.filter(mergedStyle =>
-        singleClass_inputValue.some(paragraphClass =>
-          mergedStyle.startsWith(paragraphClass) // "bg-re" => "bg-red-100"
-          // se il nome della classe è già completa, non suggerirla
-          && mergedStyle !== paragraphClass // "bg-red-100" => ""
-          // se una classe è già inclusa, non mostrarla
-          && !inputValue.includes(mergedStyle) 
-          // non devi suggerire ",,"
-          && !mergedStyle.includes(",,")
-        ) 
-      );
-
-      // 3) Aggiunge la classe ripetuta più simile
-      const repeatingClass_similialFilter = this.usedStyles.find(usedStyle =>
-        // "descrizione centro bg-r" -> "descrizione centro bg-red-100"
-        usedStyle.startsWith(inputValue) 
-        // "descrizione centro bg-red-100" ->
-        && usedStyle !== inputValue
-      ) || "";
-
-      // 4) Mostra 5 suggerimenti senza ripetizioni
-      const result = [...new Set([repeatingClass_similialFilter, ...singleClass_similiarFilter])]
-        .filter(Boolean)
-        .splice(0, 5);
-
-      return result
-    },[this.usedStyles, this.inputValue.get])
-
-
-    // Gestisce il click su un suggerimento
-    insertClass(index: number, suggestedValue:string) {
-      const actualClasses = this.inputValue.get.toLowerCase().split(" ");
-      const isCompositedClass = suggestedValue.includes(" ");      
-
-      // Aggiornamento delle classi
-      const update = isCompositedClass
-        ? suggestedValue
-        : actualClasses.map((cls) =>
-            suggestedValue.includes(cls) ? suggestedValue : cls
-          ).join(" ");
-      
-      PARAG.update(index, "in_style", update);
-      this.inputValue.set(update) // risulta un cambiamento anche in AUTOCOMPLETE
-    }
-
-    
     actualGroups = useMemo(()=>{
       const input = PARAG.styleInput.get;
       if(!input.isVisible) return null;
@@ -577,11 +496,11 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
       const style = paragraph?.scripted_style || '';
 
       const matches :(TailwindGroup & {key:string})[] =[]
-      for(const groupKey in GROUPS){
-        const matchIndex = GROUPS[groupKey].findIndex(_g=> {
+      for(const groupKey in GROUPS_DATAS){
+        const matchIndex = GROUPS_DATAS[groupKey].findIndex(_g=> {
           // Se il valore è vuoto, matcha solo se nessun altro valore del gruppo è presente
           if (_g.value === '') {
-            return !GROUPS[groupKey].some(g => 
+            return !GROUPS_DATAS[groupKey].some(g =>
               g.value !== '' && style.includes(g.value)
             );
           }
@@ -589,13 +508,13 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
           return style.includes(_g.value);
         });
         if(matchIndex<0) return console.warn(`${groupKey}: nessun elemento`);
-        
-        matches.push({...GROUPS[groupKey][matchIndex], key: groupKey});
+
+        matches.push({...GROUPS_DATAS[groupKey][matchIndex], key: groupKey});
       }
       return matches
     }, [book.get, PARAG.styleInput.get.index, SECTION.bookSection])
-    
-    
+
+
     toggleGroup(groupKey:string){
       // input col focus
       const input = PARAG.styleInput.get;
@@ -606,11 +525,11 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
       let resultStyle = paragraph?.scripted_style || '';
 
       // Trova l'indice attuale: cerca il valore più specifico (con più classi) che matcha
-      const matches = GROUPS[groupKey]
+      const matches = GROUPS_DATAS[groupKey]
         .map((g, i) => ({ ...g, index: i }))
         .filter(g => {
           if (g.value === '') {
-            return !GROUPS[groupKey].some(h =>
+            return !GROUPS_DATAS[groupKey].some(h =>
               h.value !== '' && resultStyle.includes(h.value)
             );
           }
@@ -619,11 +538,11 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
         .sort((a, b) => b.value.split(' ').length - a.value.split(' ').length); // Ordina per numero di classi (decrescente)
 
       const current_index = matches[0]?.index ?? 0;
-      const current_group = GROUPS[groupKey][current_index];
+      const current_group = GROUPS_DATAS[groupKey][current_index];
 
       // prossimo gruppo di classi
-      const next_index = (current_index === GROUPS[groupKey].length-1) ?0 :current_index +1;
-      const next_group = GROUPS[groupKey][next_index];
+      const next_index = (current_index === GROUPS_DATAS[groupKey].length-1) ?0 :current_index +1;
+      const next_group = GROUPS_DATAS[groupKey][next_index];
       if(!next_group) return console.error("nextGroup non disponibile");
 
       // Rimuove tutte le classi che appartengono al valore corrente del gruppo
@@ -643,9 +562,7 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
 
     }
   }
-  const AUTOCOMPLETE = new AutocompleteFeatures()
-
-
+  const GROUPS = new GroupsFeature()
 
   // 5.5) KEYBOARD FEATURES
   const handleKeyboardFeature = useKeyboardFeatures(getSection, { book, SECTION, PARAG });
@@ -1088,7 +1005,7 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
     SECTION,
     SHARED: new SharedFeatures(),
     PARAG,
-    AUTOCOMPLETE,
+    GROUPS,
     FIND_REPLACE: new FIND_REPLACE(),
     canRead, canWrite, section_isEditMode,
 
