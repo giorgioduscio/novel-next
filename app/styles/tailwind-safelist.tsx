@@ -1,6 +1,6 @@
 
 /*
-const tailwindFlatClasses = [
+export const tailwind_safelist = [
   // === DIMENZIONI ===
   "w-fit", "w-max", "w-min",
 
@@ -119,4 +119,5 @@ const tailwindFlatClasses = [
 
   // Rose
   "bg-rose-100", "bg-rose-200", "bg-rose-300", "bg-rose-400", "bg-rose-500", "bg-rose-600", "bg-rose-700", "bg-rose-800", "bg-rose-900"
+
 */

@@ -221,7 +221,6 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
       this.update = this.update.bind(this);
       this.handleCreate = this.handleCreate.bind(this);
       this.handleKey = this.handleKey.bind(this);
-      this.parseStyle = this.parseStyle.bind(this);
       this.setStyleInput = this.setStyleInput.bind(this);
       this.closeTemplateInputStyle = this.closeTemplateInputStyle.bind(this);
       this.handleRemove = this.handleRemove.bind(this);
@@ -337,27 +336,6 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
       if (!book.get || !paragraph) return console.error("Libro non disponibile");
 
       return handleKeyboardFeature(e, index, key, paragraph);
-    }
-
-    // Imposta il colore appropriato del testo
-    parseStyle(paragraph: Paragraph): string {
-      const in_style = paragraph.in_style;
-
-      // Sfondo bianco
-      if (in_style?.includes("bg-white")) {
-        return in_style + " text-black";
-      }
-
-      const backgroundPattern = /bg-[a-zA-Z]+-[0-9]+/;
-      const match = in_style?.match(backgroundPattern);
-      // Non si specifica lo sfondo
-      if (!match) {
-        return in_style || "";
-      }
-      const gradiant = parseInt(match[0].split('-')[2] || "0");
-      const textColor = gradiant <= 400 ? " text-black" : " text-white";
-
-      return in_style + textColor;
     }
 
     // Input di stile

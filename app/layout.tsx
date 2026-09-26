@@ -1,9 +1,10 @@
 import type { Metadata, Viewport } from "next";
-import "./globals.sass";
+import "./styles.sass";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import { AppProviders } from "./data/AppProviders";
 import { bubblegum, comicNeue } from "./styles/fonts";
 import MainContent from "./shareds/MainContent";
+import DynamicStyles from "./styles/styles";
 
 
 export const metadata: Metadata = {
@@ -27,7 +28,8 @@ export default function RootLayout({ children }:
   
   return (
     <html lang="it" className={`${comicNeue.variable} ${bubblegum.variable}`}>
-      <body className="bg-gray-600 flex flex-col h-[100dvh] overflow-hidden">
+      <body className="h-dvh bg-gray-600 flex flex-col overflow-hidden">
+        <DynamicStyles />
         <AppProviders>
           <div id="app" className="text-white flex-1 overflow-y-auto mt-[50px]">
             <MainContent>{children}</MainContent>

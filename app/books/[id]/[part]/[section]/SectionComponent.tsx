@@ -363,7 +363,7 @@ export default function SectionComponent(props: UseSectionComponentProps) {
                         <div className={section_isEditMode && PARAG.styleInput.get.index === paragraph_i ? 'outline-3 outline-dashed outline-black' : ''}>
                           <div onClick={PARAG.handleFocusText} className={`${section_isEditMode && PARAG.styleInput.get.index === paragraph_i ? 'outline-3 outline-white' : ''}`}>
                             <Field
-                              input_class={`text-center ${p.scripted_style || ""} ${PARAG.parseStyle(p) || ""}`}
+                              input_class={`text ${p.scripted_style || ""} ${p.in_style || ""}`}
                               placeholder="Testo del paragrafo"
                               value={p.text}
                               readOnly={!section_isEditMode}
@@ -469,11 +469,11 @@ export default function SectionComponent(props: UseSectionComponentProps) {
     <Bottombar>
       {/* INPUT STILE NELLA BOTTOMBAR */}
       <Frag if={section_isEditMode && styleInput.isVisible && !!styleInput.target}>
-        <div className="w-[75vw] max-w-[400px] p-1 bg-white text-black outline rounded">
-          {/* CONSIGLIATI */}
+        <div className="w-[75vw] max-w-[400px] text bg-white outline rounded shadow-lg overflow-hidden">
+          {/* STILI STANDARD */}
           <div className="pb-2 flex justify-between align-center">
             {GROUPS.actualGroups?.map(_group=>(
-              <button className="flex-1 px-2 bg-gray-300" key={_group.title}
+              <button className="flex-1 p-1 bg-gray-300" key={_group.title}
                       title={_group?.title}
                       onClick={(e)=>GROUPS.toggleGroup(_group.key)}>
                 <i className={`bi ${_group?.icon}`} />
@@ -483,18 +483,18 @@ export default function SectionComponent(props: UseSectionComponentProps) {
           
           <div className="grid gap-1 grid-cols-[auto_1fr] items-start">
             {/* ICONA PALETTE */}
-            {styleInput.target?.in_style
+            {styleInput.target?.in_style.length
               ?<button onClick={_=> PARAG.update(styleInput.index, "in_style", "")}
-                      className="p-1 text-red-700 rounded-lg relative outline"
-                      aria-label="Resetta stile">
+                      className="p-1 text-red-700 relative"
+                      title="Resetta stile">
                 <i className="bi bi-x-lg absolute top-1 start-1"></i>
                 <i className="bi bi-palette"></i>
               </button>
               :<label htmlFor={styleInput.index + ">in_style"}
                       className="p-1 bi bi-palette-fill"
-                      aria-label="Seleziona stile"></label>
+                      title="Seleziona stile"></label>
             }
-            {/* INPUT STILE */}
+            {/* STILE PARAGRAFO */}
             <div>
               <Field
                 input_class="p-1"

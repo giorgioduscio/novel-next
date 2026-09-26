@@ -78,6 +78,11 @@ export const GROUPS_DATAS :Record<string, TailwindGroup[]> ={
             icon: "bi-list-ul",
             value: "lista"
         },
+        {
+            title: "Dettaglio",
+            icon: "bi-calendar -rotate-90 inline-block",
+            value: "dettaglio"
+        },
     ],
 
     MARGINS:[
