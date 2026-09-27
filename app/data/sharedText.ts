@@ -127,9 +127,9 @@ export default function useSharedText() {
       else {
         newSection?.paragraphs?.push({
           id: bookContext.createId(),
-          in_style: p.startsWith("* ") ? "dialogo sinistra" : "",
+          scripted_style: p.startsWith("* ") ? "dialogo sinistra" : "",
           ex_style: "",
-          scripted_style: "",
+          in_style: "",
           text: p.replace("* ", ""),
           isMarcked: false,
         });
@@ -293,6 +293,23 @@ export default function useSharedText() {
           return;
         }
 
+        // Normalizza il libro: assicura che tutti i paragrafi abbiano gli attributi richiesti
+        validatedBook.parts?.forEach(part => {
+          part.sections?.forEach(section => {
+            section.paragraphs?.forEach(p => {
+              if (p.isMarcked === undefined) {
+                p.isMarcked = false;
+              }
+              if (p.ex_style === undefined) {
+                p.ex_style = "";
+              }
+              if (p.scripted_style === undefined) {
+                p.scripted_style = "";
+              }
+            });
+          });
+        });
+
         // Genera nuovo ID se esiste già
         const existingBook = bookContext.readAll().find((b) => b.id === validatedBook.id);
         if (existingBook) {
@@ -307,6 +324,9 @@ export default function useSharedText() {
           toast.danger("Errore durante il caricamento del libro");
           return;
         }
+
+        // Aggiungi alla lista locale
+        bookContext.addBookToList(validatedBook.id);
 
         toast.success("Libro caricato con successo");
       };

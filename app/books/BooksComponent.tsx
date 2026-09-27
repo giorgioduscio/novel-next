@@ -9,10 +9,11 @@ import { useBooksComponent } from "./useBooksComponent";
 import useSharedText from "../data/sharedText";
 import { useBookContext } from "../data/BookContext";
 import Bottombar from "../shareds/Bottombar";
+import React from "react";
 
 export default function BooksComponent() {
   const bookContext = useBookContext();
-  const { books, filteredBooks, searchQuery, createVoidBook, isInList, removeFromList, addToList } = useBooksComponent();
+  const { books, filteredBooks, searchQuery, createVoidBook, isInList, removeFromList, addToList, card_buttons } = useBooksComponent();
   const { upload } = useSharedText();
 
 
@@ -103,49 +104,18 @@ export default function BooksComponent() {
                       </Link>
 
                       {/* AZIONI */}
-                      <div className="grid grid-cols-2 justify-between items-center">
-                        {/* DOWNLOAD */}
-                        <button
-                          onClick={() => bookContext.download.json.execute(book.id)}
-                          className="p-1 bg-green-800 truncate"
-                        >
-                          Json <i className="bi bi-download"></i>
-                        </button>
+                      <div className="flex items-center">
+                        {card_buttons.map((btn, i)=><React.Fragment key={btn.label + i}>
 
-                        <button
-                          onClick={() => bookContext.download.md.execute(book.id)}
-                          className="p-1 bg-blue-800 truncate"
-                        >
-                          Markdown <i className="bi bi-markdown"></i>
-                        </button>
-                      </div>
+                          <Frag if={btn.condition(book.id)}>
+                            <button onClick={_=> btn.event(book.id)}
+                                    className={`flex-1 p-1 truncate ${btn.className}`}>
+                              <i className={`bi ${btn.icon}`}></i>
+                              <span className="ms-2 hidden sm:inline">{btn.label}</span>
+                            </button>
+                          </Frag>
 
-                      {/* PULSANTE AGGIUNGI/RIMUOVI DALLA LISTA */}
-                      <div className="flex justify-between items-center">
-                        <Link href={`/books/${book.id}/structure`}
-                              className="py-1 px-2 bg-green-700 flex justify-between w-full">
-                          Vai al libro
-                          <i className="ms-auto bi bi-caret-right-fill"></i>
-                        </Link>
-                        
-                        {/* Pulsante rimuovi dalla lista (solo se nella lista) */}
-                        <Frag if={isInList(book.id)}>
-                          <button onClick={() => removeFromList(book.id)}
-                                  className="py-1 px-2 bg-red-700 text-nowrap"
-                                  title="Rimuovi dalla lista">
-                            <i className="me-1 bi bi-x-lg"></i>
-                            <span>Rimuovi</span>
-                          </button>
-                        </Frag>
-                        
-                        {/* Pulsante aggiungi alla lista (solo se non in lista e si sta cercando) */}
-                        <Frag if={!isInList(book.id) && searchQuery.get.trim().length > 0}>
-                          <button onClick={() => addToList(book.id)}
-                                  className="py-1 px-2 bg-orange-700"
-                                  title="Aggiungi alla lista">
-                            <i className="bi bi-plus-lg"></i>
-                          </button>
-                        </Frag>
+                        </React.Fragment>)}
                       </div>
                     </div>
                   </li>

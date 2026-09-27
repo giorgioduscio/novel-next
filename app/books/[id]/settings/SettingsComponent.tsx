@@ -96,8 +96,10 @@ export default function SettingsComponent(props: UseBookComponentProps) {
     const res = bookContext.deleteBook(book.id)
 
     if(!res) return console.error("Eliminazione fallita");
-    route.push("/books")
-    verifyDeleteBook.set("");
+    setTimeout(() => {
+      route.push("/books")
+      verifyDeleteBook.set("");
+    }, 300);
   }
 
   // CONDIVISIONE
@@ -220,12 +222,12 @@ export default function SettingsComponent(props: UseBookComponentProps) {
 
 
 
-            <h3 className="my-3 text-red-400 text-xl font-bold">
+            <h3 className="mt-10 text-red-400 text-xl font-bold">
               <i className="bi bi-exclamation-triangle"></i> Danger zone
             </h3>
 
             {/* lettura */}
-            <h4 className="pt-5 pb-2 text-red-400">Codice per la lettura</h4>
+            <h4 className="pt-3 pb-2 text-red-400">Codice per la lettura</h4>
             <p className="m-2 p-3 bg-blue-700 outline rounded">
               <i className="bi bi-info-circle"></i> Chiunque abbia questo codice sarà autorizzato a leggere questo libro. Se non impostato alcun codice, il libro sarà leggibile da tutti.
             </p>
@@ -275,7 +277,7 @@ export default function SettingsComponent(props: UseBookComponentProps) {
               </div>
             </div>
 
-            <SettingsCodesFormComponent labelParam={"Codice lettura"} attributeKey="auth_read" book={book!} />
+            {/* <SettingsCodesFormComponent labelParam={"Codice lettura"} attributeKey="auth_read" book={book!} /> */}
             
 
             {/* scrittura */}
@@ -312,7 +314,7 @@ export default function SettingsComponent(props: UseBookComponentProps) {
                   <button onClick={handleSetWritePrivate}
                           disabled={book?.auth_write !== ""}
                           className="flex-auto px-3 py-2 bg-orange-600"
-                          title="Rendi la scrittura visibile solo a chi ha il codice">
+                          title="Solo a chi ha il codice può modificare">
                     <i className="bi bi-lock"></i>
                     <span className="ml-2">Scrittura autorizzata</span>
                   </button>
@@ -320,7 +322,7 @@ export default function SettingsComponent(props: UseBookComponentProps) {
               </div>
             </div>
             
-            <SettingsCodesFormComponent labelParam={"Codice scrittura"} attributeKey="auth_write" book={book!} />
+            {/* <SettingsCodesFormComponent labelParam={"Codice scrittura"} attributeKey="auth_write" book={book!} /> */}
 
 
             {/* elimina */}

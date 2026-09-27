@@ -95,7 +95,6 @@ export default function InsertAuthCodesComponent({ targetId }: InsertAuthCodesCo
       setIsLoading(false);
     }
   }
-
   return (
     <div className="p-3">
       <div className="p-3 mx-auto max-w-fit bg-orange-700 text-white border rounded">
