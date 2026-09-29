@@ -10,7 +10,6 @@
 # Kanban - Novel Writer (Next.js)
 ## 📌 To Do 
   
-
 * [5] sectioncomponent layout per pc
 * [5] elementi angolati
 * sostituire firebase con alternative già sicure

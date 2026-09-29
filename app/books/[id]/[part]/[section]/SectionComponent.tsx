@@ -64,7 +64,7 @@ export default function SectionComponent(props: UseSectionComponentProps) {
         </button>
       </Frag>
       <Link href={`/books/${book_id}/settings`}
-            className="p-2 bg-indigo-900"
+            className="p-2 bg-indigo-900 rounded-full"
             title="Vai alle impostazioni">
         <i className="bi bi-three-dots-vertical"></i>
       </Link>
@@ -97,7 +97,7 @@ export default function SectionComponent(props: UseSectionComponentProps) {
               <span className="ms-1 hidden sm:inline">Segnalibri</span>
             </button>
             {/* stampa */}
-            <Frag if={!section_isEditMode}>
+            {/* <Frag if={!section_isEditMode}>
               <button onClick={() => SHARED.print()} 
                       className={`px-3 py-2 bg-blue-800 `}>
 
@@ -105,7 +105,7 @@ export default function SectionComponent(props: UseSectionComponentProps) {
                   <span className="ms-1 hidden sm:inline">Scarica</span>
 
               </button>
-            </Frag>
+            </Frag> */}
             {/* CERCA */}
             <Frag if={section_isEditMode}>
               <button onClick={()=> FIND_REPLACE.isVisible.set(p=> !p)} 

@@ -50,7 +50,7 @@ export default function StructureComponent(props: UseBookComponentProps) {
     <Breadcrumb routes={["Catalogo:/books", book?.title || "Libro", "Struttura"]} />
 
     <main id="StructureComponent" 
-          className="mx-auto container max-w-[800px]" 
+          className="sm:p-3 mx-auto container max-w-[800px] bg-indigo-800" 
           onKeyDown={handleArrowKeyFocus}>
       {/* LIBRO NON TROVATO */}
       <Frag if={!canRead}>
@@ -94,14 +94,14 @@ export default function StructureComponent(props: UseBookComponentProps) {
                                   onChange={(e) => PART.update(part_i,"title", e.target.value)}
                           />
                         </div>
-                        <div className="p-2">
+                        <Frag if={canEdit} className="p-2">
                           <button className="px-1 bg-gray-200 text-black outline rounded" 
                                   onClick={_e=> SHARE.copyPart(_e, part.id || "")}
                                   title="Copia parte come json" 
                                   data-feedback>
                             <i className="bi bi-copy"></i>
                           </button>
-                        </div>
+                        </Frag>
                       </div>
                     </Frag>
 
