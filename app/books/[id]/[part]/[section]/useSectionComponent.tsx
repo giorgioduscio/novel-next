@@ -276,11 +276,18 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
         return;
       }
 
-      // Gestione speciale per in_style con separatore ",,"
-      if (key === "in_style" && typeof value === "string" && value.includes(",,")) {
-        const [inPart, exPart] = value.split(",,");
+      // se l'input contiene ',,', compila i due attributi
+      if (key === "in_style" && String(value).includes(",,")) {
+        const [inPart, exPart] = String(value).split(",,");
+        
         (sec.paragraphs as any)[index].in_style = inPart || "";
         (sec.paragraphs as any)[index].ex_style = exPart || "";
+        
+      // se l'input non contiene ',,' ma ex_style è truty, azzera ex_style
+      } else if (key === "in_style" && !String(value).includes(",,") && sec.paragraphs[index].ex_style.length) {
+        (sec.paragraphs as any)[index][key] = value;
+        (sec.paragraphs as any)[index].ex_style ='';
+
       } else {
         (sec.paragraphs as any)[index][key] = value;
       }

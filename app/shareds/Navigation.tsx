@@ -28,7 +28,7 @@ export default function Navigation(props: NavigationProps) {
     <nav id="Navigation" className="fixed top-0 z-50 w-full pt-[env(safe-area-inset-top)] print:hidden">
       <div className="w-full bg-indigo-900 border-b border-black">
         <div className="mx-auto container max-w-[800px]">
-          <div className="px-2 flex items-center min-h-[50px]">
+          <div className="flex items-center min-h-[50px]">
 
             {/* pulsante indietro con cronologia */}
             {back_btn &&<>
