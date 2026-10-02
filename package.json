@@ -5,7 +5,8 @@
     "scripts": {
         "dev": "next dev --webpack",
         "build": "next build",
-        "start": "next start"
+        "start": "next start",
+        "populate": "npx tsx scripts/populate.ts"
     },
     "dependencies": {
         "@tailwindcss/postcss": "^4.3.3",
@@ -28,6 +29,7 @@
         "@types/node": "^26",
         "@types/react": "^19.2.18",
         "@types/react-dom": "^19",
-        "typescript": "^7"
+        "typescript": "^7",
+        "tsx": "^4.19.2"
     }
 }
