@@ -27,7 +27,7 @@ export default function RootLayout({ children }:
 ) {
   
   return (
-    <html lang="it" className={`${comicNeue.variable} ${bubblegum.variable}`}>
+    <html lang="it" className={`${comicNeue.variable} ${bubblegum.variable}`} data-scroll-behavior="smooth">
       <body className="h-dvh bg-gray-600 flex flex-col overflow-hidden">
         <DynamicStyles />
         <AppProviders>

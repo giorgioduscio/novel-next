@@ -906,3 +906,227 @@ export function ui_addCopyFeedback(e: Event){
     copyIcon.classList.add("bi-copy");
   }, 1500); 
 }
+
+/**
+# MODULO ACCESSIBILITÀ - FUNZIONALITÀ GENERICHE
+Questo modulo fornisce funzionalità di accessibilità generiche e riutilizzabili.
+
+CARATTERISTICHE PRINCIPALI:
+- Scroll automatico verso l'input attivo su keydown
+- Popover con title attribute quando si tiene premuto un pulsante
+- Configurabile e riutilizzabile in diversi progetti
+- Gestione automatica della pulizia del DOM
+
+ESEMPI D'USO:
+  // Inizializza entrambe le funzionalità
+  accessibility_init();
+
+  // Oppure inizializza singolarmente
+  ui_initScrollToInput();
+  ui_initTitlePopover();
+
+METODI DISPONIBILI:
+- accessibility_init(): Inizializza tutte le funzionalità di accessibilità
+- ui_initScrollToInput(): Inizializza solo lo scroll automatico
+- ui_initTitlePopover(): Inizializza solo il popover dei title
+*/
+
+/**
+ * Inizializza tutte le funzionalità di accessibilità
+ */
+export function accessibility_init() {
+  ui_initScrollToInput();
+  ui_initTitlePopover();
+}
+
+/**
+ * Inizializza la funzionalità di scroll automatico verso l'input attivo
+ * Quando si preme un tasto, la pagina scorre per mantenere l'input visibile
+ */
+export function ui_initScrollToInput() {
+  document.addEventListener('keydown', (e) => {
+    const target = e.target as HTMLElement;
+    const isInput = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA';
+    
+    if (isInput) {
+      // Scroll con un offset per evitare che venga coperto da elementi fissi
+      const offset = 60; // 60px offset per navbar o altri elementi fissi
+      const rect = target.getBoundingClientRect();
+      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+      const targetScrollTop = scrollTop + rect.top - offset;
+      
+      // Esegui lo scroll solo se l'elemento non è già ben visibile
+      if (rect.top < offset || rect.bottom > window.innerHeight - offset) {
+        window.scrollTo({
+          top: targetScrollTop,
+          behavior: 'smooth'
+        });
+      }
+    }
+  });
+}
+
+/**
+ * Inizializza la funzionalità di popover per il title attribute
+ * Quando si tiene premuto un pulsante (mousedown), mostra un popover con il title
+ */
+export function ui_initTitlePopover() {
+  // Inietta gli stili CSS per il popover
+  if (!document.getElementById('title-popover-styles')) {
+    const style = document.createElement('style');
+    style.id = 'title-popover-styles';
+    style.textContent = `
+      .title-popover {
+        position: fixed;
+        padding: 8px 12px;
+        background: linear-gradient(0deg, #333, #555);
+        color: #fff;
+        border-radius: 4px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        font-size: 12px;
+        z-index: 10000;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.2s ease;
+        max-width: 300px;
+        word-wrap: break-word;
+      }
+      .title-popover.visible {
+        opacity: 1;
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  let currentPopover: HTMLElement | null = null;
+  let hideTimeout: ReturnType<typeof setTimeout> | null = null;
+  let longPressTimer: ReturnType<typeof setTimeout> | null = null;
+  let isLongPress = false;
+  let targetButton: HTMLButtonElement | null = null;
+
+  // Gestione mousedown (pressione del pulsante)
+  document.addEventListener('mousedown', (e) => {
+    const target = e.target as HTMLElement;
+    const button = target.closest('button') as HTMLButtonElement;
+    
+    if (button && button.title) {
+      // Cancella qualsiasi timeout precedente
+      if (hideTimeout) {
+        clearTimeout(hideTimeout);
+        hideTimeout = null;
+      }
+
+      // Rimuovi il popover esistente se presente
+      if (currentPopover) {
+        currentPopover.remove();
+        currentPopover = null;
+      }
+
+      // Reset flag
+      isLongPress = false;
+      targetButton = button;
+
+      // Crea il nuovo popover
+      currentPopover = document.createElement('div');
+      currentPopover.className = 'title-popover';
+      currentPopover.textContent = button.title;
+      document.body.appendChild(currentPopover);
+
+      // Posiziona il popover in modo intelligente
+      const rect = button.getBoundingClientRect();
+      const windowHeight = window.innerHeight;
+      const popoverHeight = currentPopover.offsetHeight || 40; // stima altezza
+      const spacing = 5;
+      
+      // Calcola se c'è spazio sufficiente in basso
+      const spaceBelow = windowHeight - rect.bottom;
+      const showAbove = spaceBelow < popoverHeight + spacing;
+      
+      if (showAbove) {
+        // Posiziona sopra il pulsante
+        currentPopover.style.left = `${rect.left + window.scrollX}px`;
+        currentPopover.style.top = `${rect.top - popoverHeight - spacing + window.scrollY}px`;
+        currentPopover.classList.add('popover-top');
+      } else {
+        // Posiziona sotto il pulsante
+        currentPopover.style.left = `${rect.left + window.scrollX}px`;
+        currentPopover.style.top = `${rect.bottom + spacing + window.scrollY}px`;
+        currentPopover.classList.remove('popover-top');
+      }
+
+      // Avvia timer per long press (200ms)
+      longPressTimer = setTimeout(() => {
+        if (currentPopover) {
+          currentPopover.classList.add('visible');
+          isLongPress = true;
+        }
+      }, 200);
+    }
+  });
+
+  // Gestione mouseup (rilascio del pulsante)
+  document.addEventListener('mouseup', (e) => {
+    // Cancella il timer di long press
+    if (longPressTimer) {
+      clearTimeout(longPressTimer);
+      longPressTimer = null;
+    }
+
+    if (currentPopover) {
+      currentPopover.classList.remove('visible');
+      hideTimeout = setTimeout(() => {
+        if (currentPopover) {
+          currentPopover.remove();
+          currentPopover = null;
+        }
+      }, 200);
+    }
+
+    // Se è stato un long press, previeni il click
+    if (isLongPress && targetButton) {
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      isLongPress = false;
+      targetButton = null;
+    }
+  }, true);
+
+  // Gestione click (previeni click se è stato un long press)
+  document.addEventListener('click', (e) => {
+    if (isLongPress && targetButton) {
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      isLongPress = false;
+      targetButton = null;
+    }
+  }, true);
+
+  // Gestione mouseleave (se il mouse esce dal pulsante)
+  document.addEventListener('mouseleave', (e) => {
+    const target = e.target as HTMLElement;
+    if (!(target instanceof HTMLElement)) return;
+    const button = target.closest('button');
+    
+    if (button && currentPopover) {
+      // Cancella il timer di long press
+      if (longPressTimer) {
+        clearTimeout(longPressTimer);
+        longPressTimer = null;
+      }
+
+      currentPopover.classList.remove('visible');
+      hideTimeout = setTimeout(() => {
+        if (currentPopover) {
+          currentPopover.remove();
+          currentPopover = null;
+        }
+        isLongPress = false;
+        targetButton = null;
+      }, 200);
+    }
+  }, true);
+}
+
+// ... rest of the code remains the same ...
