@@ -23,6 +23,23 @@ export function useKeyboardFeatures(getSection: Function, dependencies: Pick<Mai
       else if(from === "|__") el.setSelectionRange(0, 0); 
       else el.setSelectionRange(from, from);
       el.focus();
+      
+      // Scroll con offset per navbar (50px) e bottombar (~80px)
+      const navbarHeight = 50;
+      const bottombarHeight = 80;
+      const offset = navbarHeight + 10; // 10px extra margin
+      
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+      
+      // Applica offset manuale dopo lo scroll
+      setTimeout(() => {
+        const rect = el.getBoundingClientRect();
+        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        window.scrollTo({
+          top: scrollTop + rect.top - offset,
+          behavior: "smooth"
+        });
+      }, 100);
     }, 10);
   }
 

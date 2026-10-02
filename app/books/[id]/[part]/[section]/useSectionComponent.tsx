@@ -112,9 +112,8 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
       if(sectionKey=="title") this.mainTitle.set(value.trim())
       book.set(clone);
 
-      const newBook = bookContext.updateBook(book_id, clone);
-      if (!newBook) return toast.danger("Errore nell'aggiornamento della nota");
-      toast.success("Nota sezione aggiornata");
+      // Direct API call
+      bookContext.updateBook(book_id, clone);
     };
 
     // Premendo 'invio' o 'freccia giù' passa al primo paragrafo
@@ -294,10 +293,9 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
 
       book.set(clone);
 
-      // Aggiornamento backend e feedback
+      // Direct API call
       if (!safe) return;
-      const res = bookContext.updateBook(book_id, clone);
-      if (!res) return toast.danger("Errore di validazione");
+      bookContext.updateBook(book_id, clone);
     }
 
     // Crea un nuovo paragrafo senza salvarlo

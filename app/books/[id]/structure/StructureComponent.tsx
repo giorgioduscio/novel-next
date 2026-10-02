@@ -50,7 +50,7 @@ export default function StructureComponent(props: UseBookComponentProps) {
     <Breadcrumb routes={["Catalogo:/books", book?.title || "Libro", "Struttura"]} />
 
     <main id="StructureComponent" 
-          className="sm:p-3 mx-auto container max-w-[800px] bg-indigo-800" 
+          className="sm:p-3 mx-auto container max-w-[800px]" 
           onKeyDown={handleArrowKeyFocus}>
       {/* LIBRO NON TROVATO */}
       <Frag if={!canRead}>
@@ -60,6 +60,7 @@ export default function StructureComponent(props: UseBookComponentProps) {
         </div>
       </Frag>
       
+      {/* LIBRO TROVATO */}
       <Frag if={!!canRead}>
         <section className="pb-10 min-h-dvh">
 
@@ -73,7 +74,8 @@ export default function StructureComponent(props: UseBookComponentProps) {
             </Frag.Else>
             
             <div className="py-3">
-              <h2 className="p-2 text-2xl text-orange-500">Sezioni</h2>
+              <h2 className="p-2 text-2xl text-orange-400">Sezioni</h2>
+
               <div className="sm:p-3 grid gap-2 sm:grid-cols-2 md:grid-cols-3 items-start">
                 {book?.parts?.map((part, part_i) => (
                   <div className={"sm:shadow-lg sm:border sm:border-black"} key={part.title + part_i}>
@@ -85,7 +87,7 @@ export default function StructureComponent(props: UseBookComponentProps) {
                         <div>
                           <Field  id={part_i.toString()} 
                                   hide_label label={"Titolo della parte"} 
-                                  input_class={`py-2 px-5 font-bold ${canEdit ? "bg-white text-black outline rounded" : ""}`}
+                                  input_class={`p-2 text-xl text-bold ${canEdit ? "bg-white text-black outline rounded" : ""}`}
                                   type={"text"} 
                                   disabled={!canEdit}
                                   placeholder={"Modifica il titolo della parte"} 
@@ -168,15 +170,16 @@ export default function StructureComponent(props: UseBookComponentProps) {
                                 </div>
                                 
                                 {/* freccia */}
-                                <Link className={`p-3 flex items-center bg-indigo-800`} 
+                                <Link className={`p-3 flex items-center bg-gray-600`} 
                                         href={`/books/${book.id}/${part.id}/${section.id}`}>
                                   <i className="bi bi-chevron-right"></i>
                                 </Link>
                               </Frag>
 
-                              {/* link */}
+
+                              {/* LINK VISUALIZZAZIONE */}
                               <Frag if={!canEdit} className="flex-1">
-                                <Link className={`p-3 flex items-center justify-between bg-indigo-800`} 
+                                <Link className={`p-3 flex items-center justify-between bg-gray-600 text-gray-300 italic border-b border-gray-500`} 
                                         href={`/books/${book?.id}/${part.id}/${section.id}`}>
                                   <span className="flex-1">{section.title}</span>
                                   <i className="bi bi-chevron-right"></i>
@@ -213,13 +216,15 @@ export default function StructureComponent(props: UseBookComponentProps) {
           </Frag>
           
 
+
           {/* AZIONI */}
           <div className="my-10 border-t border-gray-500">
-            <h4 className="p-2 text-xl text-gray-400">Azioni</h4>
+            <h4 className="p-2 text-xl text-orange-400">Azioni</h4>
+
             <div className="grid sm:grid-cols-3 sm:gap-2">
               {Object.values(bookContext.download).filter(a => typeof a === 'object').map((action, i) => (
                 <button key={i}  onClick={() => action.execute(book?.id!)}
-                        className="py-2 px-3 bg-indigo-800" >
+                        className="py-2 px-3 bg-gray-600" >
                   <div className="flex justify-between items-center">
                     <span>{action.label}</span>
                     <i className={`bi ${action.icon}`}></i>
@@ -232,6 +237,7 @@ export default function StructureComponent(props: UseBookComponentProps) {
         </section>
       </Frag>
     </main>
+
 
     <Bottombar>
       <Link href={"/auth"} className="circle bg-indigo-700" title="Mostra codici">

@@ -51,67 +51,61 @@ export default function SectionComponent(props: UseSectionComponentProps) {
   return (<>
     {/* NAVBAR */}
     <Navigation back_btn={{ href: `/books/${book_id}` }} page_title={SECTION.mainTitle.get}>
-      <button onClick={()=> SHARED.copy()}
-              className="p-2 bg-blue-900 text-sm truncate" data-feedback>
-        <i className="bi bi-copy"></i>
-        <span className="pl-2">Copia</span>
-      </button>
+      {/* visibili al lettore */}
+      <Frag if={!section_isEditMode}>
+        {/* SEGNALIBRI */}
+        <button onClick={()=> MARCKERS.isVisible.set(true)} 
+                className="mx-2 px-3 py-2 bg-green-900 rounded" 
+                title="Segnalibri">
+          <i className="bi bi-bookmarks-fill"></i> 
+          <span className="ms-1 hidden sm:inline">Segnalibri</span>
+        </button> 
+      </Frag>
+
+      {/* visibile all'editore */}
       <Frag if={section_isEditMode}>
+        {/* copia */}
+        <button onClick={()=> SHARED.copy()}
+                className="p-2 bg-blue-900 text-sm truncate" data-feedback>
+          <i className="bi bi-copy"></i>
+          <span className="pl-2">Copia</span>
+        </button>
+        {/* incolla */}
         <button onClick={SHARED.paste}
                 className="p-2 bg-green-900 text-sm truncate">
           <i className="bi bi-clipboard"></i>
           <span className="pl-2">Incolla</span>
         </button>
+        {/* impostazioni */}
+        <Link href={`/books/${book_id}/settings`}
+              className="py-2 px-3 bg-indigo-900 rounded-full"
+              title="Vai alle impostazioni">
+          <i className="bi bi-three-dots-vertical"></i>
+        </Link>
       </Frag>
-      <Link href={`/books/${book_id}/settings`}
-            className="p-2 bg-indigo-900 rounded-full"
-            title="Vai alle impostazioni">
-        <i className="bi bi-three-dots-vertical"></i>
-      </Link>
+
     </Navigation>
 
-
-    {/* BREADCRUMB */}
-    {/* <Breadcrumb routes={["Catalogo:/books", `${book.get?.title}:/${book.get?.id}`, `${part?.title}:/structure", SECTION.mainTitle.get]} /> */}
 
 
     {/* STRUMENTI */}
     <div className="fixed top-[50px] left-0 right-0 z-20 mx-auto print:hidden" data-toptools>
       <div className="mx-auto w-max bg-indigo-900 rounded-b-lg overflow-hidden">
-        {/* UNDO / REDO / SEGNALIBRI / CERCA */} 
+
         <Frag if={!FIND_REPLACE.isVisible.get}>
           <div className="flex items-center">
-            {/* UNDO */}
             <Frag if={section_isEditMode}>
+              {/* UNDO */}
               <button onClick={HISTORY.undo} 
                       className="px-3 py-2 bg-indigo-900" 
                       title="Annulla">
                 <i className="bi bi-arrow-90deg-left" style={{transform:"rotate(-90) !important"}}></i> 
               </button>
-            </Frag>
-            {/* SEGNALIBRI */}
-            <button onClick={()=> MARCKERS.isVisible.set(true)} 
-                    className="px-3 py-2 bg-green-900" 
-                    title="Segnalibri">
-              <i className="bi bi-bookmarks-fill"></i> 
-              <span className="ms-1 hidden sm:inline">Segnalibri</span>
-            </button>
-            {/* stampa */}
-            {/* <Frag if={!section_isEditMode}>
-              <button onClick={() => SHARED.print()} 
-                      className={`px-3 py-2 bg-blue-800 `}>
-
-                  <i className="bi bi-file-earmark-arrow-down"></i>
-                  <span className="ms-1 hidden sm:inline">Scarica</span>
-
-              </button>
-            </Frag> */}
-            {/* CERCA */}
-            <Frag if={section_isEditMode}>
+              {/* CERCA */}
               <button onClick={()=> FIND_REPLACE.isVisible.set(p=> !p)} 
                       className={`px-3 py-2 ${FIND_REPLACE.isVisible.get ?"bg-blue-800" :"bg-gray-800"}`}>
                 <i className="bi bi-search"></i> 
-                <span className="ms-1 hidden sm:inline">Cerca</span>
+                <span className="ms-1">Cerca</span>
               </button>
               {/* REDO */}
               <button onClick={HISTORY.redo} 
@@ -215,6 +209,7 @@ export default function SectionComponent(props: UseSectionComponentProps) {
         </Frag>
       </div>
     </div>
+    {/* STRUMENTI */}
 
 
     {/* SEGNALIBRI */}
@@ -265,6 +260,7 @@ export default function SectionComponent(props: UseSectionComponentProps) {
         </div>
       </div>
     </Frag>
+    {/* SEGNALIBRI */}
 
 
     <main id="SectionComponent" onClick={PARAG.closeTemplateInputStyle}>
@@ -292,12 +288,13 @@ export default function SectionComponent(props: UseSectionComponentProps) {
                   value={SECTION.mainTitle.get}
                   disabled={!section_isEditMode}
                   asterisk
-                  onInput={(_e) => SECTION.update("title", _e.target.value.trim())}
+                  onChange={(_e) => SECTION.update("title", _e.target.value.trim())}
                   error_message={errors["section>section-title"]}
                   id={"section-title"}
                   type={"text"}
                   placeholder={"Titolo della sezione"}
                   onKeyDown={SECTION.titleKeyDown}
+                  onFocus={(_e: any) => _e.target.scrollIntoView({ behavior: "smooth", block: "start" })}
                 />
               </div>
 
@@ -319,7 +316,8 @@ export default function SectionComponent(props: UseSectionComponentProps) {
                       type={"textarea"}
                       rows={4}
                       placeholder={"Visualizzato solo dagli scrittori. Inserire sintesi o modifiche da implementare"}
-                      onInput={(_e) => SECTION.update("note", _e.target.value)}
+                      onChange={(_e) => SECTION.update("note", _e.target.value)}
+                      onFocus={(_e: any) => _e.target.scrollIntoView({ behavior: "smooth", block: "start" })}
                     />
                   </div>
                 </Frag>
@@ -372,10 +370,13 @@ export default function SectionComponent(props: UseSectionComponentProps) {
                               asterisk
                               type="textarea"
                               id={paragraph_i + ">text"}
-                              onInput={(_e) => PARAG.update(paragraph_i, "text", _e.target.value)}
+                              onChange={(_e) => PARAG.update(paragraph_i, "text", _e.target.value)}
                               onKeyDown={(_e: any) => PARAG.handleKey(_e, paragraph_i, "text", p)}
                               error_message={errors[`${paragraph_i}>text`]}
-                              onFocus={(_e:any) =>{ PARAG.setStyleInput(paragraph_i)}}
+                              onFocus={(_e:any) =>{ 
+                                PARAG.setStyleInput(paragraph_i);
+                                _e.target.scrollIntoView({ behavior: "smooth", block: "start" });
+                              }}
                               onClick={PARAG.handleFocusText} data-focus-text
                             />
                           </div>
@@ -394,13 +395,6 @@ export default function SectionComponent(props: UseSectionComponentProps) {
                                   onClick={() => PARAG.handleRemove(paragraph_i)}
                                   className="px-2 py-1 bg-gray-600/50 text-red-300">
                             <i className="bi bi-trash"></i>
-                          </button>
-                          {/* copia stile */}
-                          <button onClick={()=> SHARED.copy(p.in_style)} 
-                                  title="Copia stile"  
-                                  data-feedback
-                                  className="px-2 py-1 bg-gray-600/50 text-blue-300">
-                            <i className="bi bi-copy"></i>
                           </button>
                         </Frag>
 
@@ -466,64 +460,74 @@ export default function SectionComponent(props: UseSectionComponentProps) {
     </main>
 
 
-    <Bottombar>
-      {/* INPUT STILE NELLA BOTTOMBAR */}
+    {/* INPUT STILE NELLA BOTTOMBAR */}
+    <Bottombar className={(section_isEditMode && styleInput.isVisible && !!styleInput.target) 
+      ?"w-[100vw] max-w-[400px] bg-indigo-900 rounded-t shadow-lg" :''
+    }>
       <Frag if={section_isEditMode && styleInput.isVisible && !!styleInput.target}>
-        <div className="w-[75vw] max-w-[400px] text bg-white outline rounded shadow-lg overflow-hidden">
-          {/* STILI STANDARD */}
-          <div className="pb-2 flex justify-between align-center">
-            {GROUPS.actualGroups?.map(_group=>(
-              <button className="flex-1 p-1 bg-gray-300" key={_group.title}
-                      title={_group?.title}
-                      onClick={(e)=>GROUPS.toggleGroup(_group.key)}>
-                <i className={`bi ${_group?.icon}`} />
-              </button>
-            ))}
-          </div>
+        <div className="flex-1">
           
-          <div className="grid gap-1 grid-cols-[auto_1fr] items-start">
-            {/* ICONA PALETTE */}
-            {styleInput.target?.in_style.length
-              ?<button onClick={_=> PARAG.update(styleInput.index, "in_style", "")}
-                      className="p-1 text-red-700 relative"
-                      title="Resetta stile">
-                <i className="bi bi-x-lg absolute top-1 start-1"></i>
-                <i className="bi bi-palette"></i>
+          {/* input */}
+          <div className="m-1 text bg-black outline outline-white/20 rounded-xl overflow-hidden">
+            <div className="grid gap-1 grid-cols-[auto_auto_1fr]">
+              {/* ICONA PALETTE */}
+              {styleInput.target?.in_style.length
+                ?<button onClick={_=> PARAG.update(styleInput.index, "in_style", "")}
+                        className="p-2 text-red-700 relative"
+                        title="Resetta stile">
+                  <i className="bi bi-palette-fill"></i>
+                </button>
+                :<label htmlFor={styleInput.index + ">in_style"}
+                        className="p-2 bi bi-palette-fill"
+                        title="Seleziona stile"></label>
+              }
+              
+              {/* COPIA IN_STYLE */}
+              <button onClick={()=> SHARED.copy(styleInput.target?.in_style || '')}
+                      title="Copia in_style"
+                      data-feedback
+                      className="p-2 text-blue-300">
+                <i className="bi bi-copy"></i>
               </button>
-              :<label htmlFor={styleInput.index + ">in_style"}
-                      className="p-1 bi bi-palette-fill"
-                      title="Seleziona stile"></label>
-            }
-            {/* STILE PARAGRAFO */}
-            <div>
-              <Field
-                input_class="p-1"
-                placeholder="Stile tailwind del paragrafo"
-                value={styleInput.target?.ex_style 
-                  ? `${styleInput.target.in_style} ,, ${styleInput.target.ex_style}` 
-                  : (styleInput.target?.in_style || '')
-                }
-                disabled={!section_isEditMode}
-                hide_label
-                label="Stile tailwind del paragrafo"
-                asterisk
-                type="textarea"
-                id={styleInput.index + ">in_style"}
-                error_message={errors[`${styleInput.index}>in_style`]}
-                onChange={(_e) => PARAG.update(styleInput.index, "in_style", _e.target.value.toLowerCase())}
-                onFocus={(_e:any) => PARAG.setStyleInput(styleInput.index)}
-                onKeyDown={(_e: any) => PARAG.handleKey(_e, styleInput.index, "in_style", styleInput.target)}
-              />
+              
+              {/* STILE PARAGRAFO */}
+              <div>
+                <Field
+                  input_class="p-2"
+                  placeholder="Stile tailwind del paragrafo"
+                  value={styleInput.target?.ex_style 
+                    ? `${styleInput.target.in_style} ,, ${styleInput.target.ex_style}` 
+                    : (styleInput.target?.in_style || '')
+                  }
+                  disabled={!section_isEditMode}
+                  hide_label
+                  label="Stile tailwind del paragrafo"
+                  asterisk
+                  type="textarea"
+                  id={styleInput.index + ">in_style"}
+                  error_message={errors[`${styleInput.index}>in_style`]}
+                  onChange={(_e) => PARAG.update(styleInput.index, "in_style", _e.target.value.toLowerCase())}
+                  onFocus={(_e:any) => PARAG.setStyleInput(styleInput.index)}
+                  onKeyDown={(_e: any) => PARAG.handleKey(_e, styleInput.index, "in_style", styleInput.target)}
+                />
+              </div>
             </div>
           </div>
-        </div>
-      </Frag>
 
-      {/* Codici: nascondi, quando c'è lo stile */}
-      <Frag if={!PARAG.styleInput.get.isVisible}>
-        <Link href={"/auth"} className="circle bg-indigo-700" title="Mostra codici">
-          <i className="bi bi-person-vcard-fill"></i>
-        </Link>
+          {/* STILI STANDARD */}
+          <div className="flex justify-between align-center">
+            {GROUPS.actualGroups?.map((_group,i)=><React.Fragment key={_group.title}>
+              <div className={`${i ?'my-2 border-l border-white/20' :''}`}></div>
+
+              <button className={`flex-1 p-2 text bg-indigo-900`} 
+                      
+                      title={_group?.title}
+                      onClick={(e)=>GROUPS.toggleGroup(_group.key)}>
+                <i className={`text-xl bi ${_group?.icon}`} />
+              </button>
+            </React.Fragment>)}
+          </div>
+        </div>
       </Frag>
 
       {/* editmode */}

@@ -109,32 +109,8 @@ function applyStyle() {
     .map(color => {
       return shades
         .map(shade => {
-          // Logica per determinare il colore del testo
-          const isLightColor =
-            color === "red" ||
-            color === "yellow" ||
-            color === "amber" ||
-            color === "lime" ||
-            color === "orange";
-          const isMediumColor =
-            color === "green" ||
-            color === "blue" ||
-            color === "indigo" ||
-            color === "purple" ||
-            color === "violet" ||
-            color === "slate" ||
-            color === "zinc" ||
-            color === "neutral" ||
-            color === "stone" ||
-            color === "emerald" ||
-            color === "teal" ||
-            color === "cyan" ||
-            color === "sky" ||
-            color === "pink" ||
-            color === "rose";
-          const textColor = (isLightColor && shade < 500) || (isMediumColor && shade < 500)
-            ? "black"
-            : "white";
+          // Logica semplice: se la gradazione è maggiore di 400, testo bianco, altrimenti nero
+          const textColor = shade > 400 ? "white" : "black";
           return `
             .text.bg-${color}-${shade} {
               color: ${textColor};

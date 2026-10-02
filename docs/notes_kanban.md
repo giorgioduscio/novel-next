@@ -9,6 +9,12 @@
 
 # Kanban - Novel Writer (Next.js)
 ## 📌 To Do 
+
+3. **script dati demo**: crea uno script node "populate.ts" che cancella due libri di demo 'demo_lettura' 'demo_scrittura' e poi li ricrea. lo scopo è avere una base di dati stabile
+4. **accessibilita**: aggiungi a ui_feedback
+  - la funzionalità per scrollare la pagina verso l'input con cui ci si interagisce (document.addeventlinstener("keydown", scrollToInput))
+  - una funzionalità per cui, quando tieni premuto un pulsante, compare un popover con scritto il valore dell'attributo title del pulsante
+2. **input style**: spostare la logica dentro PARAG.styleInput
   
 * [5] sectioncomponent layout per pc
 * [5] elementi angolati
