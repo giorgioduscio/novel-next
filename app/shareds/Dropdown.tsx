@@ -66,13 +66,15 @@ export function Dropdown({ children, className = "" }: DropdownProps) {
 
 interface DropdownSummaryProps {
   children: React.ReactNode;
+  className?: string;
   "aria-expanded"?: boolean;
   onClick?: () => void;
 }
 
-export function DropdownSummary({ children, "aria-expanded": ariaExpanded, onClick }: DropdownSummaryProps) {
+export function DropdownSummary({ children, className = "", "aria-expanded": ariaExpanded, onClick }: DropdownSummaryProps) {
   return (
     <div
+      className={className}
       onClick={onClick}
       aria-expanded={ariaExpanded}
     >

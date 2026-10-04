@@ -11,6 +11,7 @@ import React from "react";
 import { EditModeToggleButton } from "@/app/data/CommonPagesContext";
 import Bottombar from "@/app/shareds/Bottombar";
 import { Dropdown, DropdownContent, DropdownSummary } from "@/app/shareds/Dropdown";
+import { GROUPS_DATAS } from "./TailwindClassGroups";
 
 interface AddParagraphButtonProps { handleCreate: Function; if: boolean; className?: string }
 function AddParagraphButton({ if: show, handleCreate, className = "" }: AddParagraphButtonProps) {
@@ -521,19 +522,34 @@ export default function SectionComponent(props: UseSectionComponentProps) {
             </div>
           </div>
 
-          {/* STILI STANDARD */}
-          <div className="flex justify-between align-center">
+          {/* PULSANTI STATO STILE */}
+          <div className="flex justify-around align-center">
             {GROUPS.actualGroups?.map((_group,i)=><React.Fragment key={_group.title}>
-              <div className={`${i ?'my-2 border-l border-white/20' :''}`}></div>
+              <div className={`${i ?'my-2 border-l border-white/30' :''}`}></div>
 
-              <button className={`flex-1 p-2 text bg-indigo-900`} 
-                      
-                      title={_group?.title}
-                      onClick={(e)=>GROUPS.toggleGroup(_group.key)}>
-                <i className={`text-xl bi ${_group?.icon}`} />
-              </button>
+              <Dropdown>
+                <DropdownSummary>
+                  <button className={`px-3 py-2 text bg-indigo-900`} title={_group?.title}>
+                    <i className={`text-xl bi ${_group?.icon}`} />
+                  </button>
+                </DropdownSummary>
+
+                <DropdownContent className="absolute z-2 bottom-11">
+                  <div className="flex flex-col shadow-lg rounded-xl overflow-hidden">
+                    {GROUPS_DATAS[_group.key].map(_class=><React.Fragment key={_class.title}>
+                      <button onClick={()=> GROUPS.toggleGroup(_class, _group.key)} 
+                              className={`py-1 px-2 text-xl ${GROUPS.isSelected(_class) ? 'text bg-indigo-200' : 'bg-indigo-700'}`}
+                              title={_class.title}>
+                        <i className={`bi ${_class.icon}`}></i>
+                      </button>
+                    </React.Fragment>)}
+                  </div>
+                </DropdownContent>
+              </Dropdown>
             </React.Fragment>)}
           </div>
+          {/* PULSANTI STATO STILE */}
+
         </div>
       </Frag>
 

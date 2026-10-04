@@ -497,7 +497,26 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
       return matches
     }, [book.get, this.styleInput.get.index, SECTION.bookSection])
 
-    toggleGroup(groupKey:string){
+    // Verifica se uno stile è selezionato nel paragrafo corrente
+    isSelected(group: TailwindGroup): boolean {
+      const input = this.styleInput.get;
+      if (!input.isVisible) return false;
+
+      const section = getSection(book.get);
+      const paragraph = section?.paragraphs?.[input.index];
+      const style = paragraph?.scripted_style || '';
+
+      // Se il valore è vuoto, controlla se nessun altro valore del gruppo è presente
+      if (group.value === '') {
+        return !GROUPS_DATAS[Object.keys(GROUPS_DATAS).find(key => 
+          GROUPS_DATAS[key].includes(group)
+        ) || ''].some(g => g.value !== '' && style.includes(g.value));
+      }
+      // Altrimenti controlla se il valore è incluso nello style
+      return style.includes(group.value);
+    }
+
+    toggleGroup(group: TailwindGroup, groupKey: string){
       // input col focus
       const input = this.styleInput.get;
 
@@ -506,36 +525,18 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
       const paragraph = section?.paragraphs?.[input.index];
       let resultStyle = paragraph?.scripted_style || '';
 
-      // Trova l'indice attuale: cerca il valore più specifico (con più classi) che matcha
-      const matches = GROUPS_DATAS[groupKey]
-        .map((g, i) => ({ ...g, index: i }))
-        .filter(g => {
-          if (g.value === '') {
-            return !GROUPS_DATAS[groupKey].some(h =>
-              h.value !== '' && resultStyle.includes(h.value)
-            );
-          }
-          return resultStyle.includes(g.value);
-        })
-        .sort((a, b) => b.value.split(' ').length - a.value.split(' ').length); // Ordina per numero di classi (decrescente)
-
-      const current_index = matches[0]?.index ?? 0;
-      const current_group = GROUPS_DATAS[groupKey][current_index];
-
-      // prossimo gruppo di classi
-      const next_index = (current_index === GROUPS_DATAS[groupKey].length-1) ?0 :current_index +1;
-      const next_group = GROUPS_DATAS[groupKey][next_index];
-      if(!next_group) return console.error("nextGroup non disponibile");
-
-      // Rimuove tutte le classi che appartengono al valore corrente del gruppo
-      if (current_group.value !== '') {
-        const currentClasses = current_group.value.split(' ');
+      // Rimuove tutte le classi che appartengono al gruppo
+      const groupValues = GROUPS_DATAS[groupKey].map(g => g.value).filter(v => v !== '');
+      groupValues.forEach(groupValue => {
+        const classesToRemove = groupValue.split(' ');
         resultStyle = resultStyle.split(' ')
-          .filter((cls: string) => !currentClasses.includes(cls))
+          .filter((cls: string) => !classesToRemove.includes(cls))
           .join(' ')
           .trim();
-      }
-      resultStyle = `${resultStyle} ${next_group.value}`.trim();
+      });
+
+      // Aggiunge il nuovo valore
+      resultStyle = `${resultStyle} ${group.value}`.trim();
 
       // Aggiorna il target per renderlo reattivo
       console.log(`○ ${resultStyle}`);

@@ -27,7 +27,7 @@ export const GROUPS_DATAS :Record<string, TailwindGroup[]> ={
   DIRECTION :[
     {
       title:"Non allinea",
-      icon: "bi-aspect-ratio", 
+      icon: "bi-fullscreen", 
       value:"" 
     },
     {
@@ -98,22 +98,22 @@ export const GROUPS_DATAS :Record<string, TailwindGroup[]> ={
     },
     {
       title: "Margini standard",
-      icon: "bi-view-list",
+      icon: "bi-app",
       value: "margini-standard"
     },
     {
       title: "Margini medi",
-      icon: "bi-distribute-vertical",
+      icon: "bi-1-square",
       value: "margini-medi"
     },
     {
       title: "Margini grandi",
-      icon: "bi-distribute-vertical",
+      icon: "bi-2-square",
       value: "margini-grandi"
     },
     {
       title: "Margini schermo",
-      icon: "bi-window-fullscreen",
+      icon: "bi-tablet-fill",
       value: "margini-schermo"
     },
   ]

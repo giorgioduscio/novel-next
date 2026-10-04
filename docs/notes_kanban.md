@@ -10,15 +10,6 @@
 # Kanban - Novel Writer (Next.js)
 ## 📌 To Do 
 
-
-* [x] segnalibri sempre visibili e numerati 
-* [] fai in modo che i pulsanti dell'input di stile siano dei dropdown. 
-    - quando si seleziona un paragrafo, le icone devono mostrare gli stili attuali (comportamento già presente) 
-    - se un pulsante viene premuto (DopdownSummary), mostra tutti gli elementi della sezione di quello stile (in base a GROUPS_DATAS)
-    - quando si preme uno di questi pulsanti nel dropdown, applica il nuovo stile 
->> attenzione: il metodo toggleGroup si occuperà solo di applicare lo stile allegato a quel pulsante. non deve calcolare indici. quindi ci vorrà un refactoring del metodo
-
-
     - colori a pulsante
     - colori per ex_style
 
@@ -74,3 +65,4 @@
   - eliminazione libro: se esiste un codice di scrittura, lo richiede pure per l'eliminazione
 * BooksComponent.tsx gestisce una lista locale di libri 
 * SectionComponent: implementare seletori per l'inserimento dello stile del paragrafo
+* pulsanti dello stato dello stile in formato dropdown
