@@ -10,10 +10,18 @@
 # Kanban - Novel Writer (Next.js)
 ## 📌 To Do 
 
-4. **accessibilita**: aggiungi a ui_feedback
-  - la funzionalità per scrollare la pagina verso l'input con cui ci si interagisce (document.addeventlinstener("keydown", scrollToInput))
-  - una funzionalità per cui, quando tieni premuto un pulsante, compare un popover con scritto il valore dell'attributo title del pulsante
-2. **input style**: spostare la logica dentro PARAG.styleInput
+
+* [x] segnalibri sempre visibili e numerati 
+* [] fai in modo che i pulsanti dell'input di stile siano dei dropdown. 
+    - quando si seleziona un paragrafo, le icone devono mostrare gli stili attuali (comportamento già presente) 
+    - se un pulsante viene premuto (DopdownSummary), mostra tutti gli elementi della sezione di quello stile (in base a GROUPS_DATAS)
+    - quando si preme uno di questi pulsanti nel dropdown, applica il nuovo stile 
+>> attenzione: il metodo toggleGroup si occuperà solo di applicare lo stile allegato a quel pulsante. non deve calcolare indici. quindi ci vorrà un refactoring del metodo
+
+
+    - colori a pulsante
+    - colori per ex_style
+
   
 * [5] sectioncomponent layout per pc
 * [5] elementi angolati

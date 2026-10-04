@@ -120,8 +120,10 @@ export default function StructureComponent(props: UseBookComponentProps) {
                               {/* DROPDOWN */}
                               <Frag if={canEdit} className="relative">
                                 <Dropdown>
-                                  <DropdownSummary className="py-3 px-2">
-                                    <i className="bi bi-three-dots"></i>
+                                  <DropdownSummary>
+                                    <button className="py-3 px-2">
+                                      <i className="bi bi-three-dots"></i>
+                                    </button>
                                   </DropdownSummary>
 
                                   <DropdownContent className="absolute start-10 right-0 z-10">

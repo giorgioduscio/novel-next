@@ -927,11 +927,8 @@ ESEMPI D'USO:
 
 METODI DISPONIBILI:
 - accessibility_init(): Inizializza tutte le funzionalità di accessibilità
-- ui_initScrollToInput(): Inizializza solo lo scroll automatico
-- ui_initTitlePopover(): Inizializza solo il popover dei title
-*/
-
-/**
+- accessibility_initScrollToInput(): Inizializza solo lo scroll automatico
+- accessibility_initTitlePopover(): Inizializza solo il popover dei title
  * Inizializza tutte le funzionalità di accessibilità
  */
 export function accessibility_init() {
@@ -1054,13 +1051,13 @@ export function ui_initTitlePopover() {
         currentPopover.classList.remove('popover-top');
       }
 
-      // Avvia timer per long press (200ms)
+      // Avvia timer per long press (300ms)
       longPressTimer = setTimeout(() => {
         if (currentPopover) {
           currentPopover.classList.add('visible');
           isLongPress = true;
         }
-      }, 200);
+      }, 300);
     }
   });
 

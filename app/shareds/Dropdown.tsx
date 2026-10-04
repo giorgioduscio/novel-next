@@ -4,8 +4,10 @@ import React, { useEffect, useRef, useState } from "react";
 
 /* ESEMPIO UTILIZZO
 <Dropdown>
-  <DropdownSummary className="p-2 bg-blue-500">
-    Apri menu
+  <DropdownSummary>
+    <button className="p-2 bg-blue-500">
+      Apri menu
+    </button>
   </DropdownSummary>
   <DropdownContent className="absolute bg-white p-2">
     <p>Contenuto del dropdown</p>
@@ -50,7 +52,7 @@ export function Dropdown({ children, className = "" }: DropdownProps) {
 
   return (
     <div ref={dropdownRef} className={`relative ${className}`}>
-      {/* Summary - pulsante/trigger */}
+      {/* Summary - trigger container */}
       {summary && React.cloneElement(summary as React.ReactElement<any>, {
         onClick: () => setIsOpen(!isOpen),
         "aria-expanded": isOpen,
@@ -64,20 +66,18 @@ export function Dropdown({ children, className = "" }: DropdownProps) {
 
 interface DropdownSummaryProps {
   children: React.ReactNode;
-  className?: string;
-  onClick?: () => void;
   "aria-expanded"?: boolean;
+  onClick?: () => void;
 }
 
-export function DropdownSummary({ children, className = "", onClick, "aria-expanded": ariaExpanded }: DropdownSummaryProps) {
+export function DropdownSummary({ children, "aria-expanded": ariaExpanded, onClick }: DropdownSummaryProps) {
   return (
-    <button
+    <div
       onClick={onClick}
       aria-expanded={ariaExpanded}
-      className={className}
     >
       {children}
-    </button>
+    </div>
   );
 }
 

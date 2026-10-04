@@ -10,6 +10,7 @@ import InsertAuthCodesComponent from "@/app/shareds/InsertAuthCodesComponent";
 import React from "react";
 import { EditModeToggleButton } from "@/app/data/CommonPagesContext";
 import Bottombar from "@/app/shareds/Bottombar";
+import { Dropdown, DropdownContent, DropdownSummary } from "@/app/shareds/Dropdown";
 
 interface AddParagraphButtonProps { handleCreate: Function; if: boolean; className?: string }
 function AddParagraphButton({ if: show, handleCreate, className = "" }: AddParagraphButtonProps) {
@@ -44,46 +45,52 @@ export default function SectionComponent(props: UseSectionComponentProps) {
     NAVIGATION
   } = useSectionComponent(props); 
     
-  const styleInput = PARAG.styleInput.get
+  const styleInput = GROUPS.styleInput.get
 
   if (!!book.get && !canRead) return <InsertAuthCodesComponent targetId={book_id} />
 
   return (<>
     {/* NAVBAR */}
     <Navigation back_btn={{ href: `/books/${book_id}` }} page_title={SECTION.mainTitle.get}>
-      {/* visibili al lettore */}
-      <Frag if={!section_isEditMode}>
-        {/* SEGNALIBRI */}
-        <button onClick={()=> MARCKERS.isVisible.set(true)} 
-                className="mx-2 px-3 py-2 bg-green-900 rounded" 
-                title="Segnalibri">
-          <i className="bi bi-bookmarks-fill"></i> 
-          <span className="ms-1 hidden sm:inline">Segnalibri</span>
-        </button> 
-      </Frag>
+      {/* SEGNALIBRI */}
+      <button onClick={()=> MARCKERS.isVisible.set(true)} 
+              className="mx-2 px-3 py-2 bg-green-900 rounded" 
+              title="Segnalibri">
+        <i className="bi bi-bookmarks-fill"></i> 
+        <span className="ms-1 hidden sm:inline">Segnalibri</span>
+      </button> 
 
       {/* visibile all'editore */}
       <Frag if={section_isEditMode}>
-        {/* copia */}
-        <button onClick={()=> SHARED.copy()}
-                className="p-2 bg-blue-900 text-sm truncate" data-feedback>
-          <i className="bi bi-copy"></i>
-          <span className="pl-2">Copia</span>
-        </button>
-        {/* incolla */}
-        <button onClick={SHARED.paste}
-                className="p-2 bg-green-900 text-sm truncate">
-          <i className="bi bi-clipboard"></i>
-          <span className="pl-2">Incolla</span>
-        </button>
-        {/* impostazioni */}
-        <Link href={`/books/${book_id}/settings`}
-              className="py-2 px-3 bg-indigo-900 rounded-full"
-              title="Vai alle impostazioni">
-          <i className="bi bi-three-dots-vertical"></i>
-        </Link>
+        <Dropdown className="relative">
+          <DropdownSummary>
+            <button className="p-3 bg-indigo-900 rounded-full"
+                    title="Impostazioni sezione">
+              <i className="bi bi-three-dots-vertical"></i>
+            </button>
+          </DropdownSummary>
+          <DropdownContent className="absolute right-0 z-1 bg-gray-700 grid min-w-[100px]">
+            {/* copia */}
+            <button onClick={()=> SHARED.copy()}
+                    className="p-2 bg-blue-900" data-feedback>
+              <i className="bi bi-copy"></i>
+              <span className="pl-2">Copia</span>
+            </button>
+            {/* incolla */}
+            <button onClick={SHARED.paste}
+                    className="p-2 bg-green-900">
+              <i className="bi bi-clipboard"></i>
+              <span className="pl-2">Incolla</span>
+            </button>
+            {/* impostazioni */}
+            <Link href={`/books/${book_id}/settings`}
+                  className="p-2 bg-indigo-900 truncate">
+              <i className="bi bi-gear"></i>
+              <span className="pl-2">Impostazioni libro</span>
+            </Link>
+          </DropdownContent>
+        </Dropdown>
       </Frag>
-
     </Navigation>
 
 
@@ -247,10 +254,10 @@ export default function SectionComponent(props: UseSectionComponentProps) {
                               MARCKERS.scrollToMarker(item.index.toString());
                               MARCKERS.isVisible.set(false);
                             }}
-                            className="w-full py-2 px-3 bg-indigo-800 hover:bg-indigo-700 text-sm text-left rounded truncate cursor-pointer transition-colors"
+                            className="w-full py-2 px-3 bg-indigo-800 text-sm text-left rounded truncate"
                             title={`Vai al paragrafo: ${item.paragraph.text}`}>
-                      <i className="me-2 bi bi-bookmark"></i>
-                      <span className="truncate">{item.paragraph.text || 'Paragrafo senza testo'}</span>
+                      <b>{index +1})</b>
+                      <span className="ms-2 truncate">{item.paragraph.text || 'Paragrafo senza testo'}</span>
                     </button>
                   </li>
                 ))
@@ -263,7 +270,7 @@ export default function SectionComponent(props: UseSectionComponentProps) {
     {/* SEGNALIBRI */}
 
 
-    <main id="SectionComponent" onClick={PARAG.closeTemplateInputStyle}>
+    <main id="SectionComponent" onClick={GROUPS.closeTemplateInputStyle}>
       <div className="mx-auto container max-w-[400px]">
 
         <section className="min-h-dvh flex-1">
@@ -358,8 +365,8 @@ export default function SectionComponent(props: UseSectionComponentProps) {
                     {/* TESTO PARAGRAFO */}
                     <div onClick={PARAG.handleFocusText}>
                       <div onClick={PARAG.handleFocusText} data-external-style className={`${(p as any).ex_style}`}>
-                        <div className={section_isEditMode && PARAG.styleInput.get.index === paragraph_i ? 'outline-3 outline-dashed outline-black' : ''}>
-                          <div onClick={PARAG.handleFocusText} className={`${section_isEditMode && PARAG.styleInput.get.index === paragraph_i ? 'outline-3 outline-white' : ''}`}>
+                        <div className={section_isEditMode && GROUPS.styleInput.get.index === paragraph_i ? 'outline-3 outline-dashed outline-black' : ''}>
+                          <div onClick={PARAG.handleFocusText} className={`${section_isEditMode && GROUPS.styleInput.get.index === paragraph_i ? 'outline-3 outline-white' : ''}`}>
                             <Field
                               input_class={`text ${p.scripted_style || ""} ${p.in_style || ""}`}
                               placeholder="Testo del paragrafo"
@@ -374,7 +381,7 @@ export default function SectionComponent(props: UseSectionComponentProps) {
                               onKeyDown={(_e: any) => PARAG.handleKey(_e, paragraph_i, "text", p)}
                               error_message={errors[`${paragraph_i}>text`]}
                               onFocus={(_e:any) =>{ 
-                                PARAG.setStyleInput(paragraph_i);
+                                GROUPS.setStyleInput(paragraph_i);
                                 _e.target.scrollIntoView({ behavior: "smooth", block: "start" });
                               }}
                               onClick={PARAG.handleFocusText} data-focus-text
@@ -462,7 +469,7 @@ export default function SectionComponent(props: UseSectionComponentProps) {
 
     {/* INPUT STILE NELLA BOTTOMBAR */}
     <Bottombar className={(section_isEditMode && styleInput.isVisible && !!styleInput.target) 
-      ?"w-[100vw] max-w-[400px] bg-indigo-900 rounded-t shadow-lg" :''
+      ?"w-[100vw] max-w-[400px] bg-indigo-900 rounded-t outline outline-black/50" :''
     }>
       <Frag if={section_isEditMode && styleInput.isVisible && !!styleInput.target}>
         <div className="flex-1">
@@ -507,7 +514,7 @@ export default function SectionComponent(props: UseSectionComponentProps) {
                   id={styleInput.index + ">in_style"}
                   error_message={errors[`${styleInput.index}>in_style`]}
                   onChange={(_e) => PARAG.update(styleInput.index, "in_style", _e.target.value.toLowerCase())}
-                  onFocus={(_e:any) => PARAG.setStyleInput(styleInput.index)}
+                  onFocus={(_e:any) => GROUPS.setStyleInput(styleInput.index)}
                   onKeyDown={(_e: any) => PARAG.handleKey(_e, styleInput.index, "in_style", styleInput.target)}
                 />
               </div>

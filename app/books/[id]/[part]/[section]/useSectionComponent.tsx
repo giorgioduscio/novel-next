@@ -220,8 +220,6 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
       this.update = this.update.bind(this);
       this.handleCreate = this.handleCreate.bind(this);
       this.handleKey = this.handleKey.bind(this);
-      this.setStyleInput = this.setStyleInput.bind(this);
-      this.closeTemplateInputStyle = this.closeTemplateInputStyle.bind(this);
       this.handleRemove = this.handleRemove.bind(this);
       this.handleFocusText = this.handleFocusText.bind(this);
       this.initResizeObserver() 
@@ -343,46 +341,6 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
       return handleKeyboardFeature(e, index, key, paragraph);
     }
 
-    // Input di stile
-    styleInput = useDotNotation<{
-      index:number,
-      isVisible:boolean,
-      target?: Paragraph,
-    }>({ index: -1, isVisible: false });
-
-    // Imposta l'input di stile
-    setStyleInput(paragraph_i?: number) {
-      if (!page.isEditMode.get) return;
-
-      // RESET
-      if (paragraph_i === undefined) {
-        this.styleInput.set({
-          isVisible: false,
-          index: -1,
-        });
-        return;
-      }
-
-      // Cerca paragrafo direttamente da book.get per avere sempre i dati più recenti
-      const section = getSection(book.get);
-      const target = section?.paragraphs?.[paragraph_i];
-      if (!target) return console.error("Paragrafo non trovato");
-
-      this.styleInput.set({
-        isVisible: true,
-        index: paragraph_i,
-        target
-      });
-    }
-
-    // Chiude l'input di stile attraverso <main>
-    closeTemplateInputStyle(e: React.MouseEvent) {
-      e.stopPropagation();
-      const textarea = (e.target as HTMLElement).closest("textarea");
-      const dropdown = (e.target as HTMLElement).closest("[data-dropdown]");
-      if (!dropdown && !textarea) this.setStyleInput();
-    }
-
     // Rimuove un paragrafo
     async handleRemove(index: number) {
       if (!book.get) {
@@ -468,10 +426,52 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
     // Bind dei metodi per mantenere il contesto
     constructor() {
       this.toggleGroup = this.toggleGroup.bind(this);
+      this.setStyleInput = this.setStyleInput.bind(this);
+      this.closeTemplateInputStyle = this.closeTemplateInputStyle.bind(this);
+    }
+
+    // Input di stile
+    styleInput = useDotNotation<{
+      index:number,
+      isVisible:boolean,
+      target?: Paragraph,
+    }>({ index: -1, isVisible: false });
+
+    // Imposta l'input di stile
+    setStyleInput(paragraph_i?: number) {
+      if (!page.isEditMode.get) return;
+
+      // RESET
+      if (paragraph_i === undefined) {
+        this.styleInput.set({
+          isVisible: false,
+          index: -1,
+        });
+        return;
+      }
+
+      // Cerca paragrafo direttamente da book.get per avere sempre i dati più recenti
+      const section = getSection(book.get);
+      const target = section?.paragraphs?.[paragraph_i];
+      if (!target) return console.error("Paragrafo non trovato");
+
+      this.styleInput.set({
+        isVisible: true,
+        index: paragraph_i,
+        target
+      });
+    }
+
+    // Chiude l'input di stile attraverso <main>
+    closeTemplateInputStyle(e: React.MouseEvent) {
+      e.stopPropagation();
+      const textarea = (e.target as HTMLElement).closest("textarea");
+      const dropdown = (e.target as HTMLElement).closest("[data-dropdown]");
+      if (!dropdown && !textarea) this.setStyleInput();
     }
 
     actualGroups = useMemo(()=>{
-      const input = PARAG.styleInput.get;
+      const input = this.styleInput.get;
       if(!input.isVisible) return null;
 
       const section = getSection(book.get);
@@ -495,12 +495,11 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
         matches.push({...GROUPS_DATAS[groupKey][matchIndex], key: groupKey});
       }
       return matches
-    }, [book.get, PARAG.styleInput.get.index, SECTION.bookSection])
-
+    }, [book.get, this.styleInput.get.index, SECTION.bookSection])
 
     toggleGroup(groupKey:string){
       // input col focus
-      const input = PARAG.styleInput.get;
+      const input = this.styleInput.get;
 
       // Legge direttamente dal libro per avere dati freschi
       const section = getSection(book.get);
@@ -540,8 +539,8 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
 
       // Aggiorna il target per renderlo reattivo
       console.log(`○ ${resultStyle}`);
-      PARAG.update(PARAG.styleInput.get.index, "scripted_style", resultStyle.trim())
-      PARAG.setStyleInput(PARAG.styleInput.get.index);
+      PARAG.update(this.styleInput.get.index, "scripted_style", resultStyle.trim())
+      this.setStyleInput(this.styleInput.get.index);
 
     }
   }
@@ -651,7 +650,7 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
 
           // Stile
           if (occurrence.type === 'style') {
-            PARAG.setStyleInput(occurrence.index); // Apri il dropdown
+            GROUPS.setStyleInput(occurrence.index); // Apri il dropdown
             setTimeout(() => {
               const styleInput = document.getElementById(`${occurrence.index}>in_style`);
               if (!styleInput) return console.error("Input stile non trovato", occurrence);
@@ -817,7 +816,7 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
             if (!nextInput) return;
             nextInput.scrollIntoView({ behavior: "smooth", block: "center" });
             if (nextOccurrence.type === 'style') {
-              PARAG.setStyleInput(nextOccurrence.index);
+              GROUPS.setStyleInput(nextOccurrence.index);
             }
             setTimeout(() => {
               const focusedInput = document.getElementById(inputId) as HTMLTextAreaElement;

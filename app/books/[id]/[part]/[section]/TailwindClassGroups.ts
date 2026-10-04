@@ -31,6 +31,11 @@ export const GROUPS_DATAS :Record<string, TailwindGroup[]> ={
       value:"" 
     },
     {
+      title:"Limitato",
+      icon: "bi-distribute-horizontal", 
+      value:"limitato" 
+    },
+    {
       title:"Allinea a sinistra",
       icon: "bi-align-start", 
       value:"sinistra" 
