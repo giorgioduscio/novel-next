@@ -369,22 +369,23 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
     handleFocusText(e: React.MouseEvent | React.FocusEvent) {
       if (!authContext.CONTROLS.canRead(book.get!))
         return console.error("Permesso negato");
+      if (page.isEditMode.get) return;
 
+      
       // Seleziona textarea del testo del paragrafo
-      const element = e.target as HTMLElement;
-      const isSelected = element.tagName === "TEXTAREA";
-      const textarea = (
-        isSelected
-          ? (element as HTMLTextAreaElement)
-          : (element.querySelector('textarea[name*=">text"], textarea[id*=">text"]') as HTMLTextAreaElement)
-            || (element.closest('li')?.querySelector('textarea[name*=">text"], textarea[id*=">text"]') as HTMLTextAreaElement)
-            || (e.currentTarget?.querySelector?.('textarea[name*=">text"], textarea[id*=">text"]') as HTMLTextAreaElement)
-      );
-
+      const target = e.target as HTMLElement
+      const container = target.closest("[data-external-style]");
+      if(!container) return console.error("Elemento non trovato");
+      
+      const isSelected = target.tagName === "TEXTAREA";
+      const textarea = isSelected
+          ? (target as HTMLTextAreaElement)
+          : (container.querySelector('textarea') as HTMLTextAreaElement)
       if (!textarea) return console.error("Textarea non trovata");
-
+      
       // Fa tornare editmode
-      if (!page.isEditMode.get) page.toggleEditMode();
+      if (!page.isEditMode.get) page.isEditMode.set(true);
+
       // Applica il focus
       setTimeout(() => {
         const targetTextarea = (document.getElementById(textarea.id) as HTMLTextAreaElement) || textarea;
@@ -539,7 +540,6 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
       resultStyle = `${resultStyle} ${group.value}`.trim();
 
       // Aggiorna il target per renderlo reattivo
-      console.log(`○ ${resultStyle}`);
       PARAG.update(this.styleInput.get.index, "scripted_style", resultStyle.trim())
       this.setStyleInput(this.styleInput.get.index);
 

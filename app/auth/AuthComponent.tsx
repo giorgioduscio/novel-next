@@ -1,7 +1,7 @@
 "use client"
 
 import { Breadcrumb } from "../shareds/Breadcrumb"
-import Navigation from "../shareds/Navigation"
+import Navbar from "../shareds/Navbar"
 import Field from "../shareds/Field"
 import Frag from "../shareds/Frag"
 import useAuthComponent from "./useAuthComponent"
@@ -20,7 +20,7 @@ export default function AuthComponent() {
 
   return <>
     <Frag if={checkedTargets.get.length === 0}>
-      <Navigation page_title="Permessi"/>
+      <Navbar page_title="Permessi"/>
     </Frag>
 
     {/* AZIONI MULTIPLE */}

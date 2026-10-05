@@ -1,7 +1,7 @@
 "use client";
 
 import { useBookComponent } from "../useBookComponent";
-import Navigation from "@/app/shareds/Navigation";
+import Navbar from "@/app/shareds/Navbar";
 import { Breadcrumb } from "@/app/shareds/Breadcrumb";
 import Frag from "@/app/shareds/Frag";
 import { Dropdown, DropdownContent, DropdownSummary } from "@/app/shareds/Dropdown";
@@ -36,7 +36,7 @@ export default function StructureComponent(props: UseBookComponentProps) {
   if (!!book && !canRead) return <InsertAuthCodesComponent targetId={props.id} />
   
   return <>
-    <Navigation page_title={book?.title ||""} back_btn={{ href:"/books" }}>
+    <Navbar page_title={book?.title ||""} back_btn={{ href:"/books" }}>
       {/* impostazioni del libro */}
       <Frag if={canWrite}>
         <Link href={`/books/${book?.id || ''}/settings`}
@@ -45,7 +45,7 @@ export default function StructureComponent(props: UseBookComponentProps) {
           <i className="bi bi-three-dots-vertical"></i>
         </Link>
       </Frag>
-    </Navigation>
+    </Navbar>
     
     <Breadcrumb routes={["Catalogo:/books", book?.title || "Libro", "Struttura"]} />
 

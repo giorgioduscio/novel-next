@@ -13,7 +13,7 @@ import SettingsCodesFormComponent from "./SettingsCodesFormComponent";
 import { useBookContext } from "@/app/data/BookContext";
 import { useRouter } from "next/navigation";
 import { useAgreeWrapper } from "@/app/shareds/Agree";
-import Navigation from "@/app/shareds/Navigation";
+import Navbar from "@/app/shareds/Navbar";
 import UnathorizeComponent from "@/app/shareds/UnathorizeComponent";
 import { generateSecureKey } from "@/app/data/BookContext";
 import { toast } from "@/app/tools/feedbacksUI";
@@ -180,7 +180,7 @@ export default function SettingsComponent(props: UseBookComponentProps) {
 
   return (
     <>
-      <Navigation page_title={book?.title ||""} />    
+      <Navbar page_title={book?.title ||""} />    
 
       <Breadcrumb routes={["Catalogo:/books", `${book?.title}:/${book?.id}/structure`, "Impostazioni"]} />
 

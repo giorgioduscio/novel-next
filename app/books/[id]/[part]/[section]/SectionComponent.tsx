@@ -3,7 +3,7 @@
 import "./Section.sass";
 import Field from "@/app/shareds/Field";
 import Frag from "@/app/shareds/Frag";
-import Navigation from "@/app/shareds/Navigation";
+import Navbar from "@/app/shareds/Navbar";
 import { useSectionComponent, UseSectionComponentProps } from "./useSectionComponent";
 import Link from "next/link";
 import InsertAuthCodesComponent from "@/app/shareds/InsertAuthCodesComponent";
@@ -52,7 +52,7 @@ export default function SectionComponent(props: UseSectionComponentProps) {
 
   return (<>
     {/* NAVBAR */}
-    <Navigation back_btn={{ href: `/books/${book_id}` }} page_title={SECTION.mainTitle.get}>
+    <Navbar back_btn={{ href: `/books/${book_id}` }} page_title={SECTION.mainTitle.get}>
       {/* SEGNALIBRI */}
       <button onClick={()=> MARCKERS.isVisible.set(true)} 
               className="mx-2 px-3 py-2 bg-green-900 rounded" 
@@ -92,7 +92,7 @@ export default function SectionComponent(props: UseSectionComponentProps) {
           </DropdownContent>
         </Dropdown>
       </Frag>
-    </Navigation>
+    </Navbar>
 
 
 
@@ -354,7 +354,7 @@ export default function SectionComponent(props: UseSectionComponentProps) {
               {/* LISTA PARAGRAFI */}
               <ol ref={PARAG.listReference}>
                 {SECTION.bookSection?.paragraphs?.map((p, paragraph_i) => (
-                  <li key={paragraph_i} className="relative pb-1">
+                  <li key={paragraph_i} className="relative">
 
                     {/* PULSANTE INSERIMENTO */}
                     <AddParagraphButton
@@ -364,10 +364,10 @@ export default function SectionComponent(props: UseSectionComponentProps) {
                     />
 
                     {/* TESTO PARAGRAFO */}
-                    <div onClick={PARAG.handleFocusText}>
-                      <div onClick={PARAG.handleFocusText} data-external-style className={`${(p as any).ex_style}`}>
+                    <div>
+                      <div onClick={PARAG.handleFocusText} data-external-style className={`${p.ex_style}`}>
                         <div className={section_isEditMode && GROUPS.styleInput.get.index === paragraph_i ? 'outline-3 outline-dashed outline-black' : ''}>
-                          <div onClick={PARAG.handleFocusText} className={`${section_isEditMode && GROUPS.styleInput.get.index === paragraph_i ? 'outline-3 outline-white' : ''}`}>
+                          <div className={`${section_isEditMode && GROUPS.styleInput.get.index === paragraph_i ? 'outline-3 outline-white' : ''}`}>
                             <Field
                               input_class={`text ${p.scripted_style || ""} ${p.in_style || ""}`}
                               placeholder="Testo del paragrafo"
@@ -385,7 +385,6 @@ export default function SectionComponent(props: UseSectionComponentProps) {
                                 GROUPS.setStyleInput(paragraph_i);
                                 _e.target.scrollIntoView({ behavior: "smooth", block: "start" });
                               }}
-                              onClick={PARAG.handleFocusText} data-focus-text
                             />
                           </div>
                         </div>
@@ -534,15 +533,17 @@ export default function SectionComponent(props: UseSectionComponentProps) {
                   </button>
                 </DropdownSummary>
 
-                <DropdownContent className="absolute z-2 bottom-11">
-                  <div className="flex flex-col shadow-lg rounded-xl overflow-hidden">
-                    {GROUPS_DATAS[_group.key].map(_class=><React.Fragment key={_class.title}>
-                      <button onClick={()=> GROUPS.toggleGroup(_class, _group.key)} 
-                              className={`py-1 px-2 text-xl ${GROUPS.isSelected(_class) ? 'text bg-indigo-200' : 'bg-indigo-700'}`}
-                              title={_class.title}>
-                        <i className={`bi ${_class.icon}`}></i>
-                      </button>
-                    </React.Fragment>)}
+                <DropdownContent className="absolute z-10 bottom-full mb-2 start-0 w-full">
+                  <div className="bg-indigo-700 shadow-lg rounded-xl overflow-hidden">
+                    <div className="max-w-[250px] flex flex-wrap">
+                      {GROUPS_DATAS[_group.key].map(_class=><React.Fragment key={_class.title}>
+                        <button onClick={()=> GROUPS.toggleGroup(_class, _group.key)} 
+                                className={`px-3 py-2 text-xl ${GROUPS.isSelected(_class) ? 'text bg-indigo-200' : 'bg-indigo-700'}`}
+                                title={_class.title}>
+                          <i className={`bi ${_class.icon}`}></i>
+                        </button>
+                      </React.Fragment>)}
+                    </div>
                   </div>
                 </DropdownContent>
               </Dropdown>

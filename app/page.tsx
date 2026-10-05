@@ -1,5 +1,5 @@
 import Link from "next/link";
-import Navigation from "./shareds/Navigation";
+import Navbar from "./shareds/Navbar";
 
 export default function Home() {
   const tools =[
@@ -13,7 +13,7 @@ export default function Home() {
   
   return (
     <main id="Home" className="">
-      <Navigation page_title="Home" />
+      <Navbar page_title="Home" />
 
       {/* Hero Section */}
       <section className="mx-auto container max-w-[800px]">

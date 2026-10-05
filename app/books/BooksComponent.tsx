@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Breadcrumb } from "../shareds/Breadcrumb";
 import Field from "../shareds/Field";
 import Frag from "../shareds/Frag";
-import Navigation from "../shareds/Navigation";
+import Navbar from "../shareds/Navbar";
 import { useBooksComponent } from "./useBooksComponent";
 import useSharedText from "../data/sharedText";
 import { useBookContext } from "../data/BookContext";
@@ -19,7 +19,7 @@ export default function BooksComponent() {
 
   return (
     <>
-      <Navigation page_title="Catalogo" />
+      <Navbar page_title="Catalogo" />
 
       <Breadcrumb routes={["Catalogo"]} />
 
