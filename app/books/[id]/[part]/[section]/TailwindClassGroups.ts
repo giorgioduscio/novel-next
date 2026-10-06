@@ -1,3 +1,5 @@
+import { tailwind_colors, tailwind_shades } from "@/app/styles/styles";
+
 // gruppi di classi tailwind
 export interface TailwindGroup { 
   title:string, 
@@ -116,5 +118,51 @@ export const GROUPS_DATAS :Record<string, TailwindGroup[]> ={
       icon: "bi-tablet-fill",
       value: "margini-schermo"
     },
-  ]
+  ],
+
+  BACKGROUNDS: colorsGroups() 
 };
+
+function colorsGroups() {
+  const result =[
+    {
+      title: "Nessun colore",
+      icon: "bi-palette",
+      value: ""
+    },
+  ];
+
+  for(const _color of tailwind_colors){
+    // ignorare
+    const ignored =["transparent", "current", 
+      "stone", "zinc", "neutral", "slate", "amber", 
+      "teal", "emerald", "cyan", 
+      "violet", "pink"];
+    if(ignored.includes(_color)) continue;
+
+    // bianco e nero
+    else if(["white", "black"].includes(_color)){
+      const color_result = `bg-${_color}`;
+      result.unshift({
+        title: color_result,
+        icon: `bi-palette text ${color_result}`,
+        value: color_result
+      })
+      continue;
+    }
+
+    for(const _shade of tailwind_shades){
+      const color_result = `bg-${_color}-${_shade}`;
+
+      result.unshift({
+        title: color_result,
+        icon: `bi-${_shade/100}-circle text ${color_result}`,
+        value: color_result
+      })
+    }
+  }
+
+  console.log("*", result.length);
+  
+  return result
+}

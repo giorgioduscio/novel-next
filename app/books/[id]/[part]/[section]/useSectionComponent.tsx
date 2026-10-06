@@ -517,7 +517,29 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
       return style.includes(group.value);
     }
 
-    toggleGroup(group: TailwindGroup, groupKey: string){
+    // dati della finestra dei pulsanti
+    windodButtons = useDotNotation<TailwindGroup[]>([]);
+    currentGroupKey = useDotNotation<string>("");
+
+    // Apre la finestra popup con i pulsanti del gruppo selezionato
+    openWindowButtons(groupKey: string) {
+      const groupData = GROUPS_DATAS[groupKey];
+      if (!groupData) return console.error(`Gruppo ${groupKey} non trovato`);
+      this.windodButtons.set(groupData);
+      this.currentGroupKey.set(groupKey);
+    }
+
+    // Chiude la finestra popup
+    closeWindowButtons() {
+      this.windodButtons.set([]);
+      this.currentGroupKey.set("");
+    }
+
+    toggleGroup(group: TailwindGroup, groupKey?: string){
+      // Usa currentGroupKey se groupKey non è fornito
+      const actualGroupKey = groupKey || this.currentGroupKey.get;
+      if (!actualGroupKey) return console.error("Nessun gruppo attivo");
+
       // input col focus
       const input = this.styleInput.get;
 
@@ -527,7 +549,7 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
       let resultStyle = paragraph?.scripted_style || '';
 
       // Rimuove tutte le classi che appartengono al gruppo
-      const groupValues = GROUPS_DATAS[groupKey].map(g => g.value).filter(v => v !== '');
+      const groupValues = GROUPS_DATAS[actualGroupKey].map(g => g.value).filter(v => v !== '');
       groupValues.forEach(groupValue => {
         const classesToRemove = groupValue.split(' ');
         resultStyle = resultStyle.split(' ')
@@ -542,8 +564,11 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
       // Aggiorna il target per renderlo reattivo
       PARAG.update(this.styleInput.get.index, "scripted_style", resultStyle.trim())
       this.setStyleInput(this.styleInput.get.index);
-
+      
+      // Chiude la finestra popup dopo la selezione
+      this.closeWindowButtons();
     }
+    
   }
   const GROUPS = new GroupsFeature()
 

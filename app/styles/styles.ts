@@ -10,6 +10,19 @@ export default function DynamicStyles() {
   return null;
 }
 
+
+// === TESTO AD ALTO CONTRASTO PER TUTTI I COLORI TAILWIND ===
+export const tailwind_colors = [
+    "transparent", "current", 
+    "black", "white",
+    "indigo", "red", "gray", "yellow", "green", "blue",
+    "slate", "zinc", "neutral", "stone", "orange", "amber",
+    "lime", "emerald", "teal", "cyan", "sky", "purple",
+    "violet", "fuchsia", "pink", "rose"
+  ];
+
+export const tailwind_shades = [100, 200, 300, 400, 500, 600, 700, 800, 900];
+
 function applyStyle() {
   const styleTag = document.createElement("style");
 
@@ -62,18 +75,6 @@ function applyStyle() {
     `),
   ].join("\n");
 
-
-  // === TESTO AD ALTO CONTRASTO PER TUTTI I COLORI TAILWIND ===
-  const colors = [
-    "transparent", "current", "black", "white",
-    "indigo", "red", "gray", "yellow", "green", "blue",
-    "slate", "zinc", "neutral", "stone", "orange", "amber",
-    "lime", "emerald", "teal", "cyan", "sky", "purple",
-    "violet", "fuchsia", "pink", "rose"
-  ];
-
-  const shades = [100, 200, 300, 400, 500, 600, 700, 800, 900];
-
   // Mappa per i colori speciali (black/white/transparent/current)
   const specialColors: Record<string, string> = {
     transparent: "black",
@@ -92,7 +93,7 @@ function applyStyle() {
     .join("\n");
 
   // Genera le regole per le sfumature di black e white
-  const blackWhiteShadeClasses = shades
+  const blackWhiteShadeClasses = tailwind_shades
     .map(shade => `
       .text.bg-black\\/${shade} {
         color: white;
@@ -104,20 +105,18 @@ function applyStyle() {
     .join("\n");
 
   // Genera le regole per i colori con sfumature
-  const colorShadeClasses = colors
+  const colorShadeClasses = tailwind_colors
     .filter(color => !Object.keys(specialColors).includes(color))
-    .map(color => {
-      return shades
-        .map(shade => {
-          // Logica semplice: se la gradazione è maggiore di 400, testo bianco, altrimenti nero
-          const textColor = shade > 400 ? "white" : "black";
-          return `
-            .text.bg-${color}-${shade} {
-              color: ${textColor};
-            }
-          `;
-        }).join("\n");
-    }).join("\n");
+    .map(color => tailwind_shades.map(shade => {
+        // Logica semplice: se la gradazione è maggiore di 400, testo bianco, altrimenti nero
+        const textColor = shade > 300 ? "white" : "black";
+        return `
+          .text.bg-${color}-${shade} {
+            color: ${textColor};
+          }
+        `;
+      }).join("\n")
+    ).join("\n");
 
 
 
@@ -132,4 +131,18 @@ function applyStyle() {
 
   styleTag.textContent = allStyles;
   document.head.appendChild(styleTag);
+}
+
+  
+// bordi della classe .dettaglio
+export class DettaglioBorders {
+  constructor() {
+    const dettagli = document.querySelectorAll<HTMLElement>('.dettaglio')
+    if (dettagli.length)
+
+      dettagli.forEach((el) => {
+        const bg = getComputedStyle(el).backgroundColor;
+        el.style.borderColor = `color-mix(in srgb, ${bg} 40%, #00000080)`;
+      });
+  }
 }

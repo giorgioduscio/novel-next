@@ -10,15 +10,17 @@
 # Kanban - Novel Writer (Next.js)
 ## 📌 To Do 
 
-    - colori a pulsante
-    - colori per ex_style
 
-* sectionComponent.tsx: fai in modo che quando clicco il paragrafo (o la textarea), attivi edit mode. questa funzionalità c'è giià ma funziona male
-* barra di avanzamento: in navigation.tsx implementa una barra di avanzamento che aumenta in base allo scroll della pagina: se sono allinizio della pagina, mostra 0%; a metà, mostra 50%; se non c'è più nulla da scrollare perche sono arrivato alla fine della pagina, mostra 100%
 
-* **Section.sass**: fai in modo che gli elementi con la classe .dettaglio abbiano il colore del bordo uguale allo sfondo dellelemento in cui viene applicato (ma più scuro)
-* **SectionComponent.tsx**: fai in modo che i dropdown dei pulsanti di stile abbiano la larghezza corretta alla quantità di pulsanti che contengono. esempio: se un dropdown contiene 3 elementi, può rimanere com'è adesso. se ne contiene 10, vorrei che separasse le colonne in 2. se sono nove, in 3
-* **ornamento** verde fluo e bordi angolati
+* [x] sectionComponent.tsx: fai in modo che quando clicco il paragrafo (o la textarea), attivi edit mode. questa funzionalità c'è giià ma funziona male
+* [x] barra di avanzamento: in navigation.tsx implementa una barra di avanzamento che aumenta in base allo scroll della pagina: se sono allinizio della pagina, mostra 0%; a metà, mostra 50%; se non c'è più nulla da scrollare perche sono arrivato alla fine della pagina, mostra 100%
+
+* [] colori per ex_style
+* [] **ornamento** verde fluo e bordi angolati
+  - black: sfondo, annulla o indietro
+  - green-800: layout
+  - green-400: azione
+  - red-700: pericolo o danno
 
 
   

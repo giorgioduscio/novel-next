@@ -364,7 +364,7 @@ export default function SectionComponent(props: UseSectionComponentProps) {
                     />
 
                     {/* TESTO PARAGRAFO */}
-                    <div>
+                    <div className="pb-3">
                       <div onClick={PARAG.handleFocusText} data-external-style className={`${p.ex_style}`}>
                         <div className={section_isEditMode && GROUPS.styleInput.get.index === paragraph_i ? 'outline-3 outline-dashed outline-black' : ''}>
                           <div className={`${section_isEditMode && GROUPS.styleInput.get.index === paragraph_i ? 'outline-3 outline-white' : ''}`}>
@@ -437,27 +437,29 @@ export default function SectionComponent(props: UseSectionComponentProps) {
             </Frag>
 
             {/* NAVIGAZIONE SEZIONI (PRECEDENTE / SUCCESSIVA) */}
-            <Frag if={!!NAVIGATION.prevSection || !!NAVIGATION.nextSection} className="mt-8 p-3 grid grid-cols-2 gap-3 text-sm print:hidden">
-              {[NAVIGATION.prevSection, NAVIGATION.nextSection].map((_sec,i)=><React.Fragment key={i}>
-                {_sec ?(
-                  <Link href={`/books/${book_id}/${_sec.part_id}/${_sec.section_id}`}
-                        className="p-2 flex items-center gap-2 bg-indigo-600 rounded-lg shadow-lg"
-                        title={`Sezione ${!i ?"precedente" :"successiva"}: ${_sec.section_title}${_sec.part_title !== part?.title ? ` (${_sec.part_title})` : ''}`}>
+            <Frag if={!!NAVIGATION.prevSection || !!NAVIGATION.nextSection}>
+              <div className="my-8 p-1 flex flex-wrap gap-1 text-sm print:hidden">
+                {[NAVIGATION.prevSection, NAVIGATION.nextSection].map((_sec,i)=><React.Fragment key={i}>
+                  {_sec ?(
+                    <Link href={`/books/${book_id}/${_sec.part_id}/${_sec.section_id}`}
+                          className="flex-1 p-2 flex items-center gap-2 bg-indigo-600 rounded-lg shadow-lg"
+                          title={`Sezione ${!i ?"precedente" :"successiva"}: ${_sec.section_title}${_sec.part_title !== part?.title ? ` (${_sec.part_title})` : ''}`}>
 
-                    <Frag if={i===0}>
-                      <i className="bi bi-chevron-left text-lg "></i>
-                    </Frag>
-                    <div className="flex flex-col text-left flex-1">
-                      <span className="text-xs text-gray-300">{!i ?"Precedente" :"Successiva"}</span>
-                      <span className="font-semibold truncate">{_sec.section_title}</span>
-                    </div>
-                    <Frag if={i===1}>
-                      <i className="bi bi-chevron-right text-lg "></i>
-                    </Frag>
-                  </Link>
+                      <Frag if={i===0}>
+                        <i className="bi bi-chevron-left text-lg "></i>
+                      </Frag>
+                      <div className="flex flex-col text-left flex-1">
+                        <span className="text-xs text-gray-300">{!i ?"Precedente" :"Successiva"}</span>
+                        <span className="font-semibold truncate">{_sec.section_title}</span>
+                      </div>
+                      <Frag if={i===1}>
+                        <i className="bi bi-chevron-right text-lg "></i>
+                      </Frag>
+                    </Link>
 
-                ) : <div /> }
-              </React.Fragment> )}
+                  ) : <div /> }
+                </React.Fragment> )}
+              </div>
             </Frag>
 
           </Frag>
@@ -465,6 +467,37 @@ export default function SectionComponent(props: UseSectionComponentProps) {
 
       </div>
     </main>
+
+
+    {/* GROUPS WINDOW */}
+    <Frag if={!!GROUPS.windodButtons.get.length}>
+      <div className="fixed inset-0 z-50 flex items-end justify-center">
+        {/* BACKDROP - chiude cliccando fuori */}
+        <div onClick={()=> GROUPS.closeWindowButtons()}
+              className="absolute inset-0 bg-black/50"
+        ></div>
+        
+        {/* POPUP */}
+        <div className="py-3 px-1 relative w-[100vw] max-w-[400px] bg-indigo-900">
+          <div className="max-h-[50vh] overflow-y-auto">
+            <div className="grid gap-1 justify-center"
+                  style={{gridTemplateColumns: `repeat(${Math.min(GROUPS.windodButtons.get.length,9)},1fr)`}}>
+            
+              {GROUPS.windodButtons.get.map(_class=>
+              <React.Fragment key={_class.title}>
+                <>
+                  <button onClick={()=> GROUPS.toggleGroup(_class)}
+                          className={`px-1 py-3 rounded bi ${_class.icon} ${GROUPS.isSelected(_class) ?'border-2 border-dashed' :''}`}
+                          title={_class.title}>
+                  </button>
+                </>
+              </React.Fragment>)}
+
+            </div>
+          </div>
+        </div>
+      </div>
+    </Frag>
 
 
     {/* INPUT STILE NELLA BOTTOMBAR */}
@@ -526,27 +559,12 @@ export default function SectionComponent(props: UseSectionComponentProps) {
             {GROUPS.actualGroups?.map((_group,i)=><React.Fragment key={_group.title}>
               <div className={`${i ?'my-2 border-l border-white/30' :''}`}></div>
 
-              <Dropdown>
-                <DropdownSummary>
-                  <button className={`px-3 py-2 text bg-indigo-900`} title={_group?.title}>
-                    <i className={`text-xl bi ${_group?.icon}`} />
-                  </button>
-                </DropdownSummary>
+              <button onClick={()=> GROUPS.openWindowButtons(_group.key)}
+                      className={`px-3 py-2 text bg-indigo-900`} 
+                      title={_group?.title}>
+                <i className={`text-xl bi ${_group?.icon} rounded`} />
+              </button>
 
-                <DropdownContent className="absolute z-10 bottom-full mb-2 start-0 w-full">
-                  <div className="bg-indigo-700 shadow-lg rounded-xl overflow-hidden">
-                    <div className="max-w-[250px] flex flex-wrap">
-                      {GROUPS_DATAS[_group.key].map(_class=><React.Fragment key={_class.title}>
-                        <button onClick={()=> GROUPS.toggleGroup(_class, _group.key)} 
-                                className={`px-3 py-2 text-xl ${GROUPS.isSelected(_class) ? 'text bg-indigo-200' : 'bg-indigo-700'}`}
-                                title={_class.title}>
-                          <i className={`bi ${_class.icon}`}></i>
-                        </button>
-                      </React.Fragment>)}
-                    </div>
-                  </div>
-                </DropdownContent>
-              </Dropdown>
             </React.Fragment>)}
           </div>
           {/* PULSANTI STATO STILE */}
