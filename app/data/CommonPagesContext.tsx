@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { generateContext, useDotNotation } from "../tools/reactCustomization";
-import { ui_addCopyFeedback, accessibility_init } from "../tools/feedbacksUI";
+import { ui_addCopyFeedback, ui_initScrollToInput, ui_initTitlePopover } from "../tools/feedbacksUI";
 
 export const {
   provider: CommonPagesProvider,
@@ -21,7 +21,8 @@ function useCommonPagesContextLogic() {
         document.addEventListener("click",(e)=> this.addCopyFeedback(e))
     
         // Inizializza funzionalità di accessibilità
-        accessibility_init();
+        ui_initTitlePopover()
+        // ui_initScrollToInput();
 
         // Leggi lo stato iniziale da localStorage
         const storedEditMode = localStorage.getItem("isEditMode") === "true";

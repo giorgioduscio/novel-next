@@ -70,7 +70,7 @@ export default function SectionComponent(props: UseSectionComponentProps) {
               <i className="bi bi-three-dots-vertical"></i>
             </button>
           </DropdownSummary>
-          <DropdownContent className="absolute right-0 z-1 bg-gray-700 grid min-w-[100px]">
+          <DropdownContent className="absolute right-0 z-1 bg-gray-700 grid min-w-[120px]">
             {/* copia */}
             <button onClick={()=> SHARED.copy()}
                     className="p-2 bg-blue-900" data-feedback>
@@ -89,6 +89,16 @@ export default function SectionComponent(props: UseSectionComponentProps) {
               <i className="bi bi-gear"></i>
               <span className="pl-2">Impostazioni libro</span>
             </Link>
+            {/* info */}
+            <div className="p-2 text-sm text-center">
+              Paragrafi: <b>{SECTION.bookSection?.paragraphs?.length}</b>
+            </div>
+            <div className="p-2 text-sm text-center">
+              Lettere: <b>{SECTION.words}</b>
+            </div>
+            <div className="p-2 text-sm text-center">
+              Pagina: <b>{Math.floor(PARAG.listHeight.get)}px</b>
+            </div>
           </DropdownContent>
         </Dropdown>
       </Frag>
@@ -307,12 +317,7 @@ export default function SectionComponent(props: UseSectionComponentProps) {
               </div>
 
               <div className="mt-5 border-t border-gray-500 relative">
-                <Frag if={section_isEditMode} className="absolute z-2">
-                  <div className="py-1 flex flex-wrap gap-1 justify-around">
-                    <b className="px-2 bg-blue-300 text-sm text-black outline rounded-full">Paragrafi: {SECTION.bookSection?.paragraphs?.length}</b>
-                    <b className="px-2 bg-green-300 text-sm text-black outline rounded-full">Lettere: {SECTION.words}</b>
-                    <b className="px-2 bg-indigo-300 text-sm text-black outline rounded-full">Lunghezza pagina: {Math.floor(PARAG.listHeight.get)}px</b>
-                  </div>
+                <Frag if={section_isEditMode} className="w-full absolute z-2">
                   <div className="p-1 bg-white text-black outline rounded">
                     <Field
                       input_class={`p-2 text-sm`}

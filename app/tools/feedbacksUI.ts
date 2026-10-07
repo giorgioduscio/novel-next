@@ -907,34 +907,6 @@ export function ui_addCopyFeedback(e: Event){
   }, 1500); 
 }
 
-/**
-# MODULO ACCESSIBILITÀ - FUNZIONALITÀ GENERICHE
-Questo modulo fornisce funzionalità di accessibilità generiche e riutilizzabili.
-
-CARATTERISTICHE PRINCIPALI:
-- Scroll automatico verso l'input attivo su keydown
-- Popover con title attribute quando si tiene premuto un pulsante
-- Configurabile e riutilizzabile in diversi progetti
-- Gestione automatica della pulizia del DOM
-
-ESEMPI D'USO:
-  // Inizializza entrambe le funzionalità
-  accessibility_init();
-
-  // Oppure inizializza singolarmente
-  ui_initScrollToInput();
-  ui_initTitlePopover();
-
-METODI DISPONIBILI:
-- accessibility_init(): Inizializza tutte le funzionalità di accessibilità
-- accessibility_initScrollToInput(): Inizializza solo lo scroll automatico
-- accessibility_initTitlePopover(): Inizializza solo il popover dei title
- * Inizializza tutte le funzionalità di accessibilità
- */
-export function accessibility_init() {
-  ui_initScrollToInput();
-  ui_initTitlePopover();
-}
 
 /**
  * Inizializza la funzionalità di scroll automatico verso l'input attivo
