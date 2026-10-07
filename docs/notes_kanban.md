@@ -19,9 +19,8 @@
   - se pochi elementi (<8), una sola colonna e spazio minimo
   - altrimenti, prende tutto lo spazio disponibile
 * [] **ornamento** **estetica applicazione**: cambia la palette dei colori del layout con i colori lime (chiaro e scuro) e nero 
-Todo: 
 * [] **prestazioni e richieste api**: la creazione e gestione dei paragrafi ci mettono qualche frazione di troppo. È dovuto al fatto che aggiorno lo stato dopo la risposta dell'api? 
-* [] **info** inserire le info paragrafi, lettere, lunghezza pagina nel dropdown in alto a destra (dove ci sono i pulsanti Copia, Incolla e impostazioni 
+* [] **info** inserire le info paragrafi, lettere, lunghezza pagina nel dropdown in alto a destra (dove ci sono i pulsanti Copia, Incolla e impostazioni)
 
 
   
