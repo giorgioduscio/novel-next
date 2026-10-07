@@ -94,28 +94,33 @@ export const GROUPS_DATAS :Record<string, TailwindGroup[]> ={
 
   MARGINS:[
     {
-      title: "Nessun margine",
-      icon: "bi-bricks",
+      title: "Senza margine",
+      icon: "bi-dash-lg",
       value: ""
     },
     {
       title: "Margini standard",
-      icon: "bi-app",
+      icon: "bi-chevron-compact-down",
       value: "margini-standard"
     },
     {
+      title: "Margini piccoli",
+      icon: "bi-chevron-down",
+      value: "margini-piccoli"
+    },
+    {
       title: "Margini medi",
-      icon: "bi-1-square",
+      icon: "bi-chevron-double-down",
       value: "margini-medi"
     },
     {
       title: "Margini grandi",
-      icon: "bi-2-square",
+      icon: "bi-caret-down-fill",
       value: "margini-grandi"
     },
     {
       title: "Margini schermo",
-      icon: "bi-tablet-fill",
+      icon: "bi-eject-fill",
       value: "margini-schermo"
     },
   ],

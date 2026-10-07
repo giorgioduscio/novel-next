@@ -474,12 +474,12 @@ export default function SectionComponent(props: UseSectionComponentProps) {
       <div className="fixed inset-0 z-50 flex items-end justify-center">
         {/* BACKDROP - chiude cliccando fuori */}
         <div onClick={()=> GROUPS.closeWindowButtons()}
-              className="absolute inset-0 bg-black/50"
+              className="absolute inset-0 bg-black/30"
         ></div>
         
         {/* POPUP */}
         <div className="py-3 px-1 relative w-[100vw] max-w-[400px] bg-indigo-900">
-          <div className="max-h-[50vh] overflow-y-auto">
+          <div className="max-h-[50vh] overflow-y-auto overflow-x-hidden">
             <div className="grid gap-1 justify-center"
                   style={{gridTemplateColumns: `repeat(${Math.min(GROUPS.windodButtons.get.length,9)},1fr)`}}>
             

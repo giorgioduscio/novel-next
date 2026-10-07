@@ -15,15 +15,17 @@
 * [x] sectionComponent.tsx: fai in modo che quando clicco il paragrafo (o la textarea), attivi edit mode. questa funzionalità c'è giià ma funziona male
 * [x] barra di avanzamento: in navigation.tsx implementa una barra di avanzamento che aumenta in base allo scroll della pagina: se sono allinizio della pagina, mostra 0%; a metà, mostra 50%; se non c'è più nulla da scrollare perche sono arrivato alla fine della pagina, mostra 100%
 
-* [] colori per ex_style
-* [] **ornamento** verde fluo e bordi angolati
-  - black: sfondo, annulla o indietro
-  - green-800: layout
-  - green-400: azione
-  - red-700: pericolo o danno
+* [] **dimenzioni finestra degli stili**: 
+  - se pochi elementi (<8), una sola colonna e spazio minimo
+  - altrimenti, prende tutto lo spazio disponibile
+* [] **ornamento** **estetica applicazione**: cambia la palette dei colori del layout con i colori lime (chiaro e scuro) e nero 
+Todo: 
+* [] **prestazioni e richieste api**: la creazione e gestione dei paragrafi ci mettono qualche frazione di troppo. È dovuto al fatto che aggiorno lo stato dopo la risposta dell'api? 
+* [] **info** inserire le info paragrafi, lettere, lunghezza pagina nel dropdown in alto a destra (dove ci sono i pulsanti Copia, Incolla e impostazioni 
 
 
   
+* [5] colori per ex_style
 * [5] sectioncomponent layout per pc
 * [5] elementi angolati
 * sostituire firebase con alternative già sicure
