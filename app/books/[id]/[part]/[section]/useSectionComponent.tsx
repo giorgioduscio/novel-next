@@ -661,7 +661,6 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
         if (occurrence.type === 'section-title') {
           const titleInput = document.getElementById("section-title") as HTMLInputElement;
           if (titleInput) {
-            titleInput.scrollIntoView({ behavior: "smooth", block: "center" });
             titleInput.focus();
           }
         } else {
@@ -670,7 +669,6 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
             const textInput = document.getElementById(`${occurrence.index}>text`);
             if (!textInput) return console.error("Input testuale non trovato");
             setTimeout(() => {
-              textInput.scrollIntoView({ behavior: "smooth", block: "center" });
             }, 100);
           }
 
@@ -681,7 +679,6 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
               const styleInput = document.getElementById(`${occurrence.index}>in_style`);
               if (!styleInput) return console.error("Input stile non trovato", occurrence);
               setTimeout(() => {
-                styleInput.scrollIntoView({ behavior: "smooth", block: "center" });
               }, 100);
             }, 100);
           }
@@ -831,7 +828,6 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
           if (nextOccurrence.type === 'section-title') {
             const titleInput = document.getElementById("section-title") as HTMLInputElement;
             if (titleInput) {
-              titleInput.scrollIntoView({ behavior: "smooth", block: "center" });
               titleInput.focus();
             }
           } else {
@@ -840,7 +836,6 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
               : `${nextOccurrence.index}>in_style`;
             const nextInput = document.getElementById(inputId) as HTMLTextAreaElement;
             if (!nextInput) return;
-            nextInput.scrollIntoView({ behavior: "smooth", block: "center" });
             if (nextOccurrence.type === 'style') {
               GROUPS.setStyleInput(nextOccurrence.index);
             }
@@ -957,7 +952,6 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
       const input = document.getElementById(`${id}>text`);
 
       setTimeout(() => {
-        input?.scrollIntoView({ behavior: 'smooth', block: 'center' });
         if(section_isEditMode) input?.focus();
       }, 100);
     }

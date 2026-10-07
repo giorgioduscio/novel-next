@@ -312,7 +312,6 @@ export default function SectionComponent(props: UseSectionComponentProps) {
                   type={"text"}
                   placeholder={"Titolo della sezione"}
                   onKeyDown={SECTION.titleKeyDown}
-                  onFocus={(_e: any) => _e.target.scrollIntoView({ behavior: "smooth", block: "start" })}
                 />
               </div>
 
@@ -330,7 +329,6 @@ export default function SectionComponent(props: UseSectionComponentProps) {
                       rows={4}
                       placeholder={"Visualizzato solo dagli scrittori. Inserire sintesi o modifiche da implementare"}
                       onChange={(_e) => SECTION.update("note", _e.target.value)}
-                      onFocus={(_e: any) => _e.target.scrollIntoView({ behavior: "smooth", block: "start" })}
                     />
                   </div>
                 </Frag>
@@ -388,7 +386,6 @@ export default function SectionComponent(props: UseSectionComponentProps) {
                               error_message={errors[`${paragraph_i}>text`]}
                               onFocus={(_e:any) =>{ 
                                 GROUPS.setStyleInput(paragraph_i);
-                                _e.target.scrollIntoView({ behavior: "smooth", block: "start" });
                               }}
                             />
                           </div>

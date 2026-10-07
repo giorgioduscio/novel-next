@@ -29,7 +29,6 @@ export function useKeyboardFeatures(getSection: Function, dependencies: Pick<Mai
       const bottombarHeight = 80;
       const offset = navbarHeight + 10; // 10px extra margin
       
-      el.scrollIntoView({ behavior: "smooth", block: "center" });
       
       // Applica offset manuale dopo lo scroll
       setTimeout(() => {

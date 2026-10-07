@@ -136,11 +136,9 @@ const useMobile = ({ type }: Partial<FieldProps>) => {
     const element = type === 'textarea' ? textareaRef.current : inputRefInternal.current;
     if (!element) return;
 
-    element.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
     // Secondo passaggio dopo che la tastiera mobile ha completato l'animazione di apertura
     setTimeout(() => {
-      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }, 300);
   }
 
