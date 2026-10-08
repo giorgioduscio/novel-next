@@ -952,6 +952,7 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
       const input = document.getElementById(`${id}>text`);
 
       setTimeout(() => {
+        // input?.scrollIntoView({ behavior: 'smooth', block: 'center' });
         if(section_isEditMode) input?.focus();
       }, 100);
     }

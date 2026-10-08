@@ -121,7 +121,7 @@ export default function SectionComponent(props: UseSectionComponentProps) {
               </button>
               {/* CERCA */}
               <button onClick={()=> FIND_REPLACE.isVisible.set(p=> !p)} 
-                      className={`px-3 py-2 text-bg-tertiary`}>
+                      className={`px-3 py-2 text-bg-secondary`}>
                 <i className="bi bi-search"></i> 
                 <span className="ms-1">Cerca</span>
               </button>
@@ -504,13 +504,13 @@ export default function SectionComponent(props: UseSectionComponentProps) {
 
     {/* INPUT STILE NELLA BOTTOMBAR */}
     <Bottombar className={(section_isEditMode && styleInput.isVisible && !!styleInput.target) 
-      ?"w-[100vw] max-w-[400px] text-bg-tertiary rounded-t outline outline-black/50" :''
+      ?"w-[100vw] max-w-[400px] text-bg-secondary rounded-t outline outline-black/50" :''
     }>
       <Frag if={section_isEditMode && styleInput.isVisible && !!styleInput.target}>
         <div className="flex-1">
           
           {/* input */}
-          <div className="m-1 text-bg-dark outline outline-white/20 rounded-xl overflow-hidden">
+          <div className="m-1 text-bg-primary outline outline-white/20 rounded-xl overflow-hidden">
             <div className="grid gap-1 grid-cols-[auto_auto_1fr]">
               {/* ICONA PALETTE */}
               {styleInput.target?.in_style.length
@@ -562,7 +562,7 @@ export default function SectionComponent(props: UseSectionComponentProps) {
               <div className={`${i ?'my-2 border-l border-white/30' :''}`}></div>
 
               <button onClick={()=> GROUPS.openWindowButtons(_group.key)}
-                      className={`px-3 py-2 text-bg-tertiary`} 
+                      className={`px-3 py-2 text-bg-secondary`} 
                       title={_group?.title}>
                 <i className={`text-xl bi ${_group?.icon} rounded`} />
               </button>

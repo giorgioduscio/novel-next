@@ -22,7 +22,7 @@ function useCommonPagesContextLogic() {
     
         // Inizializza funzionalità di accessibilità
         ui_initTitlePopover()
-        // ui_initScrollToInput();
+        ui_initScrollToInput();
 
         // Leggi lo stato iniziale da localStorage
         const storedEditMode = localStorage.getItem("isEditMode") === "true";

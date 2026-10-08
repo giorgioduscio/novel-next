@@ -166,8 +166,6 @@ function colorsGroups() {
       })
     }
   }
-
-  console.log("*", result.length);
   
   return result
 }

@@ -913,26 +913,47 @@ export function ui_addCopyFeedback(e: Event){
  * Quando si preme un tasto, la pagina scorre per mantenere l'input visibile
  */
 export function ui_initScrollToInput() {
-  document.addEventListener('keydown', (e) => {
+  // Rileva se siamo su mobile (larghezza <= 768px o touch support)
+  const isMobile = () => {
+    return window.innerWidth <= 768 || 'ontouchstart' in window;
+  };
+
+  // Handler per il focus su input/textarea
+  const handleFocus = (e: FocusEvent) => {
     const target = e.target as HTMLElement;
-    const isInput = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA';
     
-    if (isInput) {
-      // Scroll con un offset per evitare che venga coperto da elementi fissi
-      const offset = 60; // 60px offset per navbar o altri elementi fissi
-      const rect = target.getBoundingClientRect();
-      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-      const targetScrollTop = scrollTop + rect.top - offset;
-      
-      // Esegui lo scroll solo se l'elemento non è già ben visibile
-      if (rect.top < offset || rect.bottom > window.innerHeight - offset) {
+    // Verifica se è un input o textarea
+    if (target.tagName !== 'INPUT' && target.tagName !== 'TEXTAREA') {
+      return;
+    }
+
+    // Esegui solo su mobile
+    if (!isMobile()) {
+      return;
+    }
+    
+    // Usa setTimeout per aspettare che la tastiera si apra
+    setTimeout(() => {
+      // Usa scrollIntoView per centrare l'elemento
+      target.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center'
+      });
+
+      // Aggiusta l'offset dopo lo scroll (80px dal top)
+      setTimeout(() => {
+        const currentScrollY = window.scrollY;
+        const adjustedY = currentScrollY - 80;
         window.scrollTo({
-          top: targetScrollTop,
+          top: adjustedY,
           behavior: 'smooth'
         });
-      }
-    }
-  });
+      }, 100);
+    }, 300);
+  };
+
+  // Aggiungi listener per focusin (bubble version di focus)
+  document.addEventListener('focusin', handleFocus, true);
 }
 
 /**
