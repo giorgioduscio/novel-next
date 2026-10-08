@@ -97,7 +97,7 @@ export default function InsertAuthCodesComponent({ targetId }: InsertAuthCodesCo
   }
   return (
     <div className="p-3">
-      <div className="p-3 mx-auto max-w-fit text-bg-secondary text-white border rounded">
+      <div className="p-3 mx-auto max-w-fit text-bg-dark text-white border rounded">
         <div className="mb-3">
           <h3 className="text-xl font-bold mb-2">
             <i className="bi bi-lock me-2"></i>

@@ -55,7 +55,7 @@ export default function SectionComponent(props: UseSectionComponentProps) {
     <Navbar back_btn={{ href: `/books/${book_id}` }} page_title={SECTION.mainTitle.get}>
       {/* SEGNALIBRI */}
       <button onClick={()=> MARCKERS.isVisible.set(true)} 
-              className="mx-2 px-3 py-2 text-bg-secondary rounded" 
+              className="mx-2 px-3 py-2 text-bg-light rounded" 
               title="Segnalibri">
         <i className="bi bi-bookmarks-fill"></i> 
         <span className="ms-1 hidden sm:inline">Segnalibri</span>
@@ -65,12 +65,12 @@ export default function SectionComponent(props: UseSectionComponentProps) {
       <Frag if={section_isEditMode}>
         <Dropdown className="relative">
           <DropdownSummary>
-            <button className="p-3 text-bg-dark rounded-full"
+            <button className="p-3 text-bg-tertiary rounded-full"
                     title="Impostazioni sezione">
               <i className="bi bi-three-dots-vertical"></i>
             </button>
           </DropdownSummary>
-          <DropdownContent className="absolute right-0 z-1 text-bg-secondary grid min-w-[120px]">
+          <DropdownContent className="absolute right-0 z-1 text-bg-dark grid min-w-[120px]">
             {/* copia */}
             <button onClick={()=> SHARED.copy()}
                     className="p-2 text-bg-primary" data-feedback>
@@ -79,13 +79,13 @@ export default function SectionComponent(props: UseSectionComponentProps) {
             </button>
             {/* incolla */}
             <button onClick={SHARED.paste}
-                    className="p-2 text-bg-tertiary">
+                    className="p-2 text-bg-secondary">
               <i className="bi bi-clipboard"></i>
               <span className="pl-2">Incolla</span>
             </button>
             {/* impostazioni */}
             <Link href={`/books/${book_id}/settings`}
-                  className="p-2 text-bg-dark truncate">
+                  className="p-2 text-bg-tertiary truncate">
               <i className="bi bi-gear"></i>
               <span className="pl-2">Impostazioni libro</span>
             </Link>
@@ -115,19 +115,19 @@ export default function SectionComponent(props: UseSectionComponentProps) {
             <Frag if={section_isEditMode}>
               {/* UNDO */}
               <button onClick={HISTORY.undo} 
-                      className="px-3 py-2 bg-dark" 
+                      className="px-3 py-2 text-bg-secondary" 
                       title="Annulla">
                 <i className="bi bi-arrow-90deg-left" style={{transform:"rotate(-90) !important"}}></i> 
               </button>
               {/* CERCA */}
               <button onClick={()=> FIND_REPLACE.isVisible.set(p=> !p)} 
-                      className={`px-3 py-2 text-bg-secondary`}>
+                      className={`px-3 py-2 text-bg-dark`}>
                 <i className="bi bi-search"></i> 
                 <span className="ms-1">Cerca</span>
               </button>
               {/* REDO */}
               <button onClick={HISTORY.redo} 
-                      className="px-3 py-2 text-bg-dark" 
+                      className="px-3 py-2 text-bg-secondary" 
                       title="Ripeti">
                 <i className="bi bi-arrow-90deg-right rotate-90"></i> 
               </button>
@@ -185,7 +185,7 @@ export default function SectionComponent(props: UseSectionComponentProps) {
               <i className="bi bi-fonts"></i>
             </button>
             <button type="button" onClick={FIND_REPLACE.previous} 
-                    className="py-2 px-3 text-bg-dark text-white"
+                    className="py-2 px-3 text-bg-dark"
                     title="Precedente">
               <i className="bi bi-arrow-up"></i>
             </button>
@@ -235,19 +235,19 @@ export default function SectionComponent(props: UseSectionComponentProps) {
       <div className="fixed inset-0 z-50 flex">
         {/* BACKDROP */}
         <div onClick={()=> MARCKERS.isVisible.set(false)}
-             className="absolute inset-0 text-bg-dark">
+             className="absolute inset-0 bg-black/30">
         </div>
         
         {/* OFFCANVAS */}
         <div className="relative ml-auto w-80 max-w-full h-full text-bg-dark shadow-xl overflow-y-auto">
           <div className="p-4">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold text-white">
+              <h3 className="text-lg text-primary">
                 <i className="bi bi-bookmarks-fill me-2"></i>
                 Segnalibri
               </h3>
               <button onClick={()=> MARCKERS.isVisible.set(false)}
-                      className="p-2 text-white hover:bg-gray-800 rounded"
+                      className="p-2 text-primary rounded"
                       title="Chiudi">
                 <i className="bi bi-x-lg"></i>
               </button>
@@ -265,7 +265,7 @@ export default function SectionComponent(props: UseSectionComponentProps) {
                               MARCKERS.scrollToMarker(item.index.toString());
                               MARCKERS.isVisible.set(false);
                             }}
-                            className="w-full py-2 px-3 text-bg-secondary text-sm text-left rounded truncate"
+                            className="w-full py-2 px-3 text-bg-dark text-sm text-left rounded truncate"
                             title={`Vai al paragrafo: ${item.paragraph.text}`}>
                       <b>{index +1})</b>
                       <span className="ms-2 truncate">{item.paragraph.text || 'Paragrafo senza testo'}</span>
@@ -281,13 +281,14 @@ export default function SectionComponent(props: UseSectionComponentProps) {
     {/* SEGNALIBRI */}
 
 
-    <main id="SectionComponent" onClick={GROUPS.closeTemplateInputStyle}>
+    <section id="SectionComponent" className="pb-10 text-bg-neutral" 
+              onClick={GROUPS.closeTemplateInputStyle}>
       <div className="mx-auto container max-w-[400px]">
 
         <section className="min-h-dvh flex-1">
           {/* SEZIONE NON TROVATA */}
           <Frag if={!SECTION.bookSection}>
-            <div className="py-10 text-center text-red-500">
+            <div className="py-10 text-center text-danger">
               <i className="me-1 bi bi-exclamation-triangle"></i>
               Sezione non trovata
             </div>
@@ -295,12 +296,12 @@ export default function SectionComponent(props: UseSectionComponentProps) {
 
 
           {/* SEZIONE TROVATA */}
-          <Frag if={!!SECTION.bookSection} className=" text-bg-secondary">
+          <Frag if={!!SECTION.bookSection} className="text-bg-neutral">
             {/* TITOLO SEZIONE */}
             <div className="p-3 py-60 text-center">
               <div>
                 <Field
-                  input_class="text-3xl font-bold text-center app-text-accent"
+                  input_class="text-3xl font-bold text-center text-light"
                   hide_label
                   label="Titolo della sezione"
                   value={SECTION.mainTitle.get}
@@ -346,7 +347,7 @@ export default function SectionComponent(props: UseSectionComponentProps) {
                 </div>
                 <Frag if={!!section_isEditMode} className="flex justify-center">
                   <button onClick={() => PARAG.handleCreate()}
-                          className="py-2 px-3 border rounded text-bg-primary/30 text-white">
+                          className="py-2 px-3 border rounded text-bg-primary">
                     <i className="bi bi-plus-lg"></i>
                     Aggiungi paragrafo
                   </button>
@@ -396,13 +397,13 @@ export default function SectionComponent(props: UseSectionComponentProps) {
 
                     {/* RIMUOVI PARAGRAFO / SEGNALIBRO */}
                     <div className="absolute top-0 end-0 z-2">
-                      <div className="rounded overflow-hidden shadow-lg hover:text-bg-secondary">
+                      <div className="rounded overflow-hidden shadow-lg hover:text-bg-dark">
                         <Frag if={section_isEditMode}>
                           {/* rimuovi */}
                           <button type="button" 
                                   title="rimuovi paragrafo"
                                   onClick={() => PARAG.handleRemove(paragraph_i)}
-                                  className="px-2 py-1 text-bg-secondary/50 text-red-300">
+                                  className="px-2 py-1 text-danger">
                             <i className="bi bi-trash"></i>
                           </button>
                         </Frag>
@@ -413,7 +414,7 @@ export default function SectionComponent(props: UseSectionComponentProps) {
                                   title={`${p.isMarcked ?"Rimuovi" :"Imposta"} segnalibro`}
                                   onClick={() => PARAG.update(paragraph_i,"isMarcked", !p.isMarcked)}
                                   disabled={!section_isEditMode}
-                                  className={`px-2 py-1 text-white ${section_isEditMode ?'text-bg-secondary/50' :''}`}>
+                                  className={`px-2 py-1 ${section_isEditMode ?'text-bg-dark' :''}`}>
                             
                             <Frag if={p.isMarcked===true}>
                               <i className="bi bi-bookmark-fill" />
@@ -444,14 +445,14 @@ export default function SectionComponent(props: UseSectionComponentProps) {
                 {[NAVIGATION.prevSection, NAVIGATION.nextSection].map((_sec,i)=><React.Fragment key={i}>
                   {_sec ?(
                     <Link href={`/books/${book_id}/${_sec.part_id}/${_sec.section_id}`}
-                          className="flex-1 p-2 flex items-center gap-2 text-bg-secondary rounded-lg shadow-lg"
+                          className="flex-1 p-2 flex items-center gap-2 text-bg-primary rounded-lg shadow-lg"
                           title={`Sezione ${!i ?"precedente" :"successiva"}: ${_sec.section_title}${_sec.part_title !== part?.title ? ` (${_sec.part_title})` : ''}`}>
 
                       <Frag if={i===0}>
                         <i className="bi bi-chevron-left text-lg "></i>
                       </Frag>
                       <div className="flex flex-col text-left flex-1">
-                        <span className="text-xs text-white">{!i ?"Precedente" :"Successiva"}</span>
+                        <span className="text-xs">{!i ?"Precedente" :"Successiva"}</span>
                         <span className="font-semibold truncate">{_sec.section_title}</span>
                       </div>
                       <Frag if={i===1}>
@@ -468,7 +469,7 @@ export default function SectionComponent(props: UseSectionComponentProps) {
         </section>
 
       </div>
-    </main>
+    </section>
 
 
     {/* GROUPS WINDOW */}
@@ -476,7 +477,7 @@ export default function SectionComponent(props: UseSectionComponentProps) {
       <div className="fixed inset-0 z-50 flex items-end justify-center">
         {/* BACKDROP - chiude cliccando fuori */}
         <div onClick={()=> GROUPS.closeWindowButtons()}
-              className="absolute inset-0 text-bg-dark"
+              className="absolute inset-0 bg-black/30"
         ></div>
         
         {/* POPUP */}
@@ -504,13 +505,13 @@ export default function SectionComponent(props: UseSectionComponentProps) {
 
     {/* INPUT STILE NELLA BOTTOMBAR */}
     <Bottombar className={(section_isEditMode && styleInput.isVisible && !!styleInput.target) 
-      ?"w-[100vw] max-w-[400px] text-bg-secondary rounded-t outline outline-black/50" :''
+      ?"w-[100vw] max-w-[400px] text-bg-dark rounded-t outline outline-black/50" :''
     }>
       <Frag if={section_isEditMode && styleInput.isVisible && !!styleInput.target}>
         <div className="flex-1">
           
           {/* input */}
-          <div className="m-1 text-bg-primary outline outline-white/20 rounded-xl overflow-hidden">
+          <div className="m-1 text-bg-tertiary outline outline-white/20 rounded-xl overflow-hidden">
             <div className="grid gap-1 grid-cols-[auto_auto_1fr]">
               {/* ICONA PALETTE */}
               {styleInput.target?.in_style.length
@@ -562,7 +563,7 @@ export default function SectionComponent(props: UseSectionComponentProps) {
               <div className={`${i ?'my-2 border-l border-white/30' :''}`}></div>
 
               <button onClick={()=> GROUPS.openWindowButtons(_group.key)}
-                      className={`px-3 py-2 text-bg-secondary`} 
+                      className={`px-3 py-2 text-bg-dark`} 
                       title={_group?.title}>
                 <i className={`text-xl bi ${_group?.icon} rounded`} />
               </button>

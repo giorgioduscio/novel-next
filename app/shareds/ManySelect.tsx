@@ -29,7 +29,7 @@ export default function ManySelect<T>({ targets, allItems, onDeleteMany }: ManyS
     <>
       {/* AZIONI MULTIPLE */}
       <Frag if={selectedCount > 0}>
-        <div className="sticky top-0 z-1 text-bg-secondary">
+        <div className="sticky top-0 z-1 text-bg-dark">
           <div className="mx-auto max-w-[800px] flex items-center gap-1">
 
 

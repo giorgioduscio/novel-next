@@ -228,7 +228,7 @@ export default function SettingsComponent(props: UseBookComponentProps) {
 
             {/* lettura */}
             <h4 className="pt-3 pb-2 text-red-400">Codice per la lettura</h4>
-            <p className="m-2 p-3 text-bg-secondary outline rounded">
+            <p className="m-2 p-3 text-bg-dark outline rounded">
               <i className="bi bi-info-circle"></i> Chiunque abbia questo codice sarà autorizzato a leggere questo libro. Se non impostato alcun codice, il libro sarà leggibile da tutti.
             </p>
 
@@ -269,7 +269,7 @@ export default function SettingsComponent(props: UseBookComponentProps) {
                 </Frag>
                 {/* copia */}
                 <button onClick={handleCopyLink}
-                        className="flex-auto px-3 py-2 text-bg-secondary"
+                        className="flex-auto px-3 py-2 text-bg-dark"
                         data-feedback>
                   <i className="bi bi-copy"></i>
                   <span className="ml-2">Copia link</span>
@@ -282,7 +282,7 @@ export default function SettingsComponent(props: UseBookComponentProps) {
 
             {/* scrittura */}
             <h4 className="pt-5 pb-2 text-red-400">Codice per la scrittura</h4>
-            <p className="m-2 p-3 text-bg-secondary outline rounded">
+            <p className="m-2 p-3 text-bg-dark outline rounded">
               <i className="bi bi-info-circle"></i> Chiunque abbia questo codice sarà autorizzato a modificare e rimuovere questo libro. Se non impostato alcun codice, sarà modificabile da chiunque.
             </p>
             <div className={input_group}>

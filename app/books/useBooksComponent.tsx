@@ -108,7 +108,7 @@ export function useBooksComponent() {
       {
         label: "Markdown",
         icon: "bi-markdown",
-        className: "text-bg-dark",
+        className: "text-bg-tertiary",
         condition: (bookId: string) => this.isInList(bookId),
         event: (bookId: string) => bookContext.download.md.execute(bookId),
       },

@@ -61,7 +61,7 @@ export const tailwind_safelist = [
   "bg-red-100", "bg-red-200", "bg-red-300", "bg-red-400", "bg-red-500", "bg-red-600", "bg-red-700", "bg-red-800", "bg-red-900",
 
   // Gray
-  "bg-gray-100", "bg-gray-200", "bg-gray-300", "bg-gray-400", "bg-gray-500", "text-bg-secondary", "bg-gray-700", "bg-gray-800", "bg-gray-900",
+  "bg-gray-100", "bg-gray-200", "bg-gray-300", "bg-gray-400", "bg-gray-500", "text-bg-dark", "bg-gray-700", "bg-gray-800", "bg-gray-900",
 
   // Yellow
   "bg-yellow-100", "bg-yellow-200", "bg-yellow-300", "bg-yellow-400", "bg-yellow-500", "bg-yellow-600", "bg-yellow-700", "bg-yellow-800", "bg-yellow-900",

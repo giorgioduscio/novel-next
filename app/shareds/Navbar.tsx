@@ -55,10 +55,10 @@ export default function Navbar(props: NavbarProps) {
   
   return (
     <nav id="Navbar" className="fixed top-0 z-50 w-full print:hidden">
-      <div className="w-full h-[50px] text-bg-dark border-b border-gray-800">
+      <div className="w-full h-[50px] text-bg-tertiary border-b border-gray-800">
 
         {/* Barra di avanzamento scroll */}
-        <div className="h-[3px] bg-lime-500 relative z-[51]"
+        <div className="h-[3px] text-bg-light relative z-[51]"
               style={{ width: `${scrollProgress}%` }}/>
         {/* navigazione */}
         <div className="mx-auto container max-w-[800px]">
@@ -66,7 +66,7 @@ export default function Navbar(props: NavbarProps) {
 
             {/* pulsante indietro con cronologia */}
             {back_btn &&<>
-              <Link href={back_btn?.href || "/"} className="p-2 text-bg-dark rounded">
+              <Link href={back_btn?.href || "/"} className="p-2 text-bg-tertiary rounded">
                 <i className={`${back_btn?.icon || 'bi-chevron-left'} bi me-1`}></i>
                 <span className='truncate'>{back_btn?.label ||''}</span>
               </Link>

@@ -48,7 +48,7 @@ export default function AuthComponent() {
         <div className="flex justify-between items-center">
           <h2 className="my-3 text-2xl font-bold">Permessi</h2>
           <button onClick={() => FORM.isVisible.set(prev=> !prev)} 
-                  className="py-1 px-2 text text-bg-secondary rounded">
+                  className="py-1 px-2 text text-bg-dark rounded">
             {FORM.isVisible.get
               ? <><i className="bi bi-x-lg"></i> Chiudi</>
               : <><i className="bi bi-plus-lg"></i> Aggiungi</>
@@ -64,7 +64,7 @@ export default function AuthComponent() {
               <h3>Aggiungi codice</h3>
             </div>
             <form onSubmit={FORM.handleSubmit} 
-                  className="p-2 text text-bg-secondary grid sm:grid-cols-2 gap-2 items-center">
+                  className="p-2 text text-bg-dark grid sm:grid-cols-2 gap-2 items-center">
               {FORM.state.get.map((item) => (
                 <div key={item.key} className="relative">
                   <div className="flex-auto bg-white text-black outline rounded">
@@ -99,13 +99,13 @@ export default function AuthComponent() {
         <h3 className="mt-5 mb-3">Lista codici</h3>
 
         <ol className="flex gap-2 flex-wrap">
-          <Frag if={!codes.get.length} className="p-3 w-full text-bg-secondary rounded flex gap-2">
+          <Frag if={!codes.get.length} className="p-3 w-full text-bg-dark rounded flex gap-2">
             <i className="bi bi-info-circle"></i>
             <span>Nessun permesso trovato</span>
           </Frag>
 
           {codes.get.map((code)=>
-            <li key={code.id} className={`flex-1 min-w-[200px] max-w-[400px] p-1 rounded ${checkedTargets.get.includes(code.id) ? 'text-bg-secondary' : ''}`}>
+            <li key={code.id} className={`flex-1 min-w-[200px] max-w-[400px] p-1 rounded ${checkedTargets.get.includes(code.id) ? 'text-bg-dark' : ''}`}>
               <div className="grid grid-cols-[auto_1fr_auto] gap-1">
                 <div className="flex flex-col justify-between">
                   <input

@@ -42,7 +42,7 @@ export default function BooksComponent() {
                 </div>
               </Frag>
 
-              <button onClick={upload} className="py-2 px-3 text-sm rounded text-bg-secondary">
+              <button onClick={upload} className="py-2 px-3 text-sm rounded text-bg-tertiary">
                 <i className="me-2 bi bi-upload"></i>
                 <span>Upload (.json / .md)</span>
               </button>
@@ -88,10 +88,8 @@ export default function BooksComponent() {
                   <li key={book.id} className="w-full sm:w-[48%]">
                     <div className="outline rounded overflow-hidden">
                       {/* Visualizzazione dei dettagli del libro */}
-                      <Link
-                        href={`/books/${book.id}/structure`}
-                        className="block p-2 text-bg-secondary"
-                      >
+                      <Link href={`/books/${book.id}/structure`}
+                            className="block p-2 text-bg-tertiary">
                         {/* TITOLO LIBRO */}
                         <div className="p-2 text-center text-2xl font-bold pointer-events-none">
                           {book.title || "Senza titolo"}

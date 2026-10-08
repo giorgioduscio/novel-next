@@ -47,7 +47,7 @@ function AgreeComponent({ title, message, btn_label, btn_color, callback, onCanc
 
           <button
             type="button"
-            className="py-2 px-3 rounded text-bg-secondary truncate"
+            className="py-2 px-3 rounded text-bg-dark truncate"
             onClick={onCancel}
           >
             <i className="bi bi-x-lg me-2" aria-hidden="true"></i>

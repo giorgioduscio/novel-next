@@ -5,8 +5,7 @@ html
     scroll-padding-top: calc(3.5rem + env(safe-area-inset-top))
     scroll-padding-bottom: calc(4rem + env(safe-area-inset-bottom))
     scrollbar-width: thin
-    scrollbar-color: rgba(132, 204, 22, 0.5) transparent
-
+    scrollbar-color: transparent
 
 button, a
     &:not(:disabled)
@@ -34,28 +33,22 @@ textarea
     pointer-events: none
 
 // CUSTOM COLOR CLASSES
-.text-dark
-    color: var(--color-lime-900)
-.text-bg-dark
-    background-color: var(--color-lime-900)
+.text-primary
+    color: var(--color-lime-500)
+.text-bg-primary
+    background-color: var(--color-lime-500)
+    color: black
+
+.text-secondary
+    color: var(--color-lime-700)
+.text-bg-secondary
+    background-color: var(--color-lime-700)
     color: white
     
 .text-tertiary
     color: var(--color-lime-800)
 .text-bg-tertiary
     background-color: var(--color-lime-800)
-    color: white
-
-.text-primary
-    color: var(--color-lime-700)
-.text-bg-primary
-    background-color: var(--color-lime-700)
-    color: white
-
-.text-secondary
-    color: var(--color-gray-700)
-.text-bg-secondary
-    background-color: var(--color-gray-700)
     color: white
 
 .text-danger
@@ -65,11 +58,22 @@ textarea
     color: white
 
 .text-light
-    color: var(--color-lime-200)
+    color: var(--color-lime-300)
 .text-bg-light
-    background-color: var(--color-lime-200)
+    background-color: var(--color-lime-300)
     color: black
 
+.text-neutral
+    color: var(--color-gray-600)
+.text-bg-neutral
+    background-color: var(--color-gray-600)
+    color: white
+
+.text-dark
+    color: #111
+.text-bg-dark
+    background-color: #111
+    color: white
 
 // Scrollbar moderne
 ::-webkit-scrollbar
@@ -77,14 +81,14 @@ textarea
     height: 8px
 
 ::-webkit-scrollbar-track
-    background: transparent
+    background: #000
 
 ::-webkit-scrollbar-thumb
-    background: rgba(132, 204, 22, 0.5)
+    background: rgba(100, 100, 100, 0.5)
     border-radius: 4px
 
     &:hover
-        background: rgba(132, 204, 22, 0.8)
+        background: rgba(100, 100, 100, 0.7)
 
 // REGOLE DI STAMPA
 @media print

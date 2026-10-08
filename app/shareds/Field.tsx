@@ -371,7 +371,7 @@ export default function Field({
           id={errorId}
           role="alert"
           aria-live="polite"
-          className="block w-full px-2 text-bg-secondary text-xs text-left"
+          className="block w-full px-2 text-bg-dark text-xs text-left"
         >
           {message}
         </div>

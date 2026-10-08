@@ -38,7 +38,7 @@ export default function Home() {
                 </Link>
 
                 <Link href="/auth"
-                      className="flex-auto px-3 py-2 text text-bg-secondary">
+                      className="flex-auto px-3 py-2 text text-bg-tertiary">
                   <i className="bi bi-person-vcard-fill me-2"></i>
                   Codici
                 </Link>
@@ -50,7 +50,7 @@ export default function Home() {
       </section>
 
       {/* Tech Stack Section */}
-      <section className="text-bg-tertiary">
+      <section className="text-bg-secondary">
         <div className="py-12 px-4">
           <div className="max-w-max mx-auto">
             <h2 className="text-3xl font-bold mb-8 text-center text-lime-400">Tecnologie utilizzate</h2>
@@ -58,8 +58,8 @@ export default function Home() {
             <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
               {tools.map((tech, index) => (
                 <button key={index}
-                        className="p-2 py-6 text-bg-primary text-center rounded">
-                  <i className={`bi ${tech.icon} text-3xl text-white mb-3`}></i>
+                        className="p-2 py-6 text-bg-dark text-center rounded">
+                  <i className={`bi ${tech.icon} text-3xl mb-3`}></i>
                   <p className="font-semibold text-lg">{tech.name}</p>
                 </button>
               ))}

@@ -40,7 +40,7 @@ export default function StructureComponent(props: UseBookComponentProps) {
       {/* impostazioni del libro */}
       <Frag if={canWrite}>
         <Link href={`/books/${book?.id || ''}/settings`}
-              className="m-1 py-1 px-2 text-bg-dark rounded-full"
+              className="m-1 py-1 px-2 text-bg-tertiary rounded-full"
               title="Vai alle impostazioni">
           <i className="bi bi-three-dots-vertical"></i>
         </Link>
@@ -127,25 +127,25 @@ export default function StructureComponent(props: UseBookComponentProps) {
                                   </DropdownSummary>
 
                                   <DropdownContent className="absolute start-10 right-0 z-10">
-                                    <div className="grid w-max text-bg-secondary border rounded overflow-hidden">
+                                    <div className="grid w-max text-bg-dark border rounded overflow-hidden">
 
                                       <button className="py-1 px-2 text-bg-danger truncate text-left" 
                                               onClick={() => SECTION.delete(part_i, section_i)}>
                                         <i className="inline-block w-[20px] bi bi-trash"></i> Rimuovi
                                       </button>
                                       <Frag if={!SORT.isFirstOfBook(part_i, section_i)}>
-                                        <button className="py-1 px-2 text-bg-secondary truncate text-left" 
+                                        <button className="py-1 px-2 text-bg-dark truncate text-left" 
                                                 onClick={() => SORT.pushOrder("up", part_i, section_i)}>
                                           <i className="inline-block w-[20px] bi bi-caret-up-fill"></i> Sposta su
                                         </button>
                                       </Frag>
                                       <Frag if={!SORT.isLastOfBook(part_i, section_i)}>
-                                        <button className="py-1 px-2 text-bg-secondary truncate text-left" 
+                                        <button className="py-1 px-2 text-bg-dark truncate text-left" 
                                                 onClick={() => SORT.pushOrder("down", part_i, section_i)}>
                                           <i className="inline-block w-[20px] bi bi-caret-down-fill"></i> Sposta giù
                                         </button>
                                       </Frag>
-                                      <button className="py-1 px-2 text-bg-secondary text-left" 
+                                      <button className="py-1 px-2 text-bg-dark text-left" 
                                               onClick={() => SECTION.create(part_i, section_i)}>
                                         <i className="inline-block w-[20px] bi bi-journal-arrow-down"></i>
                                         <span>Aggiungi sezione</span>
@@ -172,7 +172,7 @@ export default function StructureComponent(props: UseBookComponentProps) {
                                 </div>
                                 
                                 {/* freccia */}
-                                <Link className={`p-3 flex items-center text-bg-secondary`} 
+                                <Link className={`p-3 flex items-center text-bg-dark`} 
                                         href={`/books/${book.id}/${part.id}/${section.id}`}>
                                   <i className="bi bi-chevron-right"></i>
                                 </Link>
@@ -181,7 +181,7 @@ export default function StructureComponent(props: UseBookComponentProps) {
 
                               {/* LINK VISUALIZZAZIONE */}
                               <Frag if={!canEdit} className="flex-1">
-                                <Link className={`p-3 flex items-center justify-between text-bg-secondary text-white italic border-b border-gray-500`} 
+                                <Link className={`p-3 flex items-center justify-between text-bg-dark text-white italic border-b border-gray-500`} 
                                         href={`/books/${book?.id}/${part.id}/${section.id}`}>
                                   <span className="flex-1">{section.title}</span>
                                   <i className="bi bi-chevron-right"></i>
@@ -209,7 +209,7 @@ export default function StructureComponent(props: UseBookComponentProps) {
                   <span>Aggiungi parte</span>
                 </button>
                 <button onClick={() => SHARE.paste()}
-                        className="py-2 px-3 text-bg-secondary">
+                        className="py-2 px-3 text-bg-tertiary">
                   <i className="me-1 bi bi-clipboard-fill"></i>
                   <span>Incolla</span>
                 </button>
@@ -242,7 +242,7 @@ export default function StructureComponent(props: UseBookComponentProps) {
 
 
     <Bottombar>
-      <Link href={"/auth"} className="circle text-bg-primary" title="Mostra codici">
+      <Link href={"/auth"} className="circle text-bg-tertiary" title="Mostra codici">
         <i className="bi bi-person-vcard-fill"></i>
       </Link>
       <Frag if={canWrite}>
