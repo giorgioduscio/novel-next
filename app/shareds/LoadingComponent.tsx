@@ -15,7 +15,7 @@ export function LoadingComponent() {
   ], [isPageLoaded.get, isBookLoaded.get, isAuthLoaded.get])
 
   return <>
-    <main className="mx-auto container w-fit py-8 text-center text-gray-400">
+    <main className="mx-auto container w-fit py-8 text-center text-white">
       <div className="grid grid-cols-[auto_1fr] gap-2 justify-items-start">
 
       {loadings.map(([label, value])=>

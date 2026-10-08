@@ -40,7 +40,7 @@ export default function StructureComponent(props: UseBookComponentProps) {
       {/* impostazioni del libro */}
       <Frag if={canWrite}>
         <Link href={`/books/${book?.id || ''}/settings`}
-              className="m-1 py-1 px-2 bg-indigo-900 rounded-full"
+              className="m-1 py-1 px-2 text-bg-dark rounded-full"
               title="Vai alle impostazioni">
           <i className="bi bi-three-dots-vertical"></i>
         </Link>
@@ -74,7 +74,7 @@ export default function StructureComponent(props: UseBookComponentProps) {
             </Frag.Else>
             
             <div className="py-3">
-              <h2 className="p-2 text-2xl text-orange-400">Sezioni</h2>
+              <h2 className="p-2 text-2xl app-text-accent">Sezioni</h2>
 
               <div className="sm:p-3 grid gap-2 sm:grid-cols-2 md:grid-cols-3 items-start">
                 {book?.parts?.map((part, part_i) => (
@@ -97,7 +97,7 @@ export default function StructureComponent(props: UseBookComponentProps) {
                           />
                         </div>
                         <Frag if={canEdit} className="p-2">
-                          <button className="px-1 bg-gray-200 text-black outline rounded" 
+                          <button className="px-1 app-bg-light text-black outline rounded" 
                                   onClick={_e=> SHARE.copyPart(_e, part.id || "")}
                                   title="Copia parte come json" 
                                   data-feedback>
@@ -127,25 +127,25 @@ export default function StructureComponent(props: UseBookComponentProps) {
                                   </DropdownSummary>
 
                                   <DropdownContent className="absolute start-10 right-0 z-10">
-                                    <div className="grid w-max bg-indigo-800 border rounded overflow-hidden">
+                                    <div className="grid w-max text-bg-secondary border rounded overflow-hidden">
 
-                                      <button className="py-1 px-2 bg-red-500 truncate text-left" 
+                                      <button className="py-1 px-2 text-bg-danger truncate text-left" 
                                               onClick={() => SECTION.delete(part_i, section_i)}>
                                         <i className="inline-block w-[20px] bi bi-trash"></i> Rimuovi
                                       </button>
                                       <Frag if={!SORT.isFirstOfBook(part_i, section_i)}>
-                                        <button className="py-1 px-2 bg-indigo-600 truncate text-left" 
+                                        <button className="py-1 px-2 text-bg-secondary truncate text-left" 
                                                 onClick={() => SORT.pushOrder("up", part_i, section_i)}>
                                           <i className="inline-block w-[20px] bi bi-caret-up-fill"></i> Sposta su
                                         </button>
                                       </Frag>
                                       <Frag if={!SORT.isLastOfBook(part_i, section_i)}>
-                                        <button className="py-1 px-2 bg-indigo-600 truncate text-left" 
+                                        <button className="py-1 px-2 text-bg-secondary truncate text-left" 
                                                 onClick={() => SORT.pushOrder("down", part_i, section_i)}>
                                           <i className="inline-block w-[20px] bi bi-caret-down-fill"></i> Sposta giù
                                         </button>
                                       </Frag>
-                                      <button className="py-1 px-2 bg-indigo-800 text-left" 
+                                      <button className="py-1 px-2 text-bg-secondary text-left" 
                                               onClick={() => SECTION.create(part_i, section_i)}>
                                         <i className="inline-block w-[20px] bi bi-journal-arrow-down"></i>
                                         <span>Aggiungi sezione</span>
@@ -172,7 +172,7 @@ export default function StructureComponent(props: UseBookComponentProps) {
                                 </div>
                                 
                                 {/* freccia */}
-                                <Link className={`p-3 flex items-center bg-gray-600`} 
+                                <Link className={`p-3 flex items-center text-bg-secondary`} 
                                         href={`/books/${book.id}/${part.id}/${section.id}`}>
                                   <i className="bi bi-chevron-right"></i>
                                 </Link>
@@ -181,7 +181,7 @@ export default function StructureComponent(props: UseBookComponentProps) {
 
                               {/* LINK VISUALIZZAZIONE */}
                               <Frag if={!canEdit} className="flex-1">
-                                <Link className={`p-3 flex items-center justify-between bg-gray-600 text-gray-300 italic border-b border-gray-500`} 
+                                <Link className={`p-3 flex items-center justify-between text-bg-secondary text-white italic border-b border-gray-500`} 
                                         href={`/books/${book?.id}/${part.id}/${section.id}`}>
                                   <span className="flex-1">{section.title}</span>
                                   <i className="bi bi-chevron-right"></i>
@@ -204,12 +204,12 @@ export default function StructureComponent(props: UseBookComponentProps) {
             <div className="mx-auto max-w-fit">
               <div className="flex flex-wrap outline rounded overflow-hidden">
                 <button onClick={() => PART.create()}
-                        className="py-2 px-3 bg-green-600">
+                        className="py-2 px-3 text-bg-primary">
                   <i className="me-1 bi bi-plus-lg"></i>
                   <span>Aggiungi parte</span>
                 </button>
                 <button onClick={() => SHARE.paste()}
-                        className="py-2 px-3 bg-indigo-600">
+                        className="py-2 px-3 text-bg-secondary">
                   <i className="me-1 bi bi-clipboard-fill"></i>
                   <span>Incolla</span>
                 </button>
@@ -221,12 +221,12 @@ export default function StructureComponent(props: UseBookComponentProps) {
 
           {/* AZIONI */}
           <div className="my-10 border-t border-gray-500">
-            <h4 className="p-2 text-xl text-orange-400">Azioni</h4>
+            <h4 className="p-2 text-xl app-text-accent">Azioni</h4>
 
             <div className="grid sm:grid-cols-3 sm:gap-2">
               {Object.values(bookContext.download).filter(a => typeof a === 'object').map((action, i) => (
                 <button key={i}  onClick={() => action.execute(book?.id!)}
-                        className="py-2 px-3 bg-gray-600" >
+                        className="py-2 px-3 text-bg-secondary" >
                   <div className="flex justify-between items-center">
                     <span>{action.label}</span>
                     <i className={`bi ${action.icon}`}></i>
@@ -242,7 +242,7 @@ export default function StructureComponent(props: UseBookComponentProps) {
 
 
     <Bottombar>
-      <Link href={"/auth"} className="circle bg-indigo-700" title="Mostra codici">
+      <Link href={"/auth"} className="circle text-bg-primary" title="Mostra codici">
         <i className="bi bi-person-vcard-fill"></i>
       </Link>
       <Frag if={canWrite}>

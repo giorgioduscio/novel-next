@@ -228,7 +228,7 @@ export default function SettingsComponent(props: UseBookComponentProps) {
 
             {/* lettura */}
             <h4 className="pt-3 pb-2 text-red-400">Codice per la lettura</h4>
-            <p className="m-2 p-3 bg-blue-700 outline rounded">
+            <p className="m-2 p-3 text-bg-secondary outline rounded">
               <i className="bi bi-info-circle"></i> Chiunque abbia questo codice sarà autorizzato a leggere questo libro. Se non impostato alcun codice, il libro sarà leggibile da tutti.
             </p>
 
@@ -251,7 +251,7 @@ export default function SettingsComponent(props: UseBookComponentProps) {
 
                   <button onClick={handleSetReadPublic}
                           disabled={verifyReadCode.get.length<3}
-                          className="flex-auto px-3 py-2 bg-green-600"
+                          className="flex-auto px-3 py-2 text-bg-primary"
                           title="Rendi il libro visibile a chiunque abbia il link">
                     <i className="bi bi-globe"></i>
                     <span className="ml-2">Publica</span>
@@ -261,7 +261,7 @@ export default function SettingsComponent(props: UseBookComponentProps) {
                 <Frag if={book?.auth_read===""}>
                   <button onClick={handleSetReadPrivate}
                           disabled={book?.auth_read !== ""}
-                          className="flex-auto px-3 py-2 bg-orange-600"
+                          className="flex-auto px-3 py-2 text-bg-primary"
                           title="Rendi il libro visibile solo a chi ha il codice">
                     <i className="bi bi-lock"></i>
                     <span className="ml-2">Privato</span>
@@ -269,7 +269,7 @@ export default function SettingsComponent(props: UseBookComponentProps) {
                 </Frag>
                 {/* copia */}
                 <button onClick={handleCopyLink}
-                        className="flex-auto px-3 py-2 bg-blue-600"
+                        className="flex-auto px-3 py-2 text-bg-secondary"
                         data-feedback>
                   <i className="bi bi-copy"></i>
                   <span className="ml-2">Copia link</span>
@@ -282,7 +282,7 @@ export default function SettingsComponent(props: UseBookComponentProps) {
 
             {/* scrittura */}
             <h4 className="pt-5 pb-2 text-red-400">Codice per la scrittura</h4>
-            <p className="m-2 p-3 bg-blue-700 outline rounded">
+            <p className="m-2 p-3 text-bg-secondary outline rounded">
               <i className="bi bi-info-circle"></i> Chiunque abbia questo codice sarà autorizzato a modificare e rimuovere questo libro. Se non impostato alcun codice, sarà modificabile da chiunque.
             </p>
             <div className={input_group}>
@@ -303,7 +303,7 @@ export default function SettingsComponent(props: UseBookComponentProps) {
                   </div>
                   <button onClick={handleSetWritePublic}
                           disabled={verifyWriteCode.get.length<2}
-                          className="flex-auto px-3 py-2 bg-green-600"
+                          className="flex-auto px-3 py-2 text-bg-primary"
                           title="Rendi editabile il libro a chiunque">
                     <i className="bi bi-globe"></i>
                     <span className="ml-2">Publica</span>
@@ -313,7 +313,7 @@ export default function SettingsComponent(props: UseBookComponentProps) {
                 <Frag if={book?.auth_write===""}>
                   <button onClick={handleSetWritePrivate}
                           disabled={book?.auth_write !== ""}
-                          className="flex-auto px-3 py-2 bg-orange-600"
+                          className="flex-auto px-3 py-2 text-bg-primary"
                           title="Solo a chi ha il codice può modificare">
                     <i className="bi bi-lock"></i>
                     <span className="ml-2">Scrittura autorizzata</span>
@@ -360,11 +360,11 @@ export default function SettingsComponent(props: UseBookComponentProps) {
       </main>
 
     <Bottombar>
-      <Link href={"/auth"} className="circle bg-indigo-700" title="Mostra codici">
+      <Link href={"/auth"} className="circle text-bg-primary" title="Mostra codici">
         <i className="bi bi-person-vcard-fill"></i>
       </Link>
       <Link href={`/books/${book?.id}/structure`} 
-            className="circle bg-orange-600" 
+            className="circle text-bg-primary" 
             title="Torna al libro">
         <i className="bi bi-book"></i>
       </Link>

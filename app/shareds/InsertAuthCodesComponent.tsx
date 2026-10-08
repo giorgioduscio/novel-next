@@ -97,7 +97,7 @@ export default function InsertAuthCodesComponent({ targetId }: InsertAuthCodesCo
   }
   return (
     <div className="p-3">
-      <div className="p-3 mx-auto max-w-fit bg-orange-700 text-white border rounded">
+      <div className="p-3 mx-auto max-w-fit text-bg-secondary text-white border rounded">
         <div className="mb-3">
           <h3 className="text-xl font-bold mb-2">
             <i className="bi bi-lock me-2"></i>
@@ -133,7 +133,7 @@ export default function InsertAuthCodesComponent({ targetId }: InsertAuthCodesCo
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full py-2 px-3 bg-green-600 hover:bg-green-700 disabled:bg-gray-500 rounded font-bold"
+            className="w-full py-2 px-3 text-bg-primary disabled:bg-gray-900 rounded font-bold"
           >
             {isLoading ? (
               <>

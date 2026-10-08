@@ -23,12 +23,12 @@ export default function MainContent({ children }: MainContentProps) {
   return (
     <main>
       {children}
-      <footer className="pb-[50px] bg-indigo-900 print:hidden">
+      <footer className="text text-bg-dark py-4 px-6 print:hidden">
         <div className="mx-auto p-4 max-w-[400px]">
           <div className="flex gap-2 justify-center items-center flex-wrap text-white text-center">
             <i className="bi bi-book"></i>
             <span className="font-semibold">Novel App</span>
-            <p className="w-full text-xs text-gray-300">&copy; {new Date().getFullYear()} Novel App. Tutti i diritti riservati.</p>
+            <p className="w-full text-xs text-gray-400">&copy; {new Date().getFullYear()} Novel App. Tutti i diritti riservati.</p>
           </div>
         </div>
       </footer>

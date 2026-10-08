@@ -55,27 +55,25 @@ export default function Navbar(props: NavbarProps) {
   
   return (
     <nav id="Navbar" className="fixed top-0 z-50 w-full print:hidden">
-      <div className="w-full h-[50px] bg-indigo-900 border-b border-black">
+      <div className="w-full h-[50px] text-bg-dark border-b border-gray-800">
 
         {/* Barra di avanzamento scroll */}
-        <div 
-          className="h-[3px] bg-yellow-500 relative z-[51]"
-          style={{ width: `${scrollProgress}%` }}
-        />
+        <div className="h-[3px] bg-lime-500 relative z-[51]"
+              style={{ width: `${scrollProgress}%` }}/>
         {/* navigazione */}
         <div className="mx-auto container max-w-[800px]">
           <div className="flex items-center">
 
             {/* pulsante indietro con cronologia */}
             {back_btn &&<>
-              <Link href={back_btn?.href || "/"} className="p-2 bg-indigo-900">
+              <Link href={back_btn?.href || "/"} className="p-2 text-bg-dark rounded">
                 <i className={`${back_btn?.icon || 'bi-chevron-left'} bi me-1`}></i>
                 <span className='truncate'>{back_btn?.label ||''}</span>
               </Link>
             </>}
 
             {title && (
-              <h1 className="p-2 text-bold text-orange-500 truncate">{title || 'NovelNext'}</h1>
+              <h1 className="p-2 text-bold text-white truncate">{title || 'NovelNext'}</h1>
             )}
             <div className="flex-1"></div>
 

@@ -39,7 +39,7 @@ export default function AuthComponent() {
       <section className="p-3 min-h-dvh">
         {/* header */}
         <div className="mx-auto max-w-[400px]">
-          <p className="py-2 px-3 bg-sky-200 text-black text-sm italic outline rounded">
+          <p className="py-2 px-3 text app-bg-light text-sm italic outline rounded">
             <i className="me-1 bi bi-info-circle"></i> 
             Questi codici vengono memorizzati sul browser. Potrai visualizzare o modificare tutti i contenuti associati a questi codici.
           </p>
@@ -47,7 +47,8 @@ export default function AuthComponent() {
 
         <div className="flex justify-between items-center">
           <h2 className="my-3 text-2xl font-bold">Permessi</h2>
-          <button onClick={() => FORM.isVisible.set(prev=> !prev)} className="py-1 px-2 bg-indigo-600 text-white rounded">
+          <button onClick={() => FORM.isVisible.set(prev=> !prev)} 
+                  className="py-1 px-2 text text-bg-secondary rounded">
             {FORM.isVisible.get
               ? <><i className="bi bi-x-lg"></i> Chiudi</>
               : <><i className="bi bi-plus-lg"></i> Aggiungi</>
@@ -58,11 +59,12 @@ export default function AuthComponent() {
 
         {/* NUOVO PERMESSO */}
         <Frag if={FORM.isVisible.get} className="mx-auto max-w-max">
-          <div className="outline outline-indigo-600 rounded">
-            <div className="p-2 bg-indigo-600 flex gap-2">
+          <div className="outline outline-lime-800 rounded">
+            <div className="p-2 text-bg-dark flex gap-2">
               <h3>Aggiungi codice</h3>
             </div>
-            <form onSubmit={FORM.handleSubmit} className="p-2 grid sm:grid-cols-2 gap-2 items-center bg-indigo-200">
+            <form onSubmit={FORM.handleSubmit} 
+                  className="p-2 text text-bg-secondary grid sm:grid-cols-2 gap-2 items-center">
               {FORM.state.get.map((item) => (
                 <div key={item.key} className="relative">
                   <div className="flex-auto bg-white text-black outline rounded">
@@ -83,7 +85,7 @@ export default function AuthComponent() {
               ))}
 
               <div className="w-full">
-                <button className="py-1 px-2 bg-orange-600 rounded disabled:opacity-50" 
+                <button className="py-1 px-2 text-bg-primary rounded disabled:opacity-50" 
                         type="submit"
                         disabled={hasFormErrors}
                         >Aggiungi</button>
@@ -97,13 +99,13 @@ export default function AuthComponent() {
         <h3 className="mt-5 mb-3">Lista codici</h3>
 
         <ol className="flex gap-2 flex-wrap">
-          <Frag if={!codes.get.length} className="p-3 w-full bg-sky-700 rounded flex gap-2">
+          <Frag if={!codes.get.length} className="p-3 w-full text-bg-secondary rounded flex gap-2">
             <i className="bi bi-info-circle"></i>
             <span>Nessun permesso trovato</span>
           </Frag>
 
           {codes.get.map((code)=>
-            <li key={code.id} className={`flex-1 min-w-[200px] max-w-[400px] p-1 rounded ${checkedTargets.get.includes(code.id) ? 'bg-indigo-800' : ''}`}>
+            <li key={code.id} className={`flex-1 min-w-[200px] max-w-[400px] p-1 rounded ${checkedTargets.get.includes(code.id) ? 'text-bg-secondary' : ''}`}>
               <div className="grid grid-cols-[auto_1fr_auto] gap-1">
                 <div className="flex flex-col justify-between">
                   <input
@@ -149,7 +151,7 @@ export default function AuthComponent() {
 
                 <div className="text-black">
                   <button onClick={()=> ui_copy(code.auth_code)} 
-                          className="px-1 bg-gray-200 outline rounded"
+                          className="px-1 app-bg-light outline rounded"
                           title="Copia codice" data-feedback>
                     <i className="bi bi-copy"></i>
                   </button>
@@ -162,7 +164,7 @@ export default function AuthComponent() {
     </main>
 
     <Bottombar>
-      <Link href={"/books"} className="circle bg-orange-700">
+      <Link href={"/books"} className="circle text-bg-primary">
         <i className="bi bi-book-fill"></i>
       </Link>
     </Bottombar>

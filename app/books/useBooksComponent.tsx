@@ -101,28 +101,28 @@ export function useBooksComponent() {
       {
         label: "Json",
         icon: "bi-download",
-        className: "bg-blue-800",
+        className: "text-bg-primary",
         condition: (bookId: string) => this.isInList(bookId),
         event: (bookId: string) => bookContext.download.json.execute(bookId),
       },
       {
         label: "Markdown",
         icon: "bi-markdown",
-        className: "bg-indigo-600 text-gray-300",
+        className: "text-bg-dark",
         condition: (bookId: string) => this.isInList(bookId),
         event: (bookId: string) => bookContext.download.md.execute(bookId),
       },
       {
         label: "Rimuovi",
         icon: "bi-x-lg",
-        className: "bg-indigo-600 text-red-400",
+        className: "text-bg-danger",
         condition: (bookId: string) => this.isInList(bookId),
         event: (bookId: string) => this.removeFromList(bookId),
       },
       {
         label: "Aggiungi",
         icon: "bi-plus-lg",
-        className: "bg-green-800",
+        className: "text-bg-primary",
         condition: (bookId: string) => 
           !this.isInList(bookId) && this.searchQuery.get.trim().length > 0,
         event: (bookId: string) => this.addToList(bookId),

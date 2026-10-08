@@ -66,12 +66,12 @@ class ToastManager {
   private readonly MAX_POOL_SIZE = 5;
   private styleInjected = false;
   private colors = {
-    primary: '#007bff',
-    secondary: '#6c757d',
+    primary: '#84cc16',
+    secondary: '#65a30d',
     danger: '#dc3545',
-    success: '#198754',
-    warning: '#ffc107',
-    info: '#0dcaf0'
+    success: '#84cc16',
+    warning: '#bef264',
+    info: '#84cc16'
   };
   // Cache per i messaggi recenti
   private messageCache = new Set<string>();
@@ -340,12 +340,12 @@ function executeAgree(message: string,
 
     // FALLBACK: Logica custom originale se Bootstrap non è presente
     const colori = {
-      primary: '#007bff',
-      secondary: '#6c757d',
+      primary: '#84cc16',
+      secondary: '#65a30d',
       danger: '#dc3545',
-      success: '#198754',
-      warning: '#ffc107',
-      info: '#0dcaf0'
+      success: '#84cc16',
+      warning: '#bef264',
+      info: '#84cc16'
     }
     if (!document.getElementById("agree-modal-style")) {
       const style = document.createElement("style");

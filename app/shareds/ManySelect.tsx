@@ -29,14 +29,14 @@ export default function ManySelect<T>({ targets, allItems, onDeleteMany }: ManyS
     <>
       {/* AZIONI MULTIPLE */}
       <Frag if={selectedCount > 0}>
-        <div className="sticky top-0 z-1 bg-red-900">
+        <div className="sticky top-0 z-1 text-bg-secondary">
           <div className="mx-auto max-w-[800px] flex items-center gap-1">
 
 
             {/* ANNULLA */}
             <button 
               onClick={handleDeselectAll} 
-              className="p-2 bg-red-900 truncate"
+              className="p-2 bg-gray-900 truncate"
               title="Deseleziona tutti"
             >
               <i className="bi bi-x-lg"></i>
@@ -48,7 +48,7 @@ export default function ManySelect<T>({ targets, allItems, onDeleteMany }: ManyS
 
             {/* SELEZIONA TUTTI */}
             <button onClick={handleSelectAll} 
-                    className="p-2 bg-red-900 text-white truncate"
+                    className="p-2 bg-gray-800 text-white truncate"
                     title="Seleziona tutti">
               <i className="bi bi-check2-all"></i>
               <span className="ms-1 hidden sm:inline">Seleziona tutti</span>
@@ -56,7 +56,7 @@ export default function ManySelect<T>({ targets, allItems, onDeleteMany }: ManyS
 
             {/* ELIMINA SELEZIONATI */}
             <button onClick={onDeleteMany} 
-                    className="p-2 px-3 bg-red-900 text-red-300 relative"
+                    className="p-2 px-3 bg-gray-900 text-red-300 relative"
                     title="Elimina selezionati">
               <i className="bi bi-trash3-fill absolute top-1 left-2"></i>
               <i className="bi bi-trash3"></i>

@@ -5,30 +5,8 @@ html
     scroll-padding-top: calc(3.5rem + env(safe-area-inset-top))
     scroll-padding-bottom: calc(4rem + env(safe-area-inset-bottom))
     scrollbar-width: thin
-    scrollbar-color: rgba(156, 163, 175, 0.5) transparent
+    scrollbar-color: rgba(132, 204, 22, 0.5) transparent
 
-// Scrollbar moderne
-::-webkit-scrollbar
-    width: 8px
-    height: 8px
-
-::-webkit-scrollbar-track
-    background: transparent
-
-::-webkit-scrollbar-thumb
-    background: rgba(156, 163, 175, 0.5)
-    border-radius: 4px
-
-    &:hover
-        background: rgba(156, 163, 175, 0.8)
-
-@media print
-    html, body
-        overflow: hidden !important
-        scrollbar-width: none !important
-
-    ::-webkit-scrollbar
-        display: none !important
 
 button, a
     &:not(:disabled)
@@ -50,9 +28,63 @@ button, a
 textarea
     resize: none !important
 
+
+// HELPERS
 .pointler-event-none
     pointer-events: none
 
+// CUSTOM COLOR CLASSES
+.text-dark
+    color: var(--color-lime-900)
+.text-bg-dark
+    background-color: var(--color-lime-900)
+    color: white
+    
+.text-tertiary
+    color: var(--color-lime-800)
+.text-bg-tertiary
+    background-color: var(--color-lime-800)
+    color: white
+
+.text-primary
+    color: var(--color-lime-700)
+.text-bg-primary
+    background-color: var(--color-lime-700)
+    color: white
+
+.text-secondary
+    color: var(--color-gray-700)
+.text-bg-secondary
+    background-color: var(--color-gray-700)
+    color: white
+
+.text-danger
+    color: var(--color-red-700)
+.text-bg-danger
+    background: var(--color-red-700)
+    color: white
+
+.text-light
+    color: var(--color-lime-200)
+.text-bg-light
+    background-color: var(--color-lime-200)
+    color: black
+
+
+// Scrollbar moderne
+::-webkit-scrollbar
+    width: 8px
+    height: 8px
+
+::-webkit-scrollbar-track
+    background: transparent
+
+::-webkit-scrollbar-thumb
+    background: rgba(132, 204, 22, 0.5)
+    border-radius: 4px
+
+    &:hover
+        background: rgba(132, 204, 22, 0.8)
 
 // REGOLE DI STAMPA
 @media print
@@ -66,4 +98,12 @@ textarea
             print-color-adjust: exact !important
 
     nav, footer, #Navigation, #Bottombar, [aria-label="Breadcrumb"], .print-hidden
+        display: none !important
+
+@media print
+    html, body
+        overflow: hidden !important
+        scrollbar-width: none !important
+
+    ::-webkit-scrollbar
         display: none !important

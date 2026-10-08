@@ -26,8 +26,8 @@ export function Breadcrumb({routes}: routerProp) {
   }, [routes])
 
   return (
-    <nav aria-label="Breadcrumb" className="p-2 bg-indigo-900 text-sm print:hidden">
-      <ol className="mx-auto container max-w-[800px] flex items-center flex-wrap gap-2 text-gray-400">
+    <nav aria-label="Breadcrumb" className="p-2 text-bg-tertiary text-sm print:hidden">
+      <ol className="mx-auto container max-w-[800px] flex items-center flex-wrap gap-2 text-gray-300">
         {routesParsed.map((route, index) => (
           <li key={index}>
             {index > 0 && 
@@ -35,18 +35,16 @@ export function Breadcrumb({routes}: routerProp) {
             }
 
             {(!route.url || route.url === pathname) ?(
-              <span>{route.label}</span>
+              <b>{route.label}</b>
 
             ):(
-              <Link
-                href={route.url || ""}
-                className="active:text-white transition-colors truncate max-w-[110px]"
-                title={route.url ?`Torma a ${route.label}`: ''}
-              >
+              <Link href={route.url || ""}
+                    className="active:text-white transition-colors truncate max-w-[110px]"
+                    title={route.url ?`Torma a ${route.label}`: ''}>
                 {route.icon && 
                   <i className={`me-2 bi ${route.icon}`}></i>
                 }
-                {route.label}
+                <b>{route.label}</b>
               </Link>
             )}            
           </li>

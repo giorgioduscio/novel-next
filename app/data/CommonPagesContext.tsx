@@ -78,7 +78,7 @@ export function EditModeToggleButton() {
   const iem = page.isEditMode.get
   return <>
     <button onClick={page.toggleEditMode} 
-            className={`circle ${page.isEditMode.get ?"bg-orange-500":"bg-gray-700"}`}
+            className={`circle ${page.isEditMode.get ?"text-bg-primary":"text-bg-dark"}`}
             title={iem ?"Abilita lettura" :"Abilita editing"}>
       {page.isEditMode.get
         ?<i className="bi bi-pen"></i>

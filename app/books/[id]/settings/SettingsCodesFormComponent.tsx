@@ -102,7 +102,7 @@ export default function SettingsCodesFormComponent({ labelParam, book, attribute
         ))}
 
         <div className="w-full">
-          <button type="submit" className="py-2 px-3 bg-blue-500 rounded">
+          <button type="submit" className="py-2 px-3 text-bg-primary rounded">
             Modifica
           </button>
         </div>

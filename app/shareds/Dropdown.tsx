@@ -5,7 +5,7 @@ import React, { useEffect, useRef, useState } from "react";
 /* ESEMPIO UTILIZZO
 <Dropdown>
   <DropdownSummary>
-    <button className="p-2 bg-blue-500">
+    <button className="p-2 text-bg-primary">
       Apri menu
     </button>
   </DropdownSummary>

@@ -28,21 +28,21 @@ export default function BooksComponent() {
           {/* HEAD */}
           <div className="mx-auto max-w-[400px]">
             <div className="my-3 flex flex-wrap gap-2 justify-between items-center">
-              <h1 className="text-2xl font-bold truncate text-orange-500">Gestione Catalogo</h1>
+              <h1 className="text-2xl font-bold truncate app-text-accent">Gestione Catalogo</h1>
 
               {/* NUOVO LIBRO */}
-              <button onClick={() => createVoidBook()} className="py-1 px-2 rounded bg-blue-800 whitespace-nowrap">
+              <button onClick={() => createVoidBook()} className="py-1 px-2 rounded text-bg-primary whitespace-nowrap">
                 <i className="me-2 bi bi-plus-lg"></i>
                 Aggiungi Libro
               </button>
               
               <Frag if={books.get.length > 0}>
-                <div className="py-1 px-2 rounded outline rounded-full text-xs text-gray-300 text-nowrap">
+                <div className="py-1 px-2 rounded outline rounded-full text-xs text-nowrap">
                   Catalogo: {filteredBooks.length}
                 </div>
               </Frag>
 
-              <button onClick={upload} className="py-2 px-3 text-sm rounded bg-green-800">
+              <button onClick={upload} className="py-2 px-3 text-sm rounded text-bg-secondary">
                 <i className="me-2 bi bi-upload"></i>
                 <span>Upload (.json / .md)</span>
               </button>
@@ -50,7 +50,7 @@ export default function BooksComponent() {
             
             {/* SEARCH INPUT */}
             <div className="relative my-3">
-              <label htmlFor="search" className="bi bi-search absolute bottom-1 left-3 text-gray-600"></label>
+              <label htmlFor="search" className="bi bi-search absolute bottom-1 left-3 text-lime-500"></label>
               <Field
                 id="search"
                 label="Cerca libri"
@@ -90,7 +90,7 @@ export default function BooksComponent() {
                       {/* Visualizzazione dei dettagli del libro */}
                       <Link
                         href={`/books/${book.id}/structure`}
-                        className="block p-2 bg-indigo-600"
+                        className="block p-2 text-bg-secondary"
                       >
                         {/* TITOLO LIBRO */}
                         <div className="p-2 text-center text-2xl font-bold pointer-events-none">
@@ -127,7 +127,7 @@ export default function BooksComponent() {
       </main>
 
       <Bottombar>
-        <Link href={"/auth"} className="circle bg-indigo-700">
+        <Link href={"/auth"} className="circle text-bg-primary">
           <i className="bi bi-person-vcard-fill"></i>
         </Link>
       </Bottombar>

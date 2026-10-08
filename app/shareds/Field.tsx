@@ -319,7 +319,7 @@ export default function Field({
             {/* se premuto mostra la password */}
             {type==="password" && (
               <button type="button" onClick={EVENTS.togglePassword} 
-                      className="px-1 bg-gray-200/80 text-black rounded outline">
+                      className="px-1 text-bg-light text-black rounded outline">
                 {EVENTS.showPassword 
                   ? <i className="bi bi-eye-slash" aria-hidden="true"></i>
                   : <i className="bi bi-eye" aria-hidden="true"></i>
@@ -329,14 +329,14 @@ export default function Field({
             {/* se premuto, resetta l'input */}
             {(type==="search" && value.length > 0) && (
               <button type="button" onClick={EVENTS.resetInput} 
-                      className="px-1 bg-gray-200/80 text-black rounded-full outline">
+                      className="px-1 text-bg-light text-lime-900 rounded-full outline">
                 <i className="bi bi-x-lg" aria-hidden="true"></i>
               </button>
             )}
             {/* se premuto, copia il valore */}
             {type==="copy" && (
               <button type="button" onClick={EVENTS.handleCopy} 
-                      className={`px-1 rounded outline bg-gray-200 text-black`}
+                      className={`px-1 rounded outline app-bg-light text-black`}
                       title={EVENTS.copied ? "Copiato!" : "Copia"}>
                 {EVENTS.copied 
                   ? <i className="bi bi-check-lg text-green-700" aria-hidden="true"></i>
@@ -355,7 +355,7 @@ export default function Field({
           id={errorId}
           role="alert"
           aria-live="polite"
-          className="block w-full px-1 text-white bg-red-700"
+          className="block w-full px-1 text-white text-bg-danger"
         >
           <div className="grid grid-cols-[auto_1fr] gap-1 text-sm text-left">
             <i className="bi bi-exclamation-triangle" aria-hidden="true"></i>
@@ -371,7 +371,7 @@ export default function Field({
           id={errorId}
           role="alert"
           aria-live="polite"
-          className="block w-full px-2 bg-indigo-600 text-xs text-left"
+          className="block w-full px-2 text-bg-secondary text-xs text-left"
         >
           {message}
         </div>

@@ -14,15 +14,15 @@ interface AgreeComponentProps {
 
 function AgreeComponent({ title, message, btn_label, btn_color, callback, onCancel }: AgreeComponentProps) {
   const colors = {
-    primary: "bg-blue-600    text-white",
-    success: "bg-green-600   text-white",
+    primary: "text-bg-primary    text-white",
+    success: "text-bg-primary   text-white",
     danger:  "bg-red-600     text-white",
-    warning: "bg-yellow-600  text-white",
+    warning: "text-bg-primary  text-white",
   }
 
   return (
     <div id="AgreeComponent" role="dialog" aria-modal="true" aria-labelledby="agree-title" aria-describedby="agree-message">
-      <div className="max-w-[400px] mt-15 text-center rounded-lg bg-indigo-900 text-white shadow-lg overflow-hidden">
+      <div className="max-w-[400px] mt-15 text-center rounded-lg bg-black text-white shadow-lg overflow-hidden">
         {/* HEADER */}
         <div className={`px-4 py-3 ${colors[btn_color]}`}>
           <h2 id="agree-title" className="text-xl font-semibold">{title}</h2>
@@ -47,7 +47,7 @@ function AgreeComponent({ title, message, btn_label, btn_color, callback, onCanc
 
           <button
             type="button"
-            className="py-2 px-3 rounded bg-indigo-600 truncate"
+            className="py-2 px-3 rounded text-bg-secondary truncate"
             onClick={onCancel}
           >
             <i className="bi bi-x-lg me-2" aria-hidden="true"></i>
