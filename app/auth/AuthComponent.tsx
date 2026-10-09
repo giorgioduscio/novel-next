@@ -39,7 +39,7 @@ export default function AuthComponent() {
       <section className="p-3 min-h-dvh">
         {/* header */}
         <div className="mx-auto max-w-[400px]">
-          <p className="py-2 px-3 text app-bg-light text-sm italic outline rounded">
+          <p className="py-2 px-3 text-bg-light text-sm italic outline rounded">
             <i className="me-1 bi bi-info-circle"></i> 
             Questi codici vengono memorizzati sul browser. Potrai visualizzare o modificare tutti i contenuti associati a questi codici.
           </p>
@@ -151,7 +151,7 @@ export default function AuthComponent() {
 
                 <div className="text-black">
                   <button onClick={()=> ui_copy(code.auth_code)} 
-                          className="px-1 app-bg-light outline rounded"
+                          className="px-1 text-bg-light outline rounded"
                           title="Copia codice" data-feedback>
                     <i className="bi bi-copy"></i>
                   </button>

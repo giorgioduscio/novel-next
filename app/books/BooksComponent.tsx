@@ -13,7 +13,7 @@ import React from "react";
 
 export default function BooksComponent() {
   const bookContext = useBookContext();
-  const { books, filteredBooks, searchQuery, createVoidBook, isInList, removeFromList, addToList, card_buttons } = useBooksComponent();
+  const { books, filteredBooks, searchQuery, createVoidBook, card_buttons } = useBooksComponent();
   const { upload } = useSharedText();
 
 
@@ -23,34 +23,38 @@ export default function BooksComponent() {
 
       <Breadcrumb routes={["Catalogo"]} />
 
-      <main id="BooksTemplate" className="mx-auto container max-w-[800px]">
+      <main id="BooksComponent" className="mx-auto container max-w-[800px]">
         <section className="p-2 min-h-dvh">
           {/* HEAD */}
-          <div className="mx-auto max-w-[400px]">
+          <div className="mx-auto max-w-[800px]">
             <div className="my-3 flex flex-wrap gap-2 justify-between items-center">
-              <h1 className="text-2xl font-bold truncate app-text-accent">Gestione Catalogo</h1>
+              <h1 className="text-2xl font-bold truncate text-light">Gestione Catalogo</h1>
 
-              {/* NUOVO LIBRO */}
-              <button onClick={() => createVoidBook()} className="py-1 px-2 rounded text-bg-primary whitespace-nowrap">
-                <i className="me-2 bi bi-plus-lg"></i>
-                Aggiungi Libro
-              </button>
-              
               <Frag if={books.get.length > 0}>
                 <div className="py-1 px-2 rounded outline rounded-full text-xs text-nowrap">
                   Catalogo: {filteredBooks.length}
                 </div>
               </Frag>
+            </div>
 
-              <button onClick={upload} className="py-2 px-3 text-sm rounded text-bg-tertiary">
+            <div className="w-max flex shadow-lg rounded-lg overflow-hidden">
+              {/* NUOVO LIBRO */}
+              <button onClick={() => createVoidBook()} 
+                      className="py-1 px-2 text-bg-primary truncate">
+                <i className="me-2 bi bi-plus-lg"></i>
+                <span>Aggiungi Libro</span>
+              </button>
+
+              <button onClick={upload} 
+                      className="py-2 px-2 text-bg-tertiary truncate">
                 <i className="me-2 bi bi-upload"></i>
                 <span>Upload (.json / .md)</span>
               </button>
             </div>
             
             {/* SEARCH INPUT */}
-            <div className="relative my-3">
-              <label htmlFor="search" className="bi bi-search absolute bottom-1 left-3 text-lime-500"></label>
+            <div className="mx-auto my-3 max-w-[400px] relative">
+              <label htmlFor="search" className="bi bi-search absolute bottom-1 left-3 text-dark"></label>
               <Field
                 id="search"
                 label="Cerca libri"
@@ -67,7 +71,7 @@ export default function BooksComponent() {
           {/* LIBRI */}
           {/* NESSUN LIBRO TROVATO */}
           <Frag if={books.get.length === 0}>
-            <div className="mt-20 text-red-400 text-center">
+            <div className="mt-20 text-danger text-center">
               <i className="bi bi-exclamation-triangle me-1"></i>
               <span>Nessun libro trovato</span>
             </div>
@@ -75,7 +79,7 @@ export default function BooksComponent() {
 
           {/* NESSUN RISULTATO RICERCA */}
           <Frag if={books.get.length > 0 && filteredBooks.length === 0}>
-            <div className="mt-20 text-yellow-400 text-center">
+            <div className="mt-20 text-danger text-center">
               <i className="bi bi-search me-1"></i>
               <span>Nessun libro corrisponde alla ricerca</span>
             </div>
@@ -86,10 +90,10 @@ export default function BooksComponent() {
             <ol className="flex flex-wrap gap-2 items-start justify-around">
               {filteredBooks.map((book, book_i) => (
                   <li key={book.id} className="w-full sm:w-[48%]">
-                    <div className="outline rounded overflow-hidden">
+                    <div data-CARD className="rounded overflow-hidden shadow-lg">
                       {/* Visualizzazione dei dettagli del libro */}
                       <Link href={`/books/${book.id}/structure`}
-                            className="block p-2 text-bg-tertiary">
+                            className="block p-2 text-bg-dark">
                         {/* TITOLO LIBRO */}
                         <div className="p-2 text-center text-2xl font-bold pointer-events-none">
                           {book.title || "Senza titolo"}
@@ -102,7 +106,7 @@ export default function BooksComponent() {
                       </Link>
 
                       {/* AZIONI */}
-                      <div className="flex items-center">
+                      <div className="flex items-center text-bg-dark">
                         {card_buttons.map((btn, i)=><React.Fragment key={btn.label + i}>
 
                           <Frag if={btn.condition(book.id)}>

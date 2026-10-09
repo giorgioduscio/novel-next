@@ -63,7 +63,7 @@ const API_SERVICE = {
   saveDebounced: debounce(function (book: Book) {
     console.warn("debounce");
     return API_SERVICE.saveSingleBook(book);
-  }, 1000),
+  }, 300),
 
   async deleteSingleBook(id: string) {
     try {

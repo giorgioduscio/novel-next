@@ -54,7 +54,7 @@ export default function StructureComponent(props: UseBookComponentProps) {
           onKeyDown={handleArrowKeyFocus}>
       {/* LIBRO NON TROVATO */}
       <Frag if={!canRead}>
-        <div className="p-3 py-8 text-center text-red-500">
+        <div className="p-3 py-8 text-center text-danger">
           <i className="bi bi-exclamation-triangle text-2xl"></i>
           <span>Libro non trovato</span>
         </div>
@@ -74,7 +74,7 @@ export default function StructureComponent(props: UseBookComponentProps) {
             </Frag.Else>
             
             <div className="py-3">
-              <h2 className="p-2 text-2xl app-text-accent">Sezioni</h2>
+              <h2 className="p-2 text-2xl text-light">Sezioni</h2>
 
               <div className="sm:p-3 grid gap-2 sm:grid-cols-2 md:grid-cols-3 items-start">
                 {book?.parts?.map((part, part_i) => (
@@ -97,7 +97,7 @@ export default function StructureComponent(props: UseBookComponentProps) {
                           />
                         </div>
                         <Frag if={canEdit} className="p-2">
-                          <button className="px-1 app-bg-light text-black outline rounded" 
+                          <button className="px-1 text-light rounded" 
                                   onClick={_e=> SHARE.copyPart(_e, part.id || "")}
                                   title="Copia parte come json" 
                                   data-feedback>
@@ -114,7 +114,7 @@ export default function StructureComponent(props: UseBookComponentProps) {
                         <div key={section.title + section_i}>
 
                           {/* MODIFICA SEZIONE */}
-                          <div className={`border-b border-gray-600`}>
+                          <div className={section_i ?`border-t border-gray-500` :''}>
                             <div className="flex">
 
                               {/* DROPDOWN */}
@@ -145,7 +145,7 @@ export default function StructureComponent(props: UseBookComponentProps) {
                                           <i className="inline-block w-[20px] bi bi-caret-down-fill"></i> Sposta giù
                                         </button>
                                       </Frag>
-                                      <button className="py-1 px-2 text-bg-dark text-left" 
+                                      <button className="py-1 px-2 text-bg-primary text-left" 
                                               onClick={() => SECTION.create(part_i, section_i)}>
                                         <i className="inline-block w-[20px] bi bi-journal-arrow-down"></i>
                                         <span>Aggiungi sezione</span>
@@ -172,7 +172,7 @@ export default function StructureComponent(props: UseBookComponentProps) {
                                 </div>
                                 
                                 {/* freccia */}
-                                <Link className={`p-3 flex items-center text-bg-dark`} 
+                                <Link className={`p-3 flex items-center text-bg-neutral`} 
                                         href={`/books/${book.id}/${part.id}/${section.id}`}>
                                   <i className="bi bi-chevron-right"></i>
                                 </Link>
@@ -181,7 +181,7 @@ export default function StructureComponent(props: UseBookComponentProps) {
 
                               {/* LINK VISUALIZZAZIONE */}
                               <Frag if={!canEdit} className="flex-1">
-                                <Link className={`p-3 flex items-center justify-between text-bg-dark text-white italic border-b border-gray-500`} 
+                                <Link className={`p-3 flex items-center justify-between text-bg-neutral italic ${section_i ?`border-t border-gray-500` :''}`} 
                                         href={`/books/${book?.id}/${part.id}/${section.id}`}>
                                   <span className="flex-1">{section.title}</span>
                                   <i className="bi bi-chevron-right"></i>
@@ -221,7 +221,7 @@ export default function StructureComponent(props: UseBookComponentProps) {
 
           {/* AZIONI */}
           <div className="my-10 border-t border-gray-500">
-            <h4 className="p-2 text-xl app-text-accent">Azioni</h4>
+            <h4 className="p-2 text-xl text-light">Azioni</h4>
 
             <div className="grid sm:grid-cols-3 sm:gap-2">
               {Object.values(bookContext.download).filter(a => typeof a === 'object').map((action, i) => (

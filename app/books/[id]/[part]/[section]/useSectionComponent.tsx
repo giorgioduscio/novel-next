@@ -3,7 +3,7 @@ import { useCommonPagesContext } from "@/app/data/CommonPagesContext";
 import { Book, Section, Paragraph, paragraph_schema, section_schema, Part } from "@/app/schemas/book_schema";
 import { useAgreeWrapper } from "@/app/shareds/Agree";
 import { useDotNotation } from "@/app/tools/reactCustomization";
-import { toast, ui_copy } from "@/app/tools/feedbacksUI";
+import { toast, ui_copy, debounce } from "@/app/tools/feedbacksUI";
 import React, { useEffect, useMemo, useRef } from "react";
 import { safeParse } from "valibot";
 import { useKeyboardFeatures } from "./keyboardFeatures";
@@ -233,6 +233,40 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
     listReference = useRef<HTMLOListElement>(null);
     listHeight = useDotNotation<number>(0);
 
+    // Debounced update per ridurre re-render durante typing
+    private debouncedUpdate = debounce((index: number, key: keyof Paragraph, value: string | boolean) => {
+      const clone = structuredClone(book.get!);
+      const sec = getSection(clone);
+      if (!sec || !sec.paragraphs?.length) return;
+
+      // Controllo del tipo
+      if (typeof value !== typeof sec.paragraphs[index][key]) {
+        console.error("Tipo non valido");
+        return;
+      }
+
+      // se l'input contiene ',,', compila i due attributi
+      if (key === "in_style" && String(value).includes(",,")) {
+        const [inPart, exPart] = String(value).split(",,");
+        
+        (sec.paragraphs as any)[index].in_style = inPart || "";
+        (sec.paragraphs as any)[index].ex_style = exPart || "";
+        
+      // se l'input non contiene ',,' ma ex_style è truty, azzera ex_style
+      } else if (key === "in_style" && !String(value).includes(",,") && sec.paragraphs[index].ex_style.length) {
+        (sec.paragraphs as any)[index][key] = value;
+        (sec.paragraphs as any)[index].ex_style ='';
+
+      } else {
+        (sec.paragraphs as any)[index][key] = value;
+      }
+
+      book.set(clone);
+
+      // Direct API call in background
+      bookContext.updateBook(book_id, clone);
+    }, 100);
+
     // Inizializza ResizeObserver
     initResizeObserver() {
       useEffect(() => {
@@ -263,37 +297,40 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
 
     // Aggiorna un paragrafo e salva
     update(index: number, key: keyof Paragraph, value: string | boolean, safe = true) {
-      const clone = structuredClone(book.get!);
-      const sec = getSection(clone);
-      if (!sec || !sec.paragraphs?.length) return;
+      if (!safe) {
+        // Per aggiornamenti critici, bypassa il debounce
+        const clone = structuredClone(book.get!);
+        const sec = getSection(clone);
+        if (!sec || !sec.paragraphs?.length) return;
 
-      // Controllo del tipo
-      if (typeof value !== typeof sec.paragraphs[index][key]) {
-        console.error("Tipo non valido");
-        return;
-      }
+        // Controllo del tipo
+        if (typeof value !== typeof sec.paragraphs[index][key]) {
+          console.error("Tipo non valido");
+          return;
+        }
 
-      // se l'input contiene ',,', compila i due attributi
-      if (key === "in_style" && String(value).includes(",,")) {
-        const [inPart, exPart] = String(value).split(",,");
-        
-        (sec.paragraphs as any)[index].in_style = inPart || "";
-        (sec.paragraphs as any)[index].ex_style = exPart || "";
-        
-      // se l'input non contiene ',,' ma ex_style è truty, azzera ex_style
-      } else if (key === "in_style" && !String(value).includes(",,") && sec.paragraphs[index].ex_style.length) {
-        (sec.paragraphs as any)[index][key] = value;
-        (sec.paragraphs as any)[index].ex_style ='';
+        // se l'input contiene ',,', compila i due attributi
+        if (key === "in_style" && String(value).includes(",,")) {
+          const [inPart, exPart] = String(value).split(",,");
+          
+          (sec.paragraphs as any)[index].in_style = inPart || "";
+          (sec.paragraphs as any)[index].ex_style = exPart || "";
+          
+        // se l'input non contiene ',,' ma ex_style è truty, azzera ex_style
+        } else if (key === "in_style" && !String(value).includes(",,") && sec.paragraphs[index].ex_style.length) {
+          (sec.paragraphs as any)[index][key] = value;
+          (sec.paragraphs as any)[index].ex_style ='';
 
+        } else {
+          (sec.paragraphs as any)[index][key] = value;
+        }
+
+        book.set(clone);
+        bookContext.updateBook(book_id, clone);
       } else {
-        (sec.paragraphs as any)[index][key] = value;
+        // Per typing normale, usa debounce locale
+        this.debouncedUpdate(index, key, value);
       }
-
-      book.set(clone);
-
-      // Direct API call
-      if (!safe) return;
-      bookContext.updateBook(book_id, clone);
     }
 
     // Crea un nuovo paragrafo senza salvarlo
@@ -949,12 +986,11 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
 
     // scrolla la pagina fino al segnalibro
     scrollToMarker(id: string | number) {
-      const input = document.getElementById(`${id}>text`);
+      const input = document.getElementById(`${id}>text`);      
 
       setTimeout(() => {
-        // input?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        if(section_isEditMode) input?.focus();
-      }, 100);
+        input?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 300);
     }
   };
   

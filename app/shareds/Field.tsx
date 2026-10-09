@@ -336,7 +336,7 @@ export default function Field({
             {/* se premuto, copia il valore */}
             {type==="copy" && (
               <button type="button" onClick={EVENTS.handleCopy} 
-                      className={`px-1 rounded outline app-bg-light text-black`}
+                      className={`px-1 rounded outline text-bg-light`}
                       title={EVENTS.copied ? "Copiato!" : "Copia"}>
                 {EVENTS.copied 
                   ? <i className="bi bi-check-lg text-green-700" aria-hidden="true"></i>

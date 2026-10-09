@@ -15,7 +15,11 @@
   - se pochi elementi (<8), una sola colonna e spazio minimo
   - altrimenti, prende tutto lo spazio disponibile
 
-* [] **prestazioni e richieste api**: la creazione e gestione dei paragrafi ci mettono qualche frazione di troppo. È dovuto al fatto che aggiorno lo stato dopo la risposta dell'api? 
+@sectionComponent.tsx
+* [] **prestazioni e richieste api**: la creazione e gestione dei paragrafi ci mettono qualche frazione di troppo. È dovuto al fatto che aggiorno lo stato dopo la risposta dell'api? da cosa è dovuto?
+  * **obbiettivo**: quello che vorrei è che i dati locali non aspettino la risposta api del server. l'applicazione recupera i dati al caricamento iniziale, le richieste PUT successive devono essere faatte in background. 
+  * il metodo PARAG.update dovrebbe aggiornare il componente locale ed effettuare la put senza aspettare la risposta (al massimo mostrando il toast di feedback)
+  * crea un file docs/risolvere_performance.md in cui spieghi il problema e tutti i vari passaggi per sistemarlo
 
 
   

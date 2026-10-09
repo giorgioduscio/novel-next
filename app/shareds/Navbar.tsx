@@ -55,10 +55,10 @@ export default function Navbar(props: NavbarProps) {
   
   return (
     <nav id="Navbar" className="fixed top-0 z-50 w-full print:hidden">
-      <div className="w-full h-[50px] text-bg-tertiary border-b border-gray-800">
+      <div className="w-full min-h-[50px] text-bg-tertiary border-b border-gray-800">
 
         {/* Barra di avanzamento scroll */}
-        <div className="h-[3px] text-bg-light relative z-[51]"
+        <div className="h-[1px] text-bg-light relative z-[51]"
               style={{ width: `${scrollProgress}%` }}/>
         {/* navigazione */}
         <div className="mx-auto container max-w-[800px]">

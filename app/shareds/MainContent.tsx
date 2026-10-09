@@ -21,7 +21,7 @@ export default function MainContent({ children }: MainContentProps) {
   }
 
   return (
-    <main className="text-bg-dark">
+    <main className="text-bg-neutral">
       {children}
       <footer className="text text-bg-tertiary py-4 px-6 print:hidden">
         <div className="mx-auto p-4 max-w-[400px]">

@@ -1,11 +1,6 @@
 @use "tailwindcss"
-
-html
-    scroll-behavior: smooth
-    scroll-padding-top: calc(3.5rem + env(safe-area-inset-top))
-    scroll-padding-bottom: calc(4rem + env(safe-area-inset-bottom))
-    scrollbar-width: thin
-    scrollbar-color: transparent
+:root
+    --color-dark: #333
 
 button, a
     &:not(:disabled)
@@ -52,9 +47,9 @@ textarea
     color: white
 
 .text-danger
-    color: var(--color-red-700)
+    color: var(--color-red-500)
 .text-bg-danger
-    background: var(--color-red-700)
+    background: var(--color-red-500)
     color: white
 
 .text-light
@@ -70,18 +65,26 @@ textarea
     color: white
 
 .text-dark
-    color: #111
+    color: var(--color-dark)
 .text-bg-dark
-    background-color: #111
+    background-color: var(--color-dark)
     color: white
 
 // Scrollbar moderne
+
+html
+    scroll-behavior: smooth
+    scroll-padding-top: calc(3.5rem + env(safe-area-inset-top))
+    scroll-padding-bottom: calc(4rem + env(safe-area-inset-bottom))
+    scrollbar-width: thin
+    scrollbar-color: var(--color-lime-700) var(--color-dark)
+
 ::-webkit-scrollbar
     width: 8px
     height: 8px
 
 ::-webkit-scrollbar-track
-    background: #000
+    background: #333
 
 ::-webkit-scrollbar-thumb
     background: rgba(100, 100, 100, 0.5)
