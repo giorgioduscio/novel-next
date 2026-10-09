@@ -749,17 +749,33 @@ const Popover = {
  * @returns 
  * Esegue la funzione dopo il delay solo se non viene chiamata nuovamente entro quel tempo
  */
-export function debounce<T extends (...args: any[]) => any>(callback: T, delay: number) {
-  if(typeof callback !== 'function' || typeof delay !== 'number' || delay < 0) {
-    console.error('Callback must be a function and delay must be a positive number')
-    return (() => {}) as any
+export function debounce<T extends (...args: any[]) => any>(
+  callback: T,
+  delay: number
+): ((...args: Parameters<T>) => void) & { cancel: () => void } {
+  if (typeof callback !== "function" || typeof delay !== "number" || delay < 0) {
+    console.error("Callback must be a function and delay must be a positive number");
+    const noop: any = () => {};
+    noop.cancel = () => {};
+    return noop;
   }
   // Crea un timer per gestire il delay
-  let timer: ReturnType<typeof setTimeout> | null = null
-  return (...args: Parameters<T>) => { // recupera tutti gli args 
-    if (timer) clearTimeout(timer) // cancella il timer se esiste
-    timer = setTimeout(() => callback(...args), delay) // esegue la callback dopo il delay
-  }
+  let timer: ReturnType<typeof setTimeout> | null = null;
+  const debounced = (...args: Parameters<T>) => {
+    // recupera tutti gli args
+    if (timer) clearTimeout(timer); // cancella il timer se esiste
+    timer = setTimeout(() => {
+      timer = null;
+      callback(...args);
+    }, delay); // esegue la callback dopo il delay
+  };
+  debounced.cancel = () => {
+    if (timer) {
+      clearTimeout(timer);
+      timer = null;
+    }
+  };
+  return debounced;
 }
 
 export const ui_download ={

@@ -11,7 +11,6 @@ import React from "react";
 import { EditModeToggleButton } from "@/app/data/CommonPagesContext";
 import Bottombar from "@/app/shareds/Bottombar";
 import { Dropdown, DropdownContent, DropdownSummary } from "@/app/shareds/Dropdown";
-import { GROUPS_DATAS } from "./TailwindClassGroups";
 
 interface AddParagraphButtonProps { handleCreate: Function; if: boolean; className?: string }
 function AddParagraphButton({ if: show, handleCreate, className = "" }: AddParagraphButtonProps) {
@@ -43,7 +42,11 @@ export default function SectionComponent(props: UseSectionComponentProps) {
     FIND_REPLACE,
     canRead, canWrite, section_isEditMode,
     MARCKERS,
-    NAVIGATION
+    NAVIGATION,
+    isSaving,
+    isOnline,
+    pendingSyncCount,
+    syncNow
   } = useSectionComponent(props); 
     
   const styleInput = GROUPS.styleInput.get
@@ -60,6 +63,35 @@ export default function SectionComponent(props: UseSectionComponentProps) {
         <i className="bi bi-bookmarks-fill"></i> 
         <span className="ms-1 hidden sm:inline">Segnalibri</span>
       </button> 
+
+      {/* STATO RETE & SINCRONIZZAZIONE OFFLINE */}
+      {!isOnline.get ? (
+        <button onClick={() => syncNow()}
+                className="mx-1 px-2.5 py-1.5 text-xs bg-amber-500/20 text-amber-300 border border-amber-500/40 rounded flex items-center gap-1.5 transition-colors hover:bg-amber-500/30"
+                title={pendingSyncCount.get > 0 ? `${pendingSyncCount.get} modifiche in locale. Clicca per riprovare la sincronizzazione` : "Modalità Offline: modifiche salvate in locale"}>
+          <i className="bi bi-cloud-slash"></i>
+          <span className="hidden sm:inline">Offline</span>
+          {pendingSyncCount.get > 0 && (
+            <span className="px-1.5 py-0.2 bg-amber-500 text-black text-[10px] font-bold rounded-full">
+              {pendingSyncCount.get}
+            </span>
+          )}
+        </button>
+
+      ) : isSaving.get ? (
+        <span className="mx-1 px-2 py-1 text-xs text-lime-400 flex items-center gap-1.5" title="Salvataggio in corso...">
+          <i className="bi bi-arrow-repeat animate-spin"></i>
+          <span className="hidden sm:inline">Salvataggio...</span>
+        </span>
+
+      ) : pendingSyncCount.get > 0 ? (
+        <button onClick={() => syncNow()}
+                className="mx-1 px-2.5 py-1.5 text-xs bg-blue-500/20 text-blue-300 border border-blue-500/40 rounded flex items-center gap-1.5 hover:bg-blue-500/30"
+                title="Clicca per sincronizzare le modifiche pendenti">
+          <i className="bi bi-cloud-arrow-up"></i>
+          <span className="hidden sm:inline">Sincronizza ({pendingSyncCount.get})</span>
+        </button>
+      ) : null} 
 
       {/* visibile all'editore */}
       <Frag if={section_isEditMode}>
@@ -412,7 +444,7 @@ export default function SectionComponent(props: UseSectionComponentProps) {
                         <Frag if={section_isEditMode==true || p.isMarcked===true }>
                           <button type="button" 
                                   title={`${p.isMarcked ?"Rimuovi" :"Imposta"} segnalibro`}
-                                  onClick={() => PARAG.update(paragraph_i,"isMarcked", !p.isMarcked)}
+                                  onClick={() => PARAG.update(paragraph_i,"isMarcked", !p.isMarcked, false)}
                                   disabled={!section_isEditMode}
                                   className={`px-2 py-1 ${section_isEditMode ?'text-bg-dark' :''}`}>
                             
@@ -473,7 +505,7 @@ export default function SectionComponent(props: UseSectionComponentProps) {
 
 
     {/* GROUPS WINDOW */}
-    <Frag if={!!GROUPS.windodButtons.get.length}>
+    <Frag if={!!GROUPS.windowButtons.get.length}>
       <div className="fixed inset-0 z-50 flex items-end justify-center">
         {/* BACKDROP - chiude cliccando fuori */}
         <div onClick={()=> GROUPS.closeWindowButtons()}
@@ -484,9 +516,9 @@ export default function SectionComponent(props: UseSectionComponentProps) {
         <div className="py-3 px-1 relative w-[100vw] max-w-[400px] text-bg-dark">
           <div className="max-h-[50vh] overflow-y-auto overflow-x-hidden">
             <div className="grid gap-1 justify-center"
-                  style={{gridTemplateColumns: `repeat(${Math.min(GROUPS.windodButtons.get.length,9)},1fr)`}}>
+                  style={{gridTemplateColumns: `repeat(${Math.min(GROUPS.windowButtons.get.length,9)},1fr)`}}>
             
-              {GROUPS.windodButtons.get.map(_class=>
+              {GROUPS.windowButtons.get.map(_class=>
               <React.Fragment key={_class.title}>
                 <>
                   <button onClick={()=> GROUPS.toggleGroup(_class)}
@@ -515,7 +547,7 @@ export default function SectionComponent(props: UseSectionComponentProps) {
             <div className="grid gap-1 grid-cols-[auto_auto_1fr]">
               {/* ICONA PALETTE */}
               {styleInput.target?.in_style.length
-                ?<button onClick={_=> PARAG.update(styleInput.index, "in_style", "")}
+                ?<button onClick={_=> PARAG.update(styleInput.index, "in_style", "", false)}
                         className="p-2 text-red-700 relative"
                         title="Resetta stile">
                   <i className="bi bi-palette-fill"></i>

@@ -70,8 +70,8 @@ textarea
     background-color: var(--color-dark)
     color: white
 
-// Scrollbar moderne
 
+// Scrollbar moderne
 html
     scroll-behavior: smooth
     scroll-padding-top: calc(3.5rem + env(safe-area-inset-top))
@@ -84,14 +84,14 @@ html
     height: 8px
 
 ::-webkit-scrollbar-track
-    background: #333
+    background: var(--color-dark)
 
 ::-webkit-scrollbar-thumb
-    background: rgba(100, 100, 100, 0.5)
+    background: var(--color-lime-700)
     border-radius: 4px
 
     &:hover
-        background: rgba(100, 100, 100, 0.7)
+        background: var(--color-lime-700)
 
 // REGOLE DI STAMPA
 @media print

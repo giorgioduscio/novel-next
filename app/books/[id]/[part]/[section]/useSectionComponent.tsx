@@ -57,6 +57,44 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
     return getPart(bookObj)
       ?.sections.find((s) => s.id === section_id);
   };
+
+  // Clona in modo selettivo e immutabile solo la parte e sezione corrente per massimizzare le performance
+  function cloneBookForUpdate(sourceBook: Book, targetPartId = part_id, targetSectionId = section_id): Book {
+    return {
+      ...sourceBook,
+      parts: sourceBook.parts?.map((p) => {
+        if (p.id !== targetPartId) return p;
+        return {
+          ...p,
+          sections: p.sections?.map((s) => {
+            if (s.id !== targetSectionId) return s;
+            return {
+              ...s,
+              paragraphs: s.paragraphs ? s.paragraphs.map((par) => ({ ...par })) : [],
+            };
+          }) || [],
+        };
+      }) || [],
+    };
+  }
+
+  function applyParagraphField(paragraph: Paragraph, key: keyof Paragraph, value: string | boolean) {
+    if (typeof value !== typeof paragraph[key]) {
+      console.error("Tipo non valido");
+      return;
+    }
+
+    if (key === "in_style" && String(value).includes(",,")) {
+      const [inPart, exPart] = String(value).split(",,");
+      paragraph.in_style = inPart || "";
+      paragraph.ex_style = exPart || "";
+    } else if (key === "in_style" && !String(value).includes(",,") && paragraph.ex_style.length) {
+      paragraph.in_style = String(value);
+      paragraph.ex_style = "";
+    } else {
+      (paragraph as any)[key] = value;
+    }
+  }
   
   
   useEffect(() => {
@@ -104,7 +142,7 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
     // Aggiorna la nota della sezione
     update(sectionKey: keyof Section, value: string) {
       if (!book.get) throw new Error("Libro non trovato");
-      const clone = structuredClone(book.get);
+      const clone = cloneBookForUpdate(book.get);
       const sec = getSection(clone);
       if (!sec) throw new Error("Sezione non trovata");
 
@@ -151,6 +189,7 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
 
     // Incolla la struttura del libro dal sistema
     async paste() {
+      if(!book.get) return console.error("libro non disponibile");
       if (
         SECTION.bookSection?.paragraphs?.length &&
         !(await agree.warning(
@@ -162,7 +201,7 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
       const newSection = await sharedText.paste_section();
       if (!newSection) return;
 
-      const clone = structuredClone(book.get);
+      const clone = cloneBookForUpdate(book.get, part_id, section_id);
       if (!clone) return console.error("Libro non trovato");
 
       const section = getSection(clone);
@@ -235,31 +274,12 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
 
     // Debounced update per ridurre re-render durante typing
     private debouncedUpdate = debounce((index: number, key: keyof Paragraph, value: string | boolean) => {
-      const clone = structuredClone(book.get!);
+      if (!book.get) return;
+      const clone = cloneBookForUpdate(book.get, part_id, section_id);
       const sec = getSection(clone);
-      if (!sec || !sec.paragraphs?.length) return;
+      if (!sec || !sec.paragraphs?.length || !sec.paragraphs[index]) return;
 
-      // Controllo del tipo
-      if (typeof value !== typeof sec.paragraphs[index][key]) {
-        console.error("Tipo non valido");
-        return;
-      }
-
-      // se l'input contiene ',,', compila i due attributi
-      if (key === "in_style" && String(value).includes(",,")) {
-        const [inPart, exPart] = String(value).split(",,");
-        
-        (sec.paragraphs as any)[index].in_style = inPart || "";
-        (sec.paragraphs as any)[index].ex_style = exPart || "";
-        
-      // se l'input non contiene ',,' ma ex_style è truty, azzera ex_style
-      } else if (key === "in_style" && !String(value).includes(",,") && sec.paragraphs[index].ex_style.length) {
-        (sec.paragraphs as any)[index][key] = value;
-        (sec.paragraphs as any)[index].ex_style ='';
-
-      } else {
-        (sec.paragraphs as any)[index][key] = value;
-      }
+      applyParagraphField(sec.paragraphs[index], key, value);
 
       book.set(clone);
 
@@ -299,31 +319,13 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
     update(index: number, key: keyof Paragraph, value: string | boolean, safe = true) {
       if (!safe) {
         // Per aggiornamenti critici, bypassa il debounce
-        const clone = structuredClone(book.get!);
+        this.debouncedUpdate.cancel();
+        if (!book.get) return;
+        const clone = cloneBookForUpdate(book.get, part_id, section_id);
         const sec = getSection(clone);
-        if (!sec || !sec.paragraphs?.length) return;
+        if (!sec || !sec.paragraphs?.length || !sec.paragraphs[index]) return;
 
-        // Controllo del tipo
-        if (typeof value !== typeof sec.paragraphs[index][key]) {
-          console.error("Tipo non valido");
-          return;
-        }
-
-        // se l'input contiene ',,', compila i due attributi
-        if (key === "in_style" && String(value).includes(",,")) {
-          const [inPart, exPart] = String(value).split(",,");
-          
-          (sec.paragraphs as any)[index].in_style = inPart || "";
-          (sec.paragraphs as any)[index].ex_style = exPart || "";
-          
-        // se l'input non contiene ',,' ma ex_style è truty, azzera ex_style
-        } else if (key === "in_style" && !String(value).includes(",,") && sec.paragraphs[index].ex_style.length) {
-          (sec.paragraphs as any)[index][key] = value;
-          (sec.paragraphs as any)[index].ex_style ='';
-
-        } else {
-          (sec.paragraphs as any)[index][key] = value;
-        }
+        applyParagraphField(sec.paragraphs[index], key, value);
 
         book.set(clone);
         bookContext.updateBook(book_id, clone);
@@ -333,11 +335,11 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
       }
     }
 
-    // Crea un nuovo paragrafo senza salvarlo
+    // Crea un nuovo paragrafo senza caricarlo
     handleCreate(index?: number | 'top', paragraphText = "") {
       if (!book.get) return console.error("Libro non disponibile");
 
-      const updated = structuredClone(book.get);
+      const updated = cloneBookForUpdate(book.get, part_id, section_id);
       const sec = getSection(updated);
       if (!sec) return console.error("Sezione non trovata");
 
@@ -384,7 +386,8 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
         throw new Error("Libro non disponibile");
       }
 
-      const updated = structuredClone(book.get);
+      this.debouncedUpdate.cancel();
+      const updated = cloneBookForUpdate(book.get, part_id, section_id);
       const sec = getSection(updated);
 
       if (!sec) {
@@ -555,20 +558,20 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
     }
 
     // dati della finestra dei pulsanti
-    windodButtons = useDotNotation<TailwindGroup[]>([]);
+    windowButtons = useDotNotation<TailwindGroup[]>([]);
     currentGroupKey = useDotNotation<string>("");
 
     // Apre la finestra popup con i pulsanti del gruppo selezionato
     openWindowButtons(groupKey: string) {
       const groupData = GROUPS_DATAS[groupKey];
       if (!groupData) return console.error(`Gruppo ${groupKey} non trovato`);
-      this.windodButtons.set(groupData);
+      this.windowButtons.set(groupData);
       this.currentGroupKey.set(groupKey);
     }
 
     // Chiude la finestra popup
     closeWindowButtons() {
-      this.windodButtons.set([]);
+      this.windowButtons.set([]);
       this.currentGroupKey.set("");
     }
 
@@ -610,7 +613,14 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
   const GROUPS = new GroupsFeature()
 
   // 5.5) KEYBOARD FEATURES
-  const handleKeyboardFeature = useKeyboardFeatures(getSection, { book, SECTION, PARAG });
+  const handleKeyboardFeature = useKeyboardFeatures(getSection, {
+    book,
+    SECTION,
+    PARAG,
+    part_id,
+    section_id,
+    cloneBookForUpdate,
+  });
 
   // 7) CERCA E SOSTITUISCI 
   // Tipo per le occorrenze trovate
@@ -782,8 +792,8 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
         return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       }
 
-      // Clona il libro una volta sola
-      const bookClone = structuredClone(book.get);
+      // Clona la sezione corrente per la sostituzione
+      const bookClone = cloneBookForUpdate(book.get, part_id, section_id);
       const sec = getSection(bookClone);
 
       if (!sec?.paragraphs) {
@@ -923,7 +933,7 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
       this.undoStack.set(prev => prev.slice(0, -1));
 
       // Applica lo stato precedente
-      const clone = structuredClone(book.get!);
+      const clone = cloneBookForUpdate(book.get!, part_id, section_id);
       const sec = getSection(clone);
       if (!sec) return console.error("Sezione non trovata");
 
@@ -945,7 +955,7 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
       this.redoStack.set(prev => prev.slice(0, -1));
 
       // Applica lo stato successivo
-      const clone = structuredClone(book.get!);
+      const clone = cloneBookForUpdate(book.get!, part_id, section_id);
       const sec = getSection(clone);
       if (!sec) return console.error("Sezione non trovata");
 
@@ -957,7 +967,7 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
     onChangeBook() {
       useEffect(() => {
         if (!book.get) return;
-        const sec = getSection(structuredClone(book.get));
+        const sec = getSection(book.get);
         if (!sec) return console.error("Sezione non trovata");
     
         const paragraphs = sec.paragraphs;
@@ -1050,6 +1060,12 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
 
     HISTORY: new HISTORY(),
     MARCKERS: new MARCKERS(),
-    NAVIGATION: new NAVIGATION()
+    NAVIGATION: new NAVIGATION(),
+
+    // Stato salvataggio e sincronizzazione offline
+    isSaving: bookContext.isSaving,
+    isOnline: bookContext.isOnline,
+    pendingSyncCount: bookContext.pendingSyncCount,
+    syncNow: bookContext.syncNow,
   };
 }

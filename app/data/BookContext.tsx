@@ -1,12 +1,23 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Book, book_schema } from "../schemas/book_schema";
 import * as v from "valibot";
 import { nanoid } from "nanoid";
 import { ui_upload, ui_download, debounce, toast } from "../tools/feedbacksUI";
 import { sanitizeAccessCode, isValidAccessCode } from "@/lib/security";
 import { generateContext, useDotNotation } from "../tools/reactCustomization";
+import {
+  saveBookLocally,
+  saveAllBooksLocally,
+  getAllBooksLocally,
+  deleteBookLocally,
+  addToSyncQueue,
+  removeFromSyncQueue,
+  getSyncQueue,
+  isOnline,
+  onNetworkChange,
+} from "@/lib/offlineStorage";
 
 const FIREBASE_URL = "https://books-3e4c3-default-rtdb.europe-west1.firebasedatabase.app/books";
 
@@ -43,7 +54,7 @@ const LOCAL_BOOK_LIST = {
 
 // Servizio API separato dal ciclo di vita del hook
 const API_SERVICE = {
-  async saveSingleBook(book: Book) {
+  async saveSingleBook(book: Book, showFeedback = false): Promise<boolean> {
     try {
       const response = await fetch(`${FIREBASE_URL}/${book.id}.json`, {
         method: "PUT",
@@ -52,31 +63,36 @@ const API_SERVICE = {
       });
       if (!response.ok) {
         console.error("Salvataggio non riuscito:", response.statusText);
+        if (showFeedback) toast.danger("Errore nel salvataggio su server");
+        return false;
       }
-      return response;
+      if (showFeedback) toast.success("Salvataggio completato");
+      return true;
     } catch (error) {
-      console.error("Errore nel salvataggio delle api:", error);
-      throw error;
+      console.warn("Rete non disponibile durante salvataggio:", error);
+      if (showFeedback) toast.info("Salvato in locale (offline)");
+      return false;
     }
   },
 
-  saveDebounced: debounce(function (book: Book) {
+  saveDebounced: debounce(function (book: Book, showFeedback = false) {
     console.warn("debounce");
-    return API_SERVICE.saveSingleBook(book);
+    return API_SERVICE.saveSingleBook(book, showFeedback);
   }, 300),
 
-  async deleteSingleBook(id: string) {
+  async deleteSingleBook(id: string): Promise<boolean> {
     try {
       const response = await fetch(`${FIREBASE_URL}/${id}.json`, {
         method: "DELETE",
       });
       if (!response.ok) {
         console.error("Eliminazione non riuscita:", response.statusText);
+        return false;
       }
-      return response.body;
+      return true;
     } catch (error) {
-      console.error("Errore nell'eliminazione delle api:", error);
-      throw error;
+      console.warn("Rete non disponibile durante eliminazione:", error);
+      return false;
     }
   },
 };
@@ -84,12 +100,102 @@ const API_SERVICE = {
 function bookContextValue() {
   const [books, setBooks] = useState<Book[]>([]);
   const isBookLoaded = useDotNotation(false);
+  const isSaving = useDotNotation(false);
+  const isOnlineState = useDotNotation(isOnline());
+  const pendingSyncCount = useDotNotation(0);
   const [target, setTarget] = useState<Book | undefined>(undefined);
   const bookList = useDotNotation<string[]>([]);
 
-  // Carica i libri da Firebase all'avvio
-  useEffect(()=> {
-    API.loadBooks()
+  // Sincronizzazione modifiche offline verso Firebase
+  async function syncNow(): Promise<void> {
+    if (!isOnline()) return;
+    const queue = await getSyncQueue();
+    if (queue.length === 0) {
+      pendingSyncCount.set(0);
+      return;
+    }
+
+    isSaving.set(true);
+    let syncedCount = 0;
+    try {
+      for (const item of queue) {
+        if (item.action === "save" && item.book) {
+          const success = await API_SERVICE.saveSingleBook(item.book);
+          if (success) {
+            await removeFromSyncQueue(item.id);
+            syncedCount++;
+          }
+        } else if (item.action === "delete") {
+          const success = await API_SERVICE.deleteSingleBook(item.id);
+          if (success) {
+            await removeFromSyncQueue(item.id);
+            syncedCount++;
+          }
+        }
+      }
+      const remaining = await getSyncQueue();
+      pendingSyncCount.set(remaining.length);
+      if (syncedCount > 0) {
+        toast.success(`Sincronizzazione completata (${syncedCount} modifich${syncedCount === 1 ? "a" : "e"})`);
+      }
+    } catch (err) {
+      console.error("Errore durante la sincronizzazione:", err);
+    } finally {
+      isSaving.set(false);
+    }
+  }
+
+  // Carica i libri all'avvio in modalità Offline-First
+  useEffect(() => {
+    let mounted = true;
+    async function initBooks() {
+      try {
+        // 1. Carica istantaneamente dalla cache locale (IndexedDB)
+        const localBooks = await getAllBooksLocally();
+        if (mounted && localBooks && localBooks.length > 0) {
+          const validated = localBooks
+            .map((b) => validateBook(b))
+            .filter((b): b is Book => b !== null);
+          setBooks(validated);
+          isBookLoaded.set(true);
+        }
+      } catch (err) {
+        console.warn("Errore lettura cache locale:", err);
+      }
+
+      // 2. Controlla la coda di sincronizzazione
+      try {
+        const queue = await getSyncQueue();
+        if (mounted) pendingSyncCount.set(queue.length);
+      } catch {}
+
+      // 3. Se online, carica da Firebase e sincronizza eventuali modifiche pendenti
+      if (isOnline()) {
+        await API.loadBooks();
+        await syncNow();
+      } else {
+        if (mounted) isBookLoaded.set(true);
+      }
+    }
+
+    initBooks();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  // Ascolta lo stato della connessione per auto-sync
+  useEffect(() => {
+    const unsubscribe = onNetworkChange(async (online) => {
+      isOnlineState.set(online);
+      if (online) {
+        toast.info("Connessione ripristinata: avvio sincronizzazione...");
+        await syncNow();
+      } else {
+        toast.warning("Sei offline: le modifiche verranno salvate localmente");
+      }
+    });
+    return unsubscribe;
   }, []);
 
   // Sincronizza la lista libri con localStorage all'avvio
@@ -196,18 +302,78 @@ function bookContextValue() {
     }
   }
 
+  const saveDebounced = useMemo(() => {
+    return debounce(async (book: Book, showFeedback = false) => {
+      if (!isOnline()) {
+        await addToSyncQueue({ id: book.id, action: "save", book, timestamp: Date.now() });
+        const q = await getSyncQueue();
+        pendingSyncCount.set(q.length);
+        if (showFeedback) toast.info("Salvato localmente (offline)");
+        return;
+      }
+
+      isSaving.set(true);
+      try {
+        const success = await API_SERVICE.saveSingleBook(book, showFeedback);
+        if (!success) {
+          await addToSyncQueue({ id: book.id, action: "save", book, timestamp: Date.now() });
+          const q = await getSyncQueue();
+          pendingSyncCount.set(q.length);
+        } else {
+          await removeFromSyncQueue(book.id);
+          const q = await getSyncQueue();
+          pendingSyncCount.set(q.length);
+        }
+      } finally {
+        isSaving.set(false);
+      }
+    }, 300);
+  }, []);
+
   // Oggetto API
   const API = {
     URL: FIREBASE_URL,
-    saveSingleBook: API_SERVICE.saveSingleBook,
-    saveDebounced: API_SERVICE.saveDebounced,
+    async saveSingleBook(book: Book, showFeedback = false) {
+      if (!isOnline()) {
+        await addToSyncQueue({ id: book.id, action: "save", book, timestamp: Date.now() });
+        const q = await getSyncQueue();
+        pendingSyncCount.set(q.length);
+        if (showFeedback) toast.info("Salvato localmente (offline)");
+        return false;
+      }
+
+      isSaving.set(true);
+      try {
+        const success = await API_SERVICE.saveSingleBook(book, showFeedback);
+        if (!success) {
+          await addToSyncQueue({ id: book.id, action: "save", book, timestamp: Date.now() });
+          const q = await getSyncQueue();
+          pendingSyncCount.set(q.length);
+        }
+        return success;
+      } finally {
+        isSaving.set(false);
+      }
+    },
+    saveDebounced,
     deleteSingleBook: API_SERVICE.deleteSingleBook,
 
     async loadBooks() {
       try {
-        isBookLoaded.set(false);
+        if (!isOnline()) {
+          const local = await getAllBooksLocally();
+          if (local.length > 0) {
+            setBooks(local.map((b) => validateBook(b)).filter((b): b is Book => b !== null));
+          }
+          isBookLoaded.set(true);
+          return;
+        }
+
         const response = await fetch(`${FIREBASE_URL}.json`);
-        if (!response.ok) return console.error("Caricamento non riuscito", response.status);
+        if (!response.ok) {
+          console.error("Caricamento non riuscito", response.status);
+          return;
+        }
 
         const data = await response.json();
         let booksArray: Book[] = [];
@@ -219,9 +385,29 @@ function bookContextValue() {
             .map(function (b) { return validateBook(b); })
             .filter(function (b): b is Book { return b !== null; });
         }
-        setBooks(booksArray);
+
+        // Preserva i libri che hanno modifiche offline in sospeso
+        const queue = await getSyncQueue();
+        const queuedIds = new Set(queue.map((q) => q.id));
+
+        setBooks(function (prevBooks) {
+          return booksArray.map(function (remoteBook) {
+            if (queuedIds.has(remoteBook.id)) {
+              const localBook = prevBooks.find(function (p) { return p.id === remoteBook.id; });
+              return localBook || remoteBook;
+            }
+            return remoteBook;
+          });
+        });
+
+        // Salva in cache IndexedDB
+        await saveAllBooksLocally(booksArray);
       } catch (error) {
-        console.error("Errore nel caricamento delle api:", error);
+        console.warn("Errore nel caricamento delle api:", error);
+        const local = await getAllBooksLocally();
+        if (local.length > 0) {
+          setBooks(local.map(function (b) { return validateBook(b); }).filter(function (b): b is Book { return b !== null; }));
+        }
       } finally {
         isBookLoaded.set(true);
       }
@@ -260,7 +446,14 @@ function bookContextValue() {
 
       const updatedBooks = [...books, validatedBook];
       setBooks(updatedBooks);
-      API.saveSingleBook(validatedBook);
+      saveBookLocally(validatedBook);
+
+      if (isOnline()) {
+        API.saveSingleBook(validatedBook);
+      } else {
+        addToSyncQueue({ id: validatedBook.id, action: "save", book: validatedBook, timestamp: Date.now() });
+        pendingSyncCount.set((prev) => prev + 1);
+      }
       return validatedBook;
     },
 
@@ -276,7 +469,7 @@ function bookContextValue() {
     },
 
     // Aggiorna un libro esistente
-    updateBook: function (id: string, updatedBook: Partial<Book>, validation = true): Book | null {
+    updateBook: function (id: string, updatedBook: Partial<Book>, validation = true, showFeedback = false): Book | null {
       const stored = this.getBookById(id);
       if (!stored) {
         console.error("Libro non trovato");
@@ -287,12 +480,25 @@ function bookContextValue() {
       const validatedBook = validation ? this.validateBook(merged as Book) : (merged as Book);
       if (!validatedBook) return null;
 
+      // 1. Aggiorna lo stato React
       setBooks(function (prevBooks) {
         return prevBooks.map(function (book) {
           return book.id === id ? validatedBook : book;
         });
       });
-      API.saveDebounced(validatedBook);
+
+      // 2. Persisti IMMEDIATAMENTE nel database locale IndexedDB
+      saveBookLocally(validatedBook);
+
+      // 3. Salva su server con debounce se online, altrimenti accoda
+      if (isOnline()) {
+        API.saveDebounced(validatedBook, showFeedback);
+      } else {
+        addToSyncQueue({ id: validatedBook.id, action: "save", book: validatedBook, timestamp: Date.now() });
+        getSyncQueue().then((q) => pendingSyncCount.set(q.length));
+        if (showFeedback) toast.info("Salvato localmente (offline)");
+      }
+
       return validatedBook;
     },
 
@@ -301,8 +507,14 @@ function bookContextValue() {
       setBooks(function (prevBooks) {
         return prevBooks.filter(function (book) { return book.id !== id; });
       });
-      const res = API.deleteSingleBook(id);
-      return !!res;
+      deleteBookLocally(id);
+      if (isOnline()) {
+        API.deleteSingleBook(id);
+      } else {
+        addToSyncQueue({ id, action: "delete", timestamp: Date.now() });
+        getSyncQueue().then((q) => pendingSyncCount.set(q.length));
+      }
+      return true;
     },
   };
 
@@ -434,6 +646,10 @@ function bookContextValue() {
   return {
     books,
     isBookLoaded,
+    isSaving,
+    isOnline: isOnlineState,
+    pendingSyncCount,
+    syncNow,
     ...CRUD,
     download,
     upload,

@@ -5,9 +5,16 @@ import { useCallback } from "react";
 
 type Main = ReturnType<typeof useSectionComponent>;
 
-export function useKeyboardFeatures(getSection: Function, dependencies: Pick<Main, 'book' | 'SECTION' | 'PARAG'>) {
+export function useKeyboardFeatures(
+  getSection: Function,
+  dependencies: Pick<Main, 'book' | 'SECTION' | 'PARAG'> & {
+    part_id?: string;
+    section_id?: string;
+    cloneBookForUpdate?: (book: Book, part_id: string, section_id: string) => Book;
+  }
+) {
   const bookContext = useBookContext();
-  const { book, SECTION, PARAG } = dependencies;
+  const { book, SECTION, PARAG, part_id, section_id, cloneBookForUpdate } = dependencies;
 
   // CHANGEFOCUS helper per cambiare il focus
   function _changeFocus(direction: "up" | "down" | "this", from: "|__" | "__|" | number, index:number, key: keyof Paragraph ="text") {  
@@ -104,7 +111,9 @@ export function useKeyboardFeatures(getSection: Function, dependencies: Pick<Mai
           // e ne crea un'altro con il valore dopo il cursore
           } else {
             // 1. Aggiorna il paragrafo corrente con `before`
-            const updatedBook = structuredClone(book.get);
+            const updatedBook = cloneBookForUpdate && part_id && section_id
+              ? cloneBookForUpdate(book.get!, part_id, section_id)
+              : structuredClone(book.get!);
             const sec = getSection(updatedBook);
             if (!sec?.paragraphs?.[index]) return;
 
@@ -145,7 +154,9 @@ export function useKeyboardFeatures(getSection: Function, dependencies: Pick<Mai
           const prevLength = prevParag.text.length;
 
           // 2. Crea una copia aggiornata del libro
-          const updatedBook = structuredClone(book.get);
+          const updatedBook = cloneBookForUpdate && part_id && section_id
+            ? cloneBookForUpdate(book.get!, part_id, section_id)
+            : structuredClone(book.get!);
           if(!updatedBook) return console.error("Libro non trovato");
           
           const sec = getSection(updatedBook);
@@ -189,11 +200,13 @@ export function useKeyboardFeatures(getSection: Function, dependencies: Pick<Mai
   
           // a fine paragrafo, sposta il valore del paragrafo successivo nell'attuale
           } else if(target.selectionEnd === value.length) {
-            const cursorPosition = structuredClone(value.length)
+            const cursorPosition = value.length;
             const nextParag = section?.paragraphs?.[index + 1];
             if(!nextParag) return console.error("Paragrafo successivo non trovato");
   
-            const updatedBook = structuredClone(book.get);
+            const updatedBook = cloneBookForUpdate && part_id && section_id
+              ? cloneBookForUpdate(book.get!, part_id, section_id)
+              : structuredClone(book.get!);
             if (!updatedBook) return console.error("Libro non trovato");
             const sec = getSection(updatedBook);
             if (!sec?.paragraphs?.[index]) return console.error("Paragrafo non trovato");
