@@ -13,17 +13,21 @@
 ## 📌 To Do 
 
 
-* [] **dimenzioni finestra degli stili**: 
+* [5] **dimenzioni finestra degli stili**: 
   - se pochi elementi (<8), una sola colonna e spazio minimo
   - altrimenti, prende tutto lo spazio disponibile
 
+* [5] cerca e sostituisci in tutto il libro
+* [5] colori per ex_style
+* [5] problemi caricamento: quando carico la pagina che mi posta ad un libro. all'inizio esegue i caricamenti, poi mostra "sezione non trovata" e poi mostra la sezione.
+  * vorrei che "sezione non trovata" venga mostrata solo se necessaria. se i dati stanno ancora caricando, deve mostrare solo 'caricamento dati'
 
   
-* [5] colori per ex_style
 * [5] sectioncomponent layout per pc
 * [5] elementi angolati
   * layout a esagoni
-* sostituire firebase con alternative già sicure
+* sostituire firebase con alternative già sicure (appwrite)
+
 
 ## 🔄 In Progress (max 2-3)
 

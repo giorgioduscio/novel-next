@@ -56,14 +56,6 @@ export default function SectionComponent(props: UseSectionComponentProps) {
   return (<>
     {/* NAVBAR */}
     <Navbar back_btn={{ href: `/books/${book_id}` }} page_title={SECTION.mainTitle.get}>
-      {/* SEGNALIBRI */}
-      <button onClick={()=> MARCKERS.isVisible.set(true)} 
-              className="mx-2 px-3 py-2 text-bg-light rounded" 
-              title="Segnalibri">
-        <i className="bi bi-bookmarks-fill"></i> 
-        <span className="ms-1 hidden sm:inline">Segnalibri</span>
-      </button> 
-
       {/* STATO RETE & SINCRONIZZAZIONE OFFLINE */}
       {!isOnline.get ? (
         <button onClick={() => syncNow()}
@@ -92,6 +84,15 @@ export default function SectionComponent(props: UseSectionComponentProps) {
           <span className="hidden sm:inline">Sincronizza ({pendingSyncCount.get})</span>
         </button>
       ) : null} 
+      
+      {/* SEGNALIBRI */}
+      <button onClick={()=> MARCKERS.isVisible.set(true)} 
+              className="mx-2 px-3 py-2 text-bg-light rounded" 
+              title="Apri segnalibri">
+        <i className="bi bi-bookmarks-fill"></i> 
+        <span className="ms-1 hidden sm:inline">Segnalibri</span>
+      </button> 
+
 
       {/* visibile all'editore */}
       <Frag if={section_isEditMode}>
@@ -430,15 +431,15 @@ export default function SectionComponent(props: UseSectionComponentProps) {
                     {/* RIMUOVI PARAGRAFO / SEGNALIBRO */}
                     <div className="absolute top-0 end-0 z-2">
                       <div className="rounded overflow-hidden shadow-lg hover:text-bg-dark">
-                        <Frag if={section_isEditMode}>
-                          {/* rimuovi */}
+                        {/* <Frag if={section_isEditMode}>
+                          {/* rimuovi * /}
                           <button type="button" 
                                   title="rimuovi paragrafo"
                                   onClick={() => PARAG.handleRemove(paragraph_i)}
                                   className="px-2 py-1 text-danger">
                             <i className="bi bi-trash"></i>
                           </button>
-                        </Frag>
+                        </Frag> */}
 
                         {/* pulsante segnalibro */}
                         <Frag if={section_isEditMode==true || p.isMarcked===true }>

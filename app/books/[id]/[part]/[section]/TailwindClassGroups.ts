@@ -120,7 +120,7 @@ export const GROUPS_DATAS :Record<string, TailwindGroup[]> ={
     },
     {
       title: "Margini schermo",
-      icon: "bi-eject-fill",
+      icon: "bi-eject-fill rotate-180",
       value: "margini-schermo"
     },
   ],
