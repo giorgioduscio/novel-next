@@ -104,19 +104,3 @@
         border-left-width: 5px
         border-left-style: solid
 
-
-    // Sfondi gradienti
-    .bg-black-b 
-        background: linear-gradient(180deg, transparent 0%, #000 100%)
-    .bg-black-t 
-        background: linear-gradient(180deg, #000 0%, transparent 100%)
-
-    .bg-radial-black 
-        background: radial-gradient(circle, #000 0%, transparent 100%)
-
-    // sfondo gradiente per step
-    @for $i from 1 through 10
-        .bg-fade-#{$i * 10}
-            background: linear-gradient(to bottom, oklab(0 0 0 / #{$i * 0.1 - 0.1}), oklab(0 0 0 / #{$i * 0.1}))
-        .-bg-fade-#{$i * 10}
-            background: linear-gradient(to bottom, oklab(0 0 0 / #{$i * 0.1}), oklab(0 0 0 / #{$i * 0.1 - 0.1}))

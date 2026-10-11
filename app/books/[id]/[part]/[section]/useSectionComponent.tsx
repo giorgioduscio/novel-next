@@ -10,7 +10,6 @@ import { useKeyboardFeatures } from "./keyboardFeatures";
 import { useAuthContext } from "@/app/data/AuthContext";
 import useSharedText from "@/app/data/sharedText";
 import { toPng } from 'html-to-image';
-import { join } from "node:path";
 import { GROUPS_DATAS, TailwindGroup } from "./TailwindClassGroups";
 
 export interface UseSectionComponentProps {
@@ -511,16 +510,46 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
       if (!dropdown && !textarea) this.setStyleInput();
     }
 
+    // Verifica se almeno uno degli stili ha contenuto
+    hasAnyStyle(): boolean {
+      const input = this.styleInput.get;
+      if (!input.isVisible) return false;
+
+      const section = getSection(book.get);
+      const paragraph = section?.paragraphs?.[input.index];
+      if (!paragraph) return false;
+
+      const hasScripted = (paragraph.scripted_style || '').trim().length > 0;
+      const hasIn = (paragraph.in_style || '').trim().length > 0;
+      const hasEx = (paragraph.ex_style || '').trim().length > 0;
+      return hasScripted || hasIn || hasEx;
+    }
+
+    // Resetta tutti gli stili del paragrafo
+    async resetAllStyles() {
+      if(!(await agree.danger("Rimuovere tutti gli stili?", "Reset"))) return;
+      const index = this.styleInput.get.index;
+      PARAG.update(index, "scripted_style", "", false);
+      PARAG.update(index, "in_style", "", false);
+      PARAG.update(index, "ex_style", "", false);
+      this.setStyleInput(index);
+    }
+
     actualGroups = useMemo(()=>{
       const input = this.styleInput.get;
       if(!input.isVisible) return null;
 
       const section = getSection(book.get);
       const paragraph = section?.paragraphs?.[input.index];
-      const style = paragraph?.scripted_style || '';
 
       const matches :(TailwindGroup & {key:string})[] =[]
       for(const groupKey in GROUPS_DATAS){
+        // Per ESTERNAL_STYLES controlla ex_style, altrimenti scripted_style
+        const isExternal = groupKey === 'ESTERNAL_STYLES';
+        const style = isExternal
+          ? paragraph?.ex_style || ''
+          : paragraph?.scripted_style || '';
+
         const matchIndex = GROUPS_DATAS[groupKey].findIndex(_g=> {
           // Se il valore è vuoto, matcha solo se nessun altro valore del gruppo è presente
           if (_g.value === '') {
@@ -528,8 +557,10 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
               g.value !== '' && style.includes(g.value)
             );
           }
-          // Altrimenti controlla se il valore è incluso nello style
-          return style.includes(_g.value);
+          // Altrimenti controlla se tutte le classi del valore sono presenti nello style
+          const valueClasses = _g.value.split(' ').filter(c => c !== '');
+          const styleClasses = style.split(' ').filter(c => c !== '');
+          return valueClasses.every(c => styleClasses.includes(c));
         });
         if(matchIndex<0) return console.warn(`${groupKey}: nessun elemento`);
 
@@ -545,16 +576,21 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
 
       const section = getSection(book.get);
       const paragraph = section?.paragraphs?.[input.index];
-      const style = paragraph?.scripted_style || '';
+      const isExternal = group.key ==="ESTERNAL_STYLES"
+      const style = isExternal
+      ? paragraph?.ex_style || ''
+      : paragraph?.scripted_style || '';
 
       // Se il valore è vuoto, controlla se nessun altro valore del gruppo è presente
       if (group.value === '') {
-        return !GROUPS_DATAS[Object.keys(GROUPS_DATAS).find(key => 
+        return !GROUPS_DATAS[Object.keys(GROUPS_DATAS).find(key =>
           GROUPS_DATAS[key].includes(group)
         ) || ''].some(g => g.value !== '' && style.includes(g.value));
       }
-      // Altrimenti controlla se il valore è incluso nello style
-      return style.includes(group.value);
+      // Altrimenti controlla se tutte le classi del valore sono presenti nello style
+      const valueClasses = group.value.split(' ').filter(c => c !== '');
+      const styleClasses = style.split(' ').filter(c => c !== '');
+      return valueClasses.every(c => styleClasses.includes(c));
     }
 
     // dati della finestra dei pulsanti
@@ -586,18 +622,36 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
       // Legge direttamente dal libro per avere dati freschi
       const section = getSection(book.get);
       const paragraph = section?.paragraphs?.[input.index];
-      let resultStyle = paragraph?.scripted_style || '';
 
-      // Rimuove tutte le classi che appartengono al gruppo
-      const groupValues = GROUPS_DATAS[actualGroupKey].map(g => g.value).filter(v => v !== '');
-      groupValues.forEach(groupValue => {
-        const classesToRemove = groupValue.split(' ');
-        resultStyle = resultStyle.split(' ')
-          .filter((cls: string) => !classesToRemove.includes(cls))
-          .join(' ')
-          .trim();
-      });
+      // Funzione helper per rimuovere le classi di un gruppo
+      const removeGroupClasses = (currentStyle: string, groupKey: string): string => {
+        const groupValues = GROUPS_DATAS[groupKey].map(g => g.value).filter(v => v !== '');
+        let resultStyle = currentStyle;
+        groupValues.forEach(groupValue => {
+          const classesToRemove = groupValue.split(' ');
+          resultStyle = resultStyle.split(' ')
+            .filter((cls: string) => !classesToRemove.includes(cls))
+            .join(' ')
+            .trim();
+        });
+        return resultStyle;
+      };
 
+      // Caso speciale per ESTERNAL_STYLES: imposta solo ex_style
+      if (actualGroupKey === 'ESTERNAL_STYLES') {
+        const currentExStyle = paragraph?.ex_style || '';
+        const resultStyle = removeGroupClasses(currentExStyle, actualGroupKey);
+        // Aggiunge il nuovo valore
+        const finalStyle = `${resultStyle} ${group.value}`.trim();
+        // Aggiorna solo ex_style
+        PARAG.update(this.styleInput.get.index, "ex_style", finalStyle, false);
+        this.setStyleInput(this.styleInput.get.index);
+        this.closeWindowButtons();
+        return;
+      }
+
+      // Comportamento normale per gli altri gruppi: imposta scripted_style
+      let resultStyle = removeGroupClasses(paragraph?.scripted_style || '', actualGroupKey);
       // Aggiunge il nuovo valore
       resultStyle = `${resultStyle} ${group.value}`.trim();
 

@@ -4,10 +4,11 @@ import { tailwind_colors, tailwind_shades } from "@/app/styles/styles";
 export interface TailwindGroup { 
   title:string, 
   icon:string, 
-  value:string 
+  value:string,
+  key?: string
 }
 
-export const GROUPS_DATAS :Record<string, TailwindGroup[]> ={
+const _GROUPS_DATAS :Record<string, TailwindGroup[]> ={
   JUSTIFY :[
     {
       title:"Texto a sinistra",
@@ -91,6 +92,7 @@ export const GROUPS_DATAS :Record<string, TailwindGroup[]> ={
       value: "dettaglio"
     },
   ],
+  
 
   MARGINS:[
     {
@@ -125,47 +127,79 @@ export const GROUPS_DATAS :Record<string, TailwindGroup[]> ={
     },
   ],
 
-  BACKGROUNDS: colorsGroups() 
+
+  BACKGROUNDS: (()=>{
+    const result =[
+      {
+        title: "Nessun colore",
+        icon: "bi-palette",
+        value: ""
+      },
+    ];
+
+    for(const _color of tailwind_colors){
+      // ignorare
+      const ignored =["transparent", "current", 
+        "stone", "zinc", "neutral", "slate", "amber", 
+        "teal", "emerald", "cyan", 
+        "violet", "pink"];
+      if(ignored.includes(_color)) continue;
+
+      // bianco e nero
+      else if(["white", "black"].includes(_color)){
+        const color_result = `bg-${_color}`;
+        result.unshift({
+          title: color_result,
+          icon: `bi-palette text ${color_result}`,
+          value: color_result
+        })
+        continue;
+      }
+
+      for(const _shade of tailwind_shades){
+        const color_result = `bg-${_color}-${_shade}`;
+
+        result.unshift({
+          title: color_result,
+          icon: `bi-${_shade/100}-circle text ${color_result}`,
+          value: color_result
+        })
+      }
+    }
+    
+    return result
+  })(),
+
+
+  ESTERNAL_STYLES: (()=>{
+    // 1) stili vuoti o nulli
+    const reverse :TailwindGroup[] =[];
+    const result  :TailwindGroup[] =[{
+      title: "Nessuno sfondo",
+      icon: "bi-collection",
+      value: ""
+    }];
+
+    for(let i = 1; i <= 10; i++){
+      // popola gradienti sopre-> sotto
+      result.push({
+        title: `Gradiente ${i * 10}%`,
+        icon: `bi-${i-1}-circle bg-fade-${i * 10}`,
+        value: `py-2 bg-fade-${i * 10}`
+      })
+      // popola gradienti sotto -> sopra
+      reverse.push({
+        title: `Gradiente ${i * 10}%`,
+        icon: `bi-${i-1}-circle -bg-fade-${i * 10}`,
+        value: `py-2 -bg-fade-${i * 10}`
+      })
+    }
+
+    return [...result, ...reverse]
+  })()
 };
 
-function colorsGroups() {
-  const result =[
-    {
-      title: "Nessun colore",
-      icon: "bi-palette",
-      value: ""
-    },
-  ];
-
-  for(const _color of tailwind_colors){
-    // ignorare
-    const ignored =["transparent", "current", 
-      "stone", "zinc", "neutral", "slate", "amber", 
-      "teal", "emerald", "cyan", 
-      "violet", "pink"];
-    if(ignored.includes(_color)) continue;
-
-    // bianco e nero
-    else if(["white", "black"].includes(_color)){
-      const color_result = `bg-${_color}`;
-      result.unshift({
-        title: color_result,
-        icon: `bi-palette text ${color_result}`,
-        value: color_result
-      })
-      continue;
-    }
-
-    for(const _shade of tailwind_shades){
-      const color_result = `bg-${_color}-${_shade}`;
-
-      result.unshift({
-        title: color_result,
-        icon: `bi-${_shade/100}-circle text ${color_result}`,
-        value: color_result
-      })
-    }
-  }
-  
-  return result
+export const GROUPS_DATAS :typeof _GROUPS_DATAS = {}
+for(const key in _GROUPS_DATAS){
+  GROUPS_DATAS[key] = _GROUPS_DATAS[key].map(_group=>({..._group, key}))
 }

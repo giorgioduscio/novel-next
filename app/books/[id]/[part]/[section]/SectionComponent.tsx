@@ -514,13 +514,13 @@ export default function SectionComponent(props: UseSectionComponentProps) {
         ></div>
         
         {/* POPUP */}
-        <div className="py-3 px-1 relative w-[100vw] max-w-[400px] text-bg-dark">
+        <div className="py-3 px-1 relative w-[100vw] max-w-[400px] text-bg-tertiary">
           <div className="max-h-[50vh] overflow-y-auto overflow-x-hidden">
             <div className="grid gap-1 justify-center"
                   style={{gridTemplateColumns: `repeat(${Math.min(GROUPS.windowButtons.get.length,9)},1fr)`}}>
             
-              {GROUPS.windowButtons.get.map(_class=>
-              <React.Fragment key={_class.title}>
+              {GROUPS.windowButtons.get.map((_class,i)=>
+              <React.Fragment key={i+_class.title}>
                 <>
                   <button onClick={()=> GROUPS.toggleGroup(_class)}
                           className={`px-1 py-3 rounded bi ${_class.icon} ${GROUPS.isSelected(_class) ?'border-2 border-dashed' :''}`}
@@ -534,6 +534,7 @@ export default function SectionComponent(props: UseSectionComponentProps) {
         </div>
       </div>
     </Frag>
+    {/* GROUPS WINDOW */}
 
 
     {/* INPUT STILE NELLA BOTTOMBAR */}
@@ -545,34 +546,26 @@ export default function SectionComponent(props: UseSectionComponentProps) {
           
           {/* input */}
           <div className="m-1 text-bg-tertiary outline outline-white/20 rounded-xl overflow-hidden">
-            <div className="grid gap-1 grid-cols-[auto_auto_1fr]">
+            <div className="grid gap-1 grid-cols-[auto_1fr] items-start">
               {/* ICONA PALETTE */}
-              {styleInput.target?.in_style.length
-                ?<button onClick={_=> PARAG.update(styleInput.index, "in_style", "", false)}
-                        className="p-2 text-red-700 relative"
+              {GROUPS.hasAnyStyle()
+                ?<button onClick={_=> GROUPS.resetAllStyles()}
+                        className="p-2 relative"
                         title="Resetta stile">
-                  <i className="bi bi-palette-fill"></i>
+                  <i className="bi bi-palette"></i>
                 </button>
                 :<label htmlFor={styleInput.index + ">in_style"}
                         className="p-2 bi bi-palette-fill"
                         title="Seleziona stile"></label>
               }
-              
-              {/* COPIA IN_STYLE */}
-              <button onClick={()=> SHARED.copy(styleInput.target?.in_style || '')}
-                      title="Copia in_style"
-                      data-feedback
-                      className="p-2 text-blue-300">
-                <i className="bi bi-copy"></i>
-              </button>
-              
+
               {/* STILE PARAGRAFO */}
               <div>
                 <Field
                   input_class="p-2"
                   placeholder="Stile tailwind del paragrafo"
-                  value={styleInput.target?.ex_style 
-                    ? `${styleInput.target.in_style} ,, ${styleInput.target.ex_style}` 
+                  value={styleInput.target?.ex_style
+                    ? `${styleInput.target.in_style} ,, ${styleInput.target.ex_style}`
                     : (styleInput.target?.in_style || '')
                   }
                   disabled={!section_isEditMode}
@@ -596,7 +589,7 @@ export default function SectionComponent(props: UseSectionComponentProps) {
               <div className={`${i ?'my-2 border-l border-white/30' :''}`}></div>
 
               <button onClick={()=> GROUPS.openWindowButtons(_group.key)}
-                      className={`px-3 py-2 text-bg-dark`} 
+                      className={`flex-1 py-2 text-bg-dark`} 
                       title={_group?.title}>
                 <i className={`text-xl bi ${_group?.icon} rounded`} />
               </button>

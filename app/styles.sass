@@ -1,4 +1,6 @@
 @use "tailwindcss"
+@use "styles/standard.sass"
+
 :root
     --color-dark: #333
 
@@ -31,48 +33,23 @@ i.bi
 .pointler-event-none
     pointer-events: none
 
-// CUSTOM COLOR CLASSES
-.text-primary
-    color: var(--color-lime-500)
-.text-bg-primary
-    background-color: var(--color-lime-500)
-    color: black
 
-.text-secondary
-    color: var(--color-lime-700)
-.text-bg-secondary
-    background-color: var(--color-lime-700)
-    color: white
-    
-.text-tertiary
-    color: var(--color-lime-800)
-.text-bg-tertiary
-    background-color: var(--color-lime-800)
-    color: white
 
-.text-danger
-    color: var(--color-red-500)
-.text-bg-danger
-    background: var(--color-red-500)
-    color: white
+// Sfondi gradienti
+.bg-black-bottom 
+    background: linear-gradient(180deg, transparent 0%, #000 100%)
+.bg-black-top
+    background: linear-gradient(180deg, #000 0%, transparent 100%)
 
-.text-light
-    color: var(--color-lime-300)
-.text-bg-light
-    background-color: var(--color-lime-300)
-    color: black
+.bg-radial-black 
+    background: radial-gradient(circle, #000 0%, transparent 100%)
 
-.text-neutral
-    color: var(--color-gray-600)
-.text-bg-neutral
-    background-color: var(--color-gray-600)
-    color: white
-
-.text-dark
-    color: var(--color-dark)
-.text-bg-dark
-    background-color: var(--color-dark)
-    color: white
+// sfondo gradiente per step
+@for $i from 1 through 10
+    .bg-fade-#{$i * 10}
+        background: linear-gradient(to bottom, oklab(0 0 0 / #{$i * 0.1 - 0.1}), oklab(0 0 0 / #{$i * 0.1}))
+    .-bg-fade-#{$i * 10}
+        background: linear-gradient(to bottom, oklab(0 0 0 / #{$i * 0.1}), oklab(0 0 0 / #{$i * 0.1 - 0.1}))
 
 
 // Scrollbar moderne

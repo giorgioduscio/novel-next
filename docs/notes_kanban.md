@@ -19,6 +19,9 @@
 
 * [5] cerca e sostituisci in tutto il libro
 * [5] colori per ex_style
+  * seguendo l'esempio di GROUPS_DATAS.BACKGROUNDS, implementa correttamente GROUPS_DATAS.ESTERNAL_STYLES nei pulsanti di stato dello stile
+  * attenzione: sono delle eccezioni. una volta premuto il pulsante, devono essere per applicati soloall'attributo ex_style del paragraafo selezionato
+  * fammi delle domande per capire se hai capito
 * [5] problemi caricamento: quando carico la pagina che mi posta ad un libro. all'inizio esegue i caricamenti, poi mostra "sezione non trovata" e poi mostra la sezione.
   * vorrei che "sezione non trovata" venga mostrata solo se necessaria. se i dati stanno ancora caricando, deve mostrare solo 'caricamento dati'
 
