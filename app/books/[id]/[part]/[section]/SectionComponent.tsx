@@ -401,8 +401,8 @@ export default function SectionComponent(props: UseSectionComponentProps) {
                     />
 
                     {/* TESTO PARAGRAFO */}
-                    <div className="pb-3">
-                      <div onClick={PARAG.handleFocusText} data-external-style className={`${p.ex_style}`}>
+                    <div data-external-style className={`${p.ex_style}`}>
+                      <div onClick={PARAG.handleFocusText}  className="pb-3">
                         <div className={section_isEditMode && GROUPS.styleInput.get.index === paragraph_i ? 'outline-3 outline-dashed outline-black' : ''}>
                           <div className={`${section_isEditMode && GROUPS.styleInput.get.index === paragraph_i ? 'outline-3 outline-white' : ''}`}>
                             <Field
@@ -519,14 +519,17 @@ export default function SectionComponent(props: UseSectionComponentProps) {
             <div className="grid gap-1 justify-center"
                   style={{gridTemplateColumns: `repeat(${Math.min(GROUPS.windowButtons.get.length,9)},1fr)`}}>
             
-              {GROUPS.windowButtons.get.map((_class,i)=>
-              <React.Fragment key={i+_class.title}>
-                <>
-                  <button onClick={()=> GROUPS.toggleGroup(_class)}
-                          className={`px-1 py-3 rounded bi ${_class.icon} ${GROUPS.isSelected(_class) ?'border-2 border-dashed' :''}`}
-                          title={_class.title}>
+              {GROUPS.windowButtons.get.map((_classGroup,i)=>
+              <React.Fragment key={i+_classGroup.title}>
+                <Frag if={!_classGroup.title}><i /></Frag>
+                <Frag if={!!_classGroup.title}>
+                  <button onClick={()=> GROUPS.toggleGroup(_classGroup)}
+                          className={`px-1 py-3 rounded bi ${_classGroup.className} ${GROUPS.isSelected(_classGroup) ?'border-2 border-dashed' :''}`}
+                          title={_classGroup.title}>
+                    {_classGroup.icon  && <i className={`bi ${_classGroup.icon}`}/>}
+                    {_classGroup.label && <i>{_classGroup.label}</i>}
                   </button>
-                </>
+                </Frag>
               </React.Fragment>)}
 
             </div>
@@ -585,13 +588,17 @@ export default function SectionComponent(props: UseSectionComponentProps) {
 
           {/* PULSANTI STATO STILE */}
           <div className="flex justify-around align-center">
-            {GROUPS.actualGroups?.map((_group,i)=><React.Fragment key={_group.title}>
-              <div className={`${i ?'my-2 border-l border-white/30' :''}`}></div>
+            {GROUPS.actualGroups?.map((_ClassGroup,i)=>
+            <React.Fragment key={i+_ClassGroup.title}>
+              <div className={`${i ?'my-2 border-l border-white/30' :''}`}/>
 
-              <button onClick={()=> GROUPS.openWindowButtons(_group.key)}
+              <button onClick={()=> GROUPS.openWindowButtons(_ClassGroup.key)}
                       className={`flex-1 py-2 text-bg-dark`} 
-                      title={_group?.title}>
-                <i className={`text-xl bi ${_group?.icon} rounded`} />
+                      title={_ClassGroup?.title}>
+                <div className={_ClassGroup.className}>
+                  {_ClassGroup.icon &&  <i className={`bi ${_ClassGroup.icon} rounded`}/>}
+                  {_ClassGroup.label && <i className="px-1 text-xl">{_ClassGroup.label}</i>}
+                </div>
               </button>
 
             </React.Fragment>)}

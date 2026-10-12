@@ -5,7 +5,9 @@ export interface TailwindGroup {
   title:string, 
   icon:string, 
   value:string,
-  key?: string
+  className? :string,
+  label?: string,
+  key?: string,
 }
 
 const _GROUPS_DATAS :Record<string, TailwindGroup[]> ={
@@ -29,24 +31,24 @@ const _GROUPS_DATAS :Record<string, TailwindGroup[]> ={
 
   DIRECTION :[
     {
-      title:"Non allinea",
-      icon: "bi-fullscreen", 
-      value:"" 
-    },
-    {
-      title:"Limitato",
-      icon: "bi-distribute-horizontal", 
-      value:"limitato" 
-    },
-    {
       title:"Allinea a sinistra",
       icon: "bi-align-start", 
       value:"sinistra" 
     },
     {
+      title:"Non allinea",
+      icon: "bi-fullscreen", 
+      value:"" 
+    },
+    {
       title: "Allinea al centro",
       icon: "bi-align-center", 
       value:"centro" 
+    },
+    {
+      title:"Limitato",
+      icon: "bi-distribute-horizontal", 
+      value:"limitato" 
     },
     {
       title: "Allinea a destra",
@@ -102,67 +104,77 @@ const _GROUPS_DATAS :Record<string, TailwindGroup[]> ={
     },
     {
       title: "Margini standard",
-      icon: "bi-chevron-compact-down",
-      value: "margini-standard"
+      icon: "bi-chevron-bar-down",
+      value: "margini-standard",
+      label: "1"
     },
     {
       title: "Margini piccoli",
-      icon: "bi-chevron-down",
-      value: "margini-piccoli"
+      icon: "bi-chevron-bar-down",
+      value: "margini-piccoli",
+      label: "2"
     },
     {
       title: "Margini medi",
-      icon: "bi-chevron-double-down",
-      value: "margini-medi"
+      icon: "bi-chevron-bar-down",
+      value: "margini-medi",
+      label: "5"
     },
     {
       title: "Margini grandi",
-      icon: "bi-caret-down-fill",
-      value: "margini-grandi"
+      icon: "bi-chevron-bar-down",
+      value: "margini-grandi",
+      label: "7"
     },
     {
       title: "Margini schermo",
-      icon: "bi-eject-fill rotate-180",
-      value: "margini-schermo"
+      icon: "bi-chevron-bar-down",
+      value: "margini-schermo",
+      label: "10"
     },
   ],
 
 
   BACKGROUNDS: (()=>{
-    const result =[
-      {
-        title: "Nessun colore",
+    const result :TailwindGroup[] =[
+      { title: "Nessun colore",
         icon: "bi-palette",
         value: ""
       },
+      { title: "Bianco",
+        icon: "bi-palette",
+        className: "text bg-white",
+        value: "bg-white"
+      },
+      { title: "Nero",
+        icon: "bi-palette",
+        className: "text bg-black",
+        value: "bg-black"
+      },
+      
+      { title: "", icon: "", value: "" },
+      { title: "", icon: "", value: "" },
+      { title: "", icon: "", value: "" },
+      { title: "", icon: "", value: "" },
+      { title: "", icon: "", value: "" },
+      { title: "", icon: "", value: "" },
     ];
 
     for(const _color of tailwind_colors){
       // ignorare
-      const ignored =["transparent", "current", 
-        "stone", "zinc", "neutral", "slate", "amber", 
-        "teal", "emerald", "cyan", 
-        "violet", "pink"];
+      const ignored =["transparent", "current", "white", "black", "rose"];
       if(ignored.includes(_color)) continue;
 
-      // bianco e nero
-      else if(["white", "black"].includes(_color)){
-        const color_result = `bg-${_color}`;
-        result.unshift({
-          title: color_result,
-          icon: `bi-palette text ${color_result}`,
-          value: color_result
-        })
-        continue;
-      }
-
+      
       for(const _shade of tailwind_shades){
         const color_result = `bg-${_color}-${_shade}`;
-
-        result.unshift({
+        
+        result.push({
           title: color_result,
-          icon: `bi-${_shade/100}-circle text ${color_result}`,
-          value: color_result
+          icon:"",
+          className: `text ${color_result}`,
+          value: color_result,
+          label: _color[0].toUpperCase() + (_shade/100)
         })
       }
     }
@@ -174,24 +186,38 @@ const _GROUPS_DATAS :Record<string, TailwindGroup[]> ={
   ESTERNAL_STYLES: (()=>{
     // 1) stili vuoti o nulli
     const reverse :TailwindGroup[] =[];
-    const result  :TailwindGroup[] =[{
-      title: "Nessuno sfondo",
-      icon: "bi-collection",
-      value: ""
-    }];
+    const result  :TailwindGroup[] =[
+      {
+        title: "Nessuno sfondo",
+        icon: "bi-collection",
+        value: ""
+      },
+      { title: "", icon: "", value: "" },
+      { title: "", icon: "", value: "" },
+      { title: "", icon: "", value: "" },
+      { title: "", icon: "", value: "" },
+      { title: "", icon: "", value: "" },
+      { title: "", icon: "", value: "" },
+      { title: "", icon: "", value: "" },
+      { title: "", icon: "", value: "" },
+    ];
 
     for(let i = 1; i <= 10; i++){
       // popola gradienti sopre-> sotto
       result.push({
         title: `Gradiente ${i * 10}%`,
-        icon: `bi-${i-1}-circle bg-fade-${i * 10}`,
-        value: `py-2 bg-fade-${i * 10}`
+        icon: `bi-transparency`,
+        className: `bg-fade-${i * 10}`,
+        value: `py-2 bg-fade-${i * 10}`,
+        label: `${i}`,
       })
       // popola gradienti sotto -> sopra
       reverse.push({
         title: `Gradiente ${i * 10}%`,
-        icon: `bi-${i-1}-circle -bg-fade-${i * 10}`,
-        value: `py-2 -bg-fade-${i * 10}`
+        icon: `bi-transparency`,
+        className: `-bg-fade-${i * 10}`,
+        value: `py-2 -bg-fade-${i * 10}`,
+        label: `${i}`,
       })
     }
 
@@ -199,6 +225,7 @@ const _GROUPS_DATAS :Record<string, TailwindGroup[]> ={
   })()
 };
 
+// aggiunge l'attributo key
 export const GROUPS_DATAS :typeof _GROUPS_DATAS = {}
 for(const key in _GROUPS_DATAS){
   GROUPS_DATAS[key] = _GROUPS_DATAS[key].map(_group=>({..._group, key}))

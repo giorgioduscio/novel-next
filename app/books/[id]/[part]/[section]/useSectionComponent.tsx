@@ -572,7 +572,7 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
     // Verifica se uno stile è selezionato nel paragrafo corrente
     isSelected(group: TailwindGroup): boolean {
       const input = this.styleInput.get;
-      if (!input.isVisible) return false;
+      if (!input.isVisible || !group.title) return false;
 
       const section = getSection(book.get);
       const paragraph = section?.paragraphs?.[input.index];
