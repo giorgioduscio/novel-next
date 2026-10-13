@@ -552,15 +552,15 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
 
         const matchIndex = GROUPS_DATAS[groupKey].findIndex(_g=> {
           // Se il valore è vuoto, matcha solo se nessun altro valore del gruppo è presente
-          if (_g.value === '') {
+          if (_g.class_to_insert === '') {
             return !GROUPS_DATAS[groupKey].some(g =>
-              g.value !== '' && style.includes(g.value)
+              g.class_to_insert !== '' && style.includes(g.class_to_insert)
             );
           }
           // Altrimenti controlla se tutte le classi del valore sono presenti nello style
-          const valueClasses = _g.value.split(' ').filter(c => c !== '');
-          const styleClasses = style.split(' ').filter(c => c !== '');
-          return valueClasses.every(c => styleClasses.includes(c));
+          const valueClasses = _g.class_to_insert.split(' ').filter((c: string) => c !== '');
+          const styleClasses = style.split(' ').filter((c: string) => c !== '');
+          return valueClasses.every((c: string) => styleClasses.includes(c));
         });
         if(matchIndex<0) return console.warn(`${groupKey}: nessun elemento`);
 
@@ -582,15 +582,15 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
       : paragraph?.scripted_style || '';
 
       // Se il valore è vuoto, controlla se nessun altro valore del gruppo è presente
-      if (group.value === '') {
+      if (group.class_to_insert === '') {
         return !GROUPS_DATAS[Object.keys(GROUPS_DATAS).find(key =>
           GROUPS_DATAS[key].includes(group)
-        ) || ''].some(g => g.value !== '' && style.includes(g.value));
+        ) || ''].some(g => g.class_to_insert !== '' && style.includes(g.class_to_insert));
       }
       // Altrimenti controlla se tutte le classi del valore sono presenti nello style
-      const valueClasses = group.value.split(' ').filter(c => c !== '');
-      const styleClasses = style.split(' ').filter(c => c !== '');
-      return valueClasses.every(c => styleClasses.includes(c));
+      const valueClasses = group.class_to_insert.split(' ').filter((c: string) => c !== '');
+      const styleClasses = style.split(' ').filter((c: string) => c !== '');
+      return valueClasses.every((c: string) => styleClasses.includes(c));
     }
 
     // dati della finestra dei pulsanti
@@ -625,7 +625,7 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
 
       // Funzione helper per rimuovere le classi di un gruppo
       const removeGroupClasses = (currentStyle: string, groupKey: string): string => {
-        const groupValues = GROUPS_DATAS[groupKey].map(g => g.value).filter(v => v !== '');
+        const groupValues = GROUPS_DATAS[groupKey].map(g => g.class_to_insert).filter(v => v !== '');
         let resultStyle = currentStyle;
         groupValues.forEach(groupValue => {
           const classesToRemove = groupValue.split(' ');
@@ -642,7 +642,7 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
         const currentExStyle = paragraph?.ex_style || '';
         const resultStyle = removeGroupClasses(currentExStyle, actualGroupKey);
         // Aggiunge il nuovo valore
-        const finalStyle = `${resultStyle} ${group.value}`.trim();
+        const finalStyle = `${resultStyle} ${group.class_to_insert}`.trim();
         // Aggiorna solo ex_style
         PARAG.update(this.styleInput.get.index, "ex_style", finalStyle, false);
         this.setStyleInput(this.styleInput.get.index);
@@ -653,7 +653,7 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
       // Comportamento normale per gli altri gruppi: imposta scripted_style
       let resultStyle = removeGroupClasses(paragraph?.scripted_style || '', actualGroupKey);
       // Aggiunge il nuovo valore
-      resultStyle = `${resultStyle} ${group.value}`.trim();
+      resultStyle = `${resultStyle} ${group.class_to_insert}`.trim();
 
       // Aggiorna il target per renderlo reattivo
       PARAG.update(this.styleInput.get.index, "scripted_style", resultStyle.trim())

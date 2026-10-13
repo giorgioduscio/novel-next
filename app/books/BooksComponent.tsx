@@ -90,7 +90,7 @@ export default function BooksComponent() {
             <ol className="flex flex-wrap gap-2 items-start justify-around">
               {filteredBooks.map((book, book_i) => (
                   <li key={book.id} className="w-full sm:w-[48%]">
-                    <div data-CARD className="rounded overflow-hidden shadow-lg">
+                    <div data-card className="rounded overflow-hidden shadow-lg">
                       {/* Visualizzazione dei dettagli del libro */}
                       <Link href={`/books/${book.id}/structure`}
                             className="block p-2 text-bg-dark">

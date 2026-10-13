@@ -1,97 +1,106 @@
 import { tailwind_colors, tailwind_shades } from "@/app/styles/styles";
+import * as v from "valibot";
 
-// gruppi di classi tailwind
-export interface TailwindGroup { 
-  title:string, 
-  icon:string, 
-  value:string,
-  className? :string,
-  label?: string,
-  key?: string,
-}
+
+// gruppi di classi tailwind3
+export const TailwindGroupSchema =v.object({
+  title: v.string(),
+  class_to_insert: v.string(),
+
+  button_icon:      v.optional(v.string()),
+  button_label:     v.optional(v.string()),
+  button_className: v.optional(v.string()),
+  
+  key: v.optional(v.string()),
+})
+
+export type TailwindGroup = v.InferOutput<typeof TailwindGroupSchema>
 
 const _GROUPS_DATAS :Record<string, TailwindGroup[]> ={
   JUSTIFY :[
     {
       title:"Texto a sinistra",
-      icon:"bi-text-left",
-      value:"text-left"
+      class_to_insert:"text-left",
+
+      button_icon: "bi-text-left", 
     },
     {
       title:"testo al centro",
-      icon:"bi-text-center",
-      value:"text-center"
+      class_to_insert:"text-center",
+
+      button_icon: "bi-text-center", 
     },
     {
       title:"Testo a destra",
-      icon:"bi-text-right",
-      value:"text-right"
+      class_to_insert:"text-right",
+
+      button_icon: "bi-text-right", 
     },
   ],
 
   DIRECTION :[
     {
-      title:"Allinea a sinistra",
-      icon: "bi-align-start", 
-      value:"sinistra" 
+      title:"Non allinea",
+      button_icon: "bi-fullscreen", 
+      class_to_insert:"",
     },
     {
-      title:"Non allinea",
-      icon: "bi-fullscreen", 
-      value:"" 
+      title:"Allinea a sinistra",
+      button_icon: "bi-align-start",
+      class_to_insert:"sinistra",
     },
     {
       title: "Allinea al centro",
-      icon: "bi-align-center", 
-      value:"centro" 
+      button_icon: "bi-align-center",
+      class_to_insert:"centro",
     },
     {
       title:"Limitato",
-      icon: "bi-distribute-horizontal", 
-      value:"limitato" 
+      button_icon: "bi-distribute-horizontal",
+      class_to_insert:"limitato",
     },
     {
       title: "Allinea a destra",
-      icon: "bi-align-end", 
-      value:"destra" 
+      button_icon: "bi-align-end",
+      class_to_insert:"destra",
     },
   ],
 
   COMIX:[
     {
       title: "Testo semplice",
-      icon: "bi-alphabet-uppercase",
-      value: ""
+      class_to_insert: "",
+      button_icon: "bi-alphabet-uppercase",
     },
     {
       title: "Descrizione",
-      icon: "bi-card-text",
-      value: "descrizione"
+      class_to_insert: "descrizione",
+      button_icon: "bi-card-text",
     },
     {
       title: "Dialogo",
-      icon: "bi-chat-fill",
-      value: "dialogo"
+      class_to_insert: "dialogo",
+      button_icon: "bi-chat-fill",
     },
     {
       title: "Sussurro",
-      icon: "bi-chat-dots",
-      value: "sussurro"
+      class_to_insert: "sussurro",
+      button_icon: "bi-chat-dots",
     },
     {
       title: "Esclamazione",
-      icon: "bi-patch-exclamation-fill",
-      value: "esclamazione"
+      class_to_insert: "esclamazione",
+      button_icon: "bi-patch-exclamation-fill",
     },
     {
       title: "Lista semplice",
-      icon: "bi-list-ul",
-      value: "lista"
+      class_to_insert: "lista",
+      button_icon: "bi-list-ul",
     },
     {
       title: "Dettaglio",
-      icon: "bi-calendar -rotate-90 inline-block",
-      value: "dettaglio"
+      class_to_insert: "dettaglio",
+      button_icon: "bi-calendar -rotate-90 inline-block",
     },
   ],
   
@@ -99,38 +108,38 @@ const _GROUPS_DATAS :Record<string, TailwindGroup[]> ={
   MARGINS:[
     {
       title: "Senza margine",
-      icon: "bi-dash-lg",
-      value: ""
+      class_to_insert: "",
+      button_icon: "bi-dash-lg", 
     },
     {
       title: "Margini standard",
-      icon: "bi-chevron-bar-down",
-      value: "margini-standard",
-      label: "1"
+      class_to_insert: "margini-standard",
+      button_icon: "bi-chevron-bar-down",
+      button_label: "100",
     },
     {
       title: "Margini piccoli",
-      icon: "bi-chevron-bar-down",
-      value: "margini-piccoli",
-      label: "2"
+      class_to_insert: "margini-piccoli",
+      button_icon: "bi-chevron-bar-down",
+      button_label: "200",
     },
     {
       title: "Margini medi",
-      icon: "bi-chevron-bar-down",
-      value: "margini-medi",
-      label: "5"
+      class_to_insert: "margini-medi",
+      button_icon: "bi-chevron-bar-down",
+      button_label: "300",
     },
     {
       title: "Margini grandi",
-      icon: "bi-chevron-bar-down",
-      value: "margini-grandi",
-      label: "7"
+      class_to_insert: "margini-grandi",
+      button_icon: "bi-chevron-bar-down",
+      button_label: "400",
     },
     {
       title: "Margini schermo",
-      icon: "bi-chevron-bar-down",
-      value: "margini-schermo",
-      label: "10"
+      class_to_insert: "margini-schermo",
+      button_icon: "bi-chevron-bar-down",
+      button_label: "600",
     },
   ],
 
@@ -138,26 +147,26 @@ const _GROUPS_DATAS :Record<string, TailwindGroup[]> ={
   BACKGROUNDS: (()=>{
     const result :TailwindGroup[] =[
       { title: "Nessun colore",
-        icon: "bi-palette",
-        value: ""
+        class_to_insert: "",
+        button_icon: "bi-palette", 
       },
       { title: "Bianco",
-        icon: "bi-palette",
-        className: "text bg-white",
-        value: "bg-white"
+        class_to_insert: "bg-white",
+        button_icon: "bi-palette", 
+        button_className: "text bg-white",
       },
       { title: "Nero",
-        icon: "bi-palette",
-        className: "text bg-black",
-        value: "bg-black"
+        class_to_insert: "bg-black",
+        button_icon: "bi-palette", 
+        button_className: "text bg-black",
       },
       
-      { title: "", icon: "", value: "" },
-      { title: "", icon: "", value: "" },
-      { title: "", icon: "", value: "" },
-      { title: "", icon: "", value: "" },
-      { title: "", icon: "", value: "" },
-      { title: "", icon: "", value: "" },
+      { title: "", class_to_insert: "" },
+      { title: "", class_to_insert: "" },
+      { title: "", class_to_insert: "" },
+      { title: "", class_to_insert: "" },
+      { title: "", class_to_insert: "" },
+      { title: "", class_to_insert: "" },
     ];
 
     for(const _color of tailwind_colors){
@@ -171,10 +180,10 @@ const _GROUPS_DATAS :Record<string, TailwindGroup[]> ={
         
         result.push({
           title: color_result,
-          icon:"",
-          className: `text ${color_result}`,
-          value: color_result,
-          label: _color[0].toUpperCase() + (_shade/100)
+          class_to_insert: color_result,
+          button_icon: "",
+          button_label: _color[0].toUpperCase() + (_shade/100),
+          button_className: `rounded text ${color_result}`,
         })
       }
     }
@@ -189,35 +198,35 @@ const _GROUPS_DATAS :Record<string, TailwindGroup[]> ={
     const result  :TailwindGroup[] =[
       {
         title: "Nessuno sfondo",
-        icon: "bi-collection",
-        value: ""
+        class_to_insert: "",
+        button_icon: "bi-collection", 
       },
-      { title: "", icon: "", value: "" },
-      { title: "", icon: "", value: "" },
-      { title: "", icon: "", value: "" },
-      { title: "", icon: "", value: "" },
-      { title: "", icon: "", value: "" },
-      { title: "", icon: "", value: "" },
-      { title: "", icon: "", value: "" },
-      { title: "", icon: "", value: "" },
+      { title: "", class_to_insert: "" },
+      { title: "", class_to_insert: "" },
+      { title: "", class_to_insert: "" },
+      { title: "", class_to_insert: "" },
+      { title: "", class_to_insert: "" },
+      { title: "", class_to_insert: "" },
+      { title: "", class_to_insert: "" },
+      { title: "", class_to_insert: "" },
     ];
 
     for(let i = 1; i <= 10; i++){
       // popola gradienti sopre-> sotto
       result.push({
         title: `Gradiente ${i * 10}%`,
-        icon: `bi-transparency`,
-        className: `bg-fade-${i * 10}`,
-        value: `py-2 bg-fade-${i * 10}`,
-        label: `${i}`,
+        class_to_insert: `py-2 bg-fade-${i * 10}`,
+        button_icon: `bi-transparency`,
+        button_label: `${i}`,
+        button_className: `bg-fade-${i * 10}`,
       })
       // popola gradienti sotto -> sopra
       reverse.push({
         title: `Gradiente ${i * 10}%`,
-        icon: `bi-transparency`,
-        className: `-bg-fade-${i * 10}`,
-        value: `py-2 -bg-fade-${i * 10}`,
-        label: `${i}`,
+        class_to_insert: `py-2 -bg-fade-${i * 10}`,
+        button_icon: `bi-transparency`,
+        button_label: `${i}`,
+        button_className: `-bg-fade-${i * 10}`,
       })
     }
 

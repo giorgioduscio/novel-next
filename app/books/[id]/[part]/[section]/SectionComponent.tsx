@@ -524,10 +524,10 @@ export default function SectionComponent(props: UseSectionComponentProps) {
                 <Frag if={!_classGroup.title}><i /></Frag>
                 <Frag if={!!_classGroup.title}>
                   <button onClick={()=> GROUPS.toggleGroup(_classGroup)}
-                          className={`px-1 py-3 rounded bi ${_classGroup.className} ${GROUPS.isSelected(_classGroup) ?'border-2 border-dashed' :''}`}
+                          className={`px-1 py-3 rounded bi ${_classGroup.button_className} ${GROUPS.isSelected(_classGroup) ?'border-2 border-dashed' :''}`}
                           title={_classGroup.title}>
-                    {_classGroup.icon  && <i className={`bi ${_classGroup.icon}`}/>}
-                    {_classGroup.label && <i>{_classGroup.label}</i>}
+                    {_classGroup.button_icon  && <i className={`bi ${_classGroup.button_icon}`}/>}
+                    {_classGroup.button_label && <i>{_classGroup.button_label}</i>}
                   </button>
                 </Frag>
               </React.Fragment>)}
@@ -587,17 +587,19 @@ export default function SectionComponent(props: UseSectionComponentProps) {
           </div>
 
           {/* PULSANTI STATO STILE */}
-          <div className="flex justify-around align-center">
+          <div className="flex flex-wrap justify-around align-center">
             {GROUPS.actualGroups?.map((_ClassGroup,i)=>
             <React.Fragment key={i+_ClassGroup.title}>
               <div className={`${i ?'my-2 border-l border-white/30' :''}`}/>
 
               <button onClick={()=> GROUPS.openWindowButtons(_ClassGroup.key)}
-                      className={`flex-1 py-2 text-bg-dark`} 
+                      className={`text-nowrap flex-1 py-2 text-bg-dark`} 
                       title={_ClassGroup?.title}>
-                <div className={_ClassGroup.className}>
-                  {_ClassGroup.icon &&  <i className={`bi ${_ClassGroup.icon} rounded`}/>}
-                  {_ClassGroup.label && <i className="px-1 text-xl">{_ClassGroup.label}</i>}
+                <div className={_ClassGroup.button_className}>
+                  {_ClassGroup.button_icon &&  
+                    <i className={`bi text-lg ${_ClassGroup.button_icon}`}/>}
+                  {_ClassGroup.button_label && 
+                    <small className="text-sm">{_ClassGroup.button_label}</small>}
                 </div>
               </button>
 
