@@ -13,7 +13,8 @@
 
 # IDE e editor
 .idea/
-.vscode/
+.vscode/*
+!.vscode/settings.json
 *.swp
 *.swo
 *~
