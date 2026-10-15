@@ -14,8 +14,7 @@
 
 
 * [5] **dimenzioni finestra degli stili**: 
-  - se pochi elementi (<8), una sola colonna e spazio minimo
-  - altrimenti, prende tutto lo spazio disponibile
+  - vorrei modificare il popup. vorrei che il popup avesse le coordinate x del pulsante che lo attiva attraverso coordinates. come lo implementeresti?
 
 * [5] cerca e sostituisci in tutto il libro
 * [5] problemi caricamento: quando carico la pagina che mi posta ad un libro. all'inizio esegue i caricamenti, poi mostra "sezione non trovata" e poi mostra la sezione.

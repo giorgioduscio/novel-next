@@ -507,23 +507,26 @@ export default function SectionComponent(props: UseSectionComponentProps) {
 
     {/* GROUPS WINDOW */}
     <Frag if={!!GROUPS.windowButtons.get.length}>
-      <div className="fixed inset-0 z-50 flex items-end justify-center">
+      <div className={`fixed inset-0 z-50 ${GROUPS.isOverStep ?"flex items-end justify-center" :"flex items-end"}`}>
         {/* BACKDROP - chiude cliccando fuori */}
         <div onClick={()=> GROUPS.closeWindowButtons()}
               className="absolute inset-0 bg-black/30"
         ></div>
-        
+
         {/* POPUP */}
-        <div className={`py-3 px-1 relative ${GROUPS.windowButtons.get.length>8 ?"w-[100vw] max-w-[400px]" :""} text-bg-tertiary`}>
-          <div className="max-h-[50vh] overflow-y-auto overflow-x-hidden">
-            <div className={`grid gap-1 justify-center ${GROUPS.windowButtons.get.length>8 ?"grid-cols-6" :""}`}>
+        <div
+          className={`py-3 px-1 text-bg-tertiary ${GROUPS.isOverStep ?"relative w-[100vw] max-w-[400px]" :"mb-5 absolute rounded-xl"}`}
+          style={GROUPS.isOverStep ?undefined :{ left: GROUPS.coordinates.get.x }}
+        >
+          <div className={`overflow-y-auto overflow-x-hidden ${GROUPS.isOverStep ?"max-h-[50vh]" :""}`}>
+            <div className={`grid gap-1 justify-center       ${GROUPS.isOverStep ?"grid-cols-6" :""}`}>
             
               {GROUPS.windowButtons.get.map((_classGroup,i)=>
               <React.Fragment key={i+_classGroup.title}>
                 <Frag if={!_classGroup.title}><i /></Frag>
                 <Frag if={!!_classGroup.title}>
                   <button onClick={()=> GROUPS.toggleGroup(_classGroup)}
-                          className={`px-1 py-3 rounded bi ${_classGroup.button_className} ${GROUPS.isSelected(_classGroup) ?'border-2 border-dashed' :''}`}
+                          className={`px-1 py-3 min-w-[40px] rounded ${_classGroup.button_className} ${GROUPS.isSelected(_classGroup) ?'border-2 border-dashed' :''}`}
                           title={_classGroup.title}>
                     <div className={`text-nowrap ${_classGroup.button_label && _classGroup.button_label?.length>2 ?'-rotate-45' :''}`}>
                       <small className={`bi ${_classGroup.button_icon ||''}`}> {_classGroup.button_label ||''}</small>
@@ -592,7 +595,7 @@ export default function SectionComponent(props: UseSectionComponentProps) {
             <React.Fragment key={i+_ClassGroup.title}>
               <div className={`${i ?'my-2 border-l border-white/30' :''}`}/>
 
-              <button onClick={()=> GROUPS.openWindowButtons(_ClassGroup.key)}
+              <button onClick={e=> GROUPS.openWindowButtons(e, _ClassGroup.key)}
                       className={`text-nowrap flex-1 py-2 text-bg-dark`} 
                       title={_ClassGroup?.title}>
                 <div className={_ClassGroup.button_className}>

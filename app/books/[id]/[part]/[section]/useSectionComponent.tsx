@@ -406,7 +406,6 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
 
     // Applica il focus sul testo del paragrafo
     handleFocusText(e: React.MouseEvent | React.FocusEvent, paragraph_i: number) {
-      console.log("•", SECTION.bookSection?.paragraphs?.[paragraph_i]);
       
       if (!authContext.CONTROLS.canRead(book.get!))
         return console.error("Permesso negato");
@@ -598,13 +597,18 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
     // dati della finestra dei pulsanti
     windowButtons = useDotNotation<TailwindGroup[]>([]);
     currentGroupKey = useDotNotation<string>("");
+    coordinates = useDotNotation({ x:0, y:0 });
+    isOverStep = useMemo(()=> this.windowButtons.get.length>8, [this.windowButtons.get]);
 
     // Apre la finestra popup con i pulsanti del gruppo selezionato
-    openWindowButtons(groupKey: string) {
+    openWindowButtons(e:React.MouseEvent<HTMLButtonElement>, groupKey: string) {
       const groupData = GROUPS_DATAS[groupKey];
       if (!groupData) return console.error(`Gruppo ${groupKey} non trovato`);
       this.windowButtons.set(groupData);
       this.currentGroupKey.set(groupKey);
+      // Assegna le coordinate x del pulsante premuto
+      const rect = e.currentTarget.getBoundingClientRect();
+      this.coordinates.set({ x: rect.left, y: rect.top });
     }
 
     // Chiude la finestra popup
