@@ -402,7 +402,7 @@ export default function SectionComponent(props: UseSectionComponentProps) {
 
                     {/* TESTO PARAGRAFO */}
                     <div data-external-style className={`${p.ex_style}`}>
-                      <div onClick={PARAG.handleFocusText}  className="pb-3">
+                      <div onClick={(e) => PARAG.handleFocusText(e, paragraph_i)}  className="pb-3">
                         <div className={section_isEditMode && GROUPS.styleInput.get.index === paragraph_i ? 'outline-3 outline-dashed outline-black' : ''}>
                           <div className={`${section_isEditMode && GROUPS.styleInput.get.index === paragraph_i ? 'outline-3 outline-white' : ''}`}>
                             <Field
@@ -514,10 +514,11 @@ export default function SectionComponent(props: UseSectionComponentProps) {
         ></div>
         
         {/* POPUP */}
-        <div className="py-3 px-1 relative w-[100vw] max-w-[400px] text-bg-tertiary">
+        <div className={`py-3 px-1 relative ${GROUPS.windowButtons.get.length>8 ?"w-[100vw] max-w-[400px]" :""} text-bg-tertiary`}>
           <div className="max-h-[50vh] overflow-y-auto overflow-x-hidden">
-            <div className="grid gap-1 justify-center"
-                  style={{gridTemplateColumns: `repeat(${Math.min(GROUPS.windowButtons.get.length,9)},1fr)`}}>
+            <div className={`grid gap-1 justify-center ${GROUPS.windowButtons.get.length>8 ?"grid-cols-6" :""}`}
+                  // style={{gridTemplateColumns: `repeat(${Math.min(GROUPS.windowButtons.get.length,6)},1fr)`}}
+                  >
             
               {GROUPS.windowButtons.get.map((_classGroup,i)=>
               <React.Fragment key={i+_classGroup.title}>

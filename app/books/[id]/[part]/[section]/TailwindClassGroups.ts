@@ -160,13 +160,8 @@ const _GROUPS_DATAS :Record<string, TailwindGroup[]> ={
         button_icon: "bi-palette", 
         button_className: "text bg-black",
       },
-      
-      { title: "", class_to_insert: "" },
-      { title: "", class_to_insert: "" },
-      { title: "", class_to_insert: "" },
-      { title: "", class_to_insert: "" },
-      { title: "", class_to_insert: "" },
-      { title: "", class_to_insert: "" },
+      // tre spazi per la griglia
+      { title: "", class_to_insert: "" }, { title: "", class_to_insert: "" }, { title: "", class_to_insert: "" },
     ];
 
     for(const _color of tailwind_colors){
@@ -186,6 +181,10 @@ const _GROUPS_DATAS :Record<string, TailwindGroup[]> ={
           button_className: `rounded text ${color_result}`,
         })
       }
+      // spazi vuoti
+      result.push({ title: "", class_to_insert: "" })
+      result.push({ title: "", class_to_insert: "" })
+      result.push({ title: "", class_to_insert: "" })
     }
     
     return result
@@ -201,9 +200,6 @@ const _GROUPS_DATAS :Record<string, TailwindGroup[]> ={
         class_to_insert: "",
         button_icon: "bi-collection", 
       },
-      { title: "", class_to_insert: "" },
-      { title: "", class_to_insert: "" },
-      { title: "", class_to_insert: "" },
       { title: "", class_to_insert: "" },
       { title: "", class_to_insert: "" },
       { title: "", class_to_insert: "" },
@@ -229,6 +225,9 @@ const _GROUPS_DATAS :Record<string, TailwindGroup[]> ={
         button_className: `-bg-fade-${i * 10}`,
       })
     }
+    // spazi vuoti
+    result.push({ title: "", class_to_insert: "" })
+    result.push({ title: "", class_to_insert: "" })
 
     return [...result, ...reverse]
   })()
