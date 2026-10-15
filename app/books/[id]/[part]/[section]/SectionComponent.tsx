@@ -516,9 +516,7 @@ export default function SectionComponent(props: UseSectionComponentProps) {
         {/* POPUP */}
         <div className={`py-3 px-1 relative ${GROUPS.windowButtons.get.length>8 ?"w-[100vw] max-w-[400px]" :""} text-bg-tertiary`}>
           <div className="max-h-[50vh] overflow-y-auto overflow-x-hidden">
-            <div className={`grid gap-1 justify-center ${GROUPS.windowButtons.get.length>8 ?"grid-cols-6" :""}`}
-                  // style={{gridTemplateColumns: `repeat(${Math.min(GROUPS.windowButtons.get.length,6)},1fr)`}}
-                  >
+            <div className={`grid gap-1 justify-center ${GROUPS.windowButtons.get.length>8 ?"grid-cols-6" :""}`}>
             
               {GROUPS.windowButtons.get.map((_classGroup,i)=>
               <React.Fragment key={i+_classGroup.title}>
@@ -527,8 +525,9 @@ export default function SectionComponent(props: UseSectionComponentProps) {
                   <button onClick={()=> GROUPS.toggleGroup(_classGroup)}
                           className={`px-1 py-3 rounded bi ${_classGroup.button_className} ${GROUPS.isSelected(_classGroup) ?'border-2 border-dashed' :''}`}
                           title={_classGroup.title}>
-                    {_classGroup.button_icon  && <i className={`bi ${_classGroup.button_icon}`}/>}
-                    {_classGroup.button_label && <i>{_classGroup.button_label}</i>}
+                    <div className={`text-nowrap ${_classGroup.button_label && _classGroup.button_label?.length>2 ?'-rotate-45' :''}`}>
+                      <small className={`bi ${_classGroup.button_icon ||''}`}> {_classGroup.button_label ||''}</small>
+                    </div>
                   </button>
                 </Frag>
               </React.Fragment>)}

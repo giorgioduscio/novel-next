@@ -166,7 +166,7 @@ const _GROUPS_DATAS :Record<string, TailwindGroup[]> ={
 
     for(const _color of tailwind_colors){
       // ignorare
-      const ignored =["transparent", "current", "white", "black", "rose"];
+      const ignored =["transparent", "current", "white", "black"];
       if(ignored.includes(_color)) continue;
 
       
@@ -177,7 +177,7 @@ const _GROUPS_DATAS :Record<string, TailwindGroup[]> ={
           title: color_result,
           class_to_insert: color_result,
           button_icon: "",
-          button_label: _color[0].toUpperCase() + (_shade/100),
+          button_label: _color.slice(0,2).toUpperCase() +'_'+ (_shade/100),
           button_className: `rounded text ${color_result}`,
         })
       }

@@ -406,6 +406,8 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
 
     // Applica il focus sul testo del paragrafo
     handleFocusText(e: React.MouseEvent | React.FocusEvent, paragraph_i: number) {
+      console.log("•", SECTION.bookSection?.paragraphs?.[paragraph_i]);
+      
       if (!authContext.CONTROLS.canRead(book.get!))
         return console.error("Permesso negato");
 
