@@ -66,12 +66,20 @@ class ToastManager {
   private readonly MAX_POOL_SIZE = 5;
   private styleInjected = false;
   private colors = {
-    primary: '#84cc16',
-    secondary: '#65a30d',
+    primary: '#0d6efd',
+    secondary: '#6c757d',
     danger: '#dc3545',
-    success: '#84cc16',
-    warning: '#bef264',
-    info: '#84cc16'
+    success: '#198754',
+    warning: '#ffc107',
+    info: '#0dcaf0'
+  };
+  private textColors = {
+    primary: '#fff',
+    secondary: '#fff',
+    danger: '#fff',
+    success: '#fff',
+    warning: '#1f2937',
+    info: '#fff'
   };
   // Cache per i messaggi recenti
   private messageCache = new Set<string>();
@@ -107,6 +115,7 @@ class ToastManager {
       const style = document.createElement('style');
       style.textContent = `
         .toast-notification {
+          max-width: 100vw;
           padding: 10px 20px;
           margin: 0 auto;
           position: fixed;
@@ -207,6 +216,7 @@ class ToastManager {
     const notificaEl = this.getToastElement();
     notificaEl.className = 'toast-notification';
     notificaEl.style.backgroundColor = this.colors[color];
+    notificaEl.style.color = this.textColors[color];
     notificaEl.textContent = message;
 
     document.body.appendChild(notificaEl);

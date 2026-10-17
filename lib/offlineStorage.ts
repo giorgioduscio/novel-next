@@ -392,6 +392,28 @@ export async function clearSyncQueue(): Promise<void> {
 // ==================== STATO RETE ====================
 
 /**
+ * Verifica reale della connessione internet facendo una fetch
+ */
+async function checkRealConnection(): Promise<boolean> {
+  try {
+    // Fetch a un endpoint affidabile con timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 3000);
+    
+    await fetch("https://www.google.com/favicon.ico", {
+      method: "HEAD",
+      mode: "no-cors",
+      signal: controller.signal
+    });
+    
+    clearTimeout(timeoutId);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Controlla se il client è attualmente online
  */
 export function isOnline(): boolean {
@@ -401,12 +423,18 @@ export function isOnline(): boolean {
 
 /**
  * Iscrive un listener ai cambi di connettività di rete
+ * Verifica la connessione reale prima di segnalare online
  */
 export function onNetworkChange(callback: (online: boolean) => void): () => void {
   if (typeof window === "undefined") return () => {};
 
-  const handleOnline = () => callback(true);
   const handleOffline = () => callback(false);
+
+  const handleOnline = async () => {
+    // Verifica reale prima di segnalare online
+    const realConnection = await checkRealConnection();
+    callback(realConnection);
+  };
 
   window.addEventListener("online", handleOnline);
   window.addEventListener("offline", handleOffline);

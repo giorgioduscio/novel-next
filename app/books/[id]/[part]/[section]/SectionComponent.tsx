@@ -7,10 +7,11 @@ import Navbar from "@/app/shareds/Navbar";
 import { useSectionComponent, UseSectionComponentProps } from "./useSectionComponent";
 import Link from "next/link";
 import InsertAuthCodesComponent from "@/app/shareds/InsertAuthCodesComponent";
-import React from "react";
+import React, { useEffect } from "react";
 import { EditModeToggleButton } from "@/app/data/CommonPagesContext";
 import Bottombar from "@/app/shareds/Bottombar";
 import { Dropdown, DropdownContent, DropdownSummary } from "@/app/shareds/Dropdown";
+import { toast } from "@/app/tools/feedbacksUI";
 
 interface AddParagraphButtonProps { handleCreate: Function; if: boolean; className?: string }
 function AddParagraphButton({ if: show, handleCreate, className = "" }: AddParagraphButtonProps) {
@@ -51,43 +52,44 @@ export default function SectionComponent(props: UseSectionComponentProps) {
     
   const styleInput = GROUPS.styleInput.get
 
+  // Toast per stato connessione
+  useEffect(() => {
+    if (!isOnline.get) {
+      toast.warning("Sei offline. Le modifiche verranno salvate localmente.");
+    }
+  }, [isOnline.get]);
+
+  useEffect(() => {
+    if (isOnline.get && pendingSyncCount.get > 0) {
+      toast.info(`${pendingSyncCount.get} modifiche sincronizzate.`);
+    }
+  }, [isOnline.get, pendingSyncCount.get]);
+
   if (!!book.get && !canRead) return <InsertAuthCodesComponent targetId={book_id} />
 
   return (<>
     {/* NAVBAR */}
     <Navbar back_btn={{ href: `/books/${book_id}` }} page_title={SECTION.mainTitle.get}>
-      {/* STATO RETE & SINCRONIZZAZIONE OFFLINE */}
-      {!isOnline.get ? (
-        <button onClick={() => syncNow()}
-                className="mx-1 px-2.5 py-1.5 text-xs bg-amber-500/20 text-amber-300 border border-amber-500/40 rounded flex items-center gap-1.5 transition-colors hover:bg-amber-500/30"
-                title={pendingSyncCount.get > 0 ? `${pendingSyncCount.get} modifiche in locale. Clicca per riprovare la sincronizzazione` : "Modalità Offline: modifiche salvate in locale"}>
-          <i className="bi bi-cloud-slash"></i>
-          <span className="hidden sm:inline">Offline</span>
-          {pendingSyncCount.get > 0 && (
-            <span className="px-1.5 py-0.2 bg-amber-500 text-black text-[10px] font-bold rounded-full">
-              {pendingSyncCount.get}
-            </span>
-          )}
-        </button>
 
-      ) : isSaving.get ? (
-        <span className="mx-1 px-2 py-1 text-xs text-lime-400 flex items-center gap-1.5" title="Salvataggio in corso...">
-          <i className="bi bi-arrow-repeat animate-spin"></i>
-          <span className="hidden sm:inline">Salvataggio...</span>
-        </span>
-
-      ) : pendingSyncCount.get > 0 ? (
-        <button onClick={() => syncNow()}
-                className="mx-1 px-2.5 py-1.5 text-xs bg-blue-500/20 text-blue-300 border border-blue-500/40 rounded flex items-center gap-1.5 hover:bg-blue-500/30"
-                title="Clicca per sincronizzare le modifiche pendenti">
-          <i className="bi bi-cloud-arrow-up"></i>
-          <span className="hidden sm:inline">Sincronizza ({pendingSyncCount.get})</span>
+      {/* visibile dall'editore */}
+      <Frag if={section_isEditMode}>
+        {/* UNDO */}
+        <button onClick={HISTORY.undo} 
+                className="px-3 py-2 text-bg-secondary rounded-start" 
+                title="Annulla">
+          <i className="bi bi-arrow-90deg-left" style={{transform:"rotate(-90) !important"}}></i> 
         </button>
-      ) : null} 
+        {/* REDO */}
+        <button onClick={HISTORY.redo} 
+                className="px-3 py-2 text-bg-secondary rounded-end" 
+                title="Ripeti">
+          <i className="bi bi-arrow-90deg-right rotate-90"></i> 
+        </button>
+      </Frag>
       
       {/* SEGNALIBRI */}
       <button onClick={()=> MARCKERS.isVisible.set(true)} 
-              className="mx-2 px-3 py-2 text-bg-light rounded" 
+              className="mx-1 px-3 py-2 text-bg-light rounded" 
               title="Apri segnalibri">
         <i className="bi bi-bookmarks-fill"></i> 
         <span className="ms-1 hidden sm:inline">Segnalibri</span>
@@ -98,10 +100,17 @@ export default function SectionComponent(props: UseSectionComponentProps) {
       <Frag if={section_isEditMode}>
         <Dropdown className="relative">
           <DropdownSummary>
-            <button className="p-3 text-bg-tertiary rounded-full"
-                    title="Impostazioni sezione">
-              <i className="bi bi-three-dots-vertical"></i>
-            </button>
+            {!isOnline.get ? (
+              <button className="mx-1 p-2 text-amber-400 rounded-full"
+                      title="Offline">
+                <i className="bi bi-cloud-slash"></i>
+              </button>
+            ) : (
+              <button className="mx-1 p-2 text-bg-tertiary rounded-full"
+                      title="Impostazioni sezione">
+                <i className="bi bi-three-dots-vertical"></i>
+              </button>
+            )}
           </DropdownSummary>
           <DropdownContent className="absolute right-0 z-1 text-bg-dark grid min-w-[120px]">
             {/* copia */}
@@ -112,16 +121,23 @@ export default function SectionComponent(props: UseSectionComponentProps) {
             </button>
             {/* incolla */}
             <button onClick={SHARED.paste}
-                    className="p-2 text-bg-secondary">
+                    className="p-2 text-bg-primary">
               <i className="bi bi-clipboard"></i>
               <span className="pl-2">Incolla</span>
             </button>
             {/* impostazioni */}
             <Link href={`/books/${book_id}/settings`}
-                  className="p-2 text-bg-tertiary truncate">
+                  className="p-2 text-bg-dark truncate">
               <i className="bi bi-gear"></i>
               <span className="pl-2">Impostazioni libro</span>
             </Link>
+            {/* CERCA */}
+            <button onClick={()=> FIND_REPLACE.isVisible.set(p=> !p)} 
+                    className={`px-3 py-2 text-bg-dark`}>
+              <i className="bi bi-search"></i> 
+              <span className="ms-1">Cerca</span>
+            </button>
+
             {/* info */}
             <div className="p-2 text-sm text-center">
               Paragrafi: <b>{SECTION.bookSection?.paragraphs?.length}</b>
@@ -142,31 +158,6 @@ export default function SectionComponent(props: UseSectionComponentProps) {
     {/* STRUMENTI */}
     <div className="fixed top-[50px] left-0 right-0 z-20 mx-auto print:hidden" data-toptools>
       <div className="mx-auto w-max text-bg-dark rounded-b-lg overflow-hidden">
-
-        <Frag if={!FIND_REPLACE.isVisible.get}>
-          <div className="flex items-center">
-            <Frag if={section_isEditMode}>
-              {/* UNDO */}
-              <button onClick={HISTORY.undo} 
-                      className="px-3 py-2 text-bg-secondary" 
-                      title="Annulla">
-                <i className="bi bi-arrow-90deg-left" style={{transform:"rotate(-90) !important"}}></i> 
-              </button>
-              {/* CERCA */}
-              <button onClick={()=> FIND_REPLACE.isVisible.set(p=> !p)} 
-                      className={`px-3 py-2 text-bg-dark`}>
-                <i className="bi bi-search"></i> 
-                <span className="ms-1">Cerca</span>
-              </button>
-              {/* REDO */}
-              <button onClick={HISTORY.redo} 
-                      className="px-3 py-2 text-bg-secondary" 
-                      title="Ripeti">
-                <i className="bi bi-arrow-90deg-right rotate-90"></i> 
-              </button>
-            </Frag>
-          </div>
-        </Frag>
 
         {/* CERCA E SOSTITUISCI */}
         <Frag if={section_isEditMode && FIND_REPLACE.isVisible.get} className="p-1">
