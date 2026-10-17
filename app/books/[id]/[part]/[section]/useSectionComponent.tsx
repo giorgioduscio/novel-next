@@ -530,9 +530,24 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
     async resetAllStyles() {
       if(!(await agree.danger("Rimuovere tutti gli stili?", "Reset"))) return;
       const index = this.styleInput.get.index;
-      PARAG.update(index, "scripted_style", "", false);
-      PARAG.update(index, "in_style", "", false);
-      PARAG.update(index, "ex_style", "", false);
+      
+      if (!book.get) return console.error("Libro non disponibile");
+      
+      // Crea un unico clone e applica tutti gli update
+      const clone = cloneBookForUpdate(book.get, part_id, section_id);
+      const sec = getSection(clone);
+      if (!sec || !sec.paragraphs?.length || !sec.paragraphs[index]) return;
+      
+      // Applica tutti e tre gli update sullo stesso clone
+      applyParagraphField(sec.paragraphs[index], "scripted_style", "");
+      applyParagraphField(sec.paragraphs[index], "in_style", "");
+      applyParagraphField(sec.paragraphs[index], "ex_style", "");
+      
+      // Salva una sola volta
+      book.set(clone);
+      bookContext.updateBook(book_id, clone);
+      
+      // Aggiorna styleInput
       this.setStyleInput(index);
     }
 

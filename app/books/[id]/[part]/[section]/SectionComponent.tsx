@@ -516,7 +516,7 @@ export default function SectionComponent(props: UseSectionComponentProps) {
         {/* POPUP */}
         <div
           className={`py-3 px-1 text-bg-tertiary ${GROUPS.isOverStep ?"relative w-[100vw] max-w-[400px]" :"mb-5 absolute rounded-xl"}`}
-          style={GROUPS.isOverStep ?undefined :{ left: GROUPS.coordinates.get.x }}
+          style={GROUPS.isOverStep ?undefined :{ left: GROUPS.coordinates.get.x+10 }}
         >
           <div className={`overflow-y-auto overflow-x-hidden ${GROUPS.isOverStep ?"max-h-[50vh]" :""}`}>
             <div className={`grid gap-1 justify-center       ${GROUPS.isOverStep ?"grid-cols-6" :""}`}>
@@ -556,9 +556,9 @@ export default function SectionComponent(props: UseSectionComponentProps) {
               {/* ICONA PALETTE */}
               {GROUPS.hasAnyStyle()
                 ?<button onClick={_=> GROUPS.resetAllStyles()}
-                        className="p-2 relative"
+                        className="p-2 relative text-danger"
                         title="Resetta stile">
-                  <i className="bi bi-palette"></i>
+                  <i className="bi bi-palette-fill"></i>
                 </button>
                 :<label htmlFor={styleInput.index + ">in_style"}
                         className="p-2 bi bi-palette-fill"

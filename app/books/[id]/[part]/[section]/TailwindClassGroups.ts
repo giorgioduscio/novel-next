@@ -19,8 +19,8 @@ export type TailwindGroup = v.InferOutput<typeof TailwindGroupSchema>
 const _GROUPS_DATAS :Record<string, TailwindGroup[]> ={
   JUSTIFY :[
     {
-      title:"Texto a sinistra",
-      class_to_insert:"text-left",
+      title:"Testo a sinistra",
+      class_to_insert:"",
 
       button_icon: "bi-text-left", 
     },
@@ -35,6 +35,12 @@ const _GROUPS_DATAS :Record<string, TailwindGroup[]> ={
       class_to_insert:"text-right",
 
       button_icon: "bi-text-right", 
+    },
+    {
+      title:"Testo giustificato",
+      class_to_insert:"text-justify",
+
+      button_icon: "bi-justify", 
     },
   ],
 
@@ -193,23 +199,39 @@ const _GROUPS_DATAS :Record<string, TailwindGroup[]> ={
 
   ESTERNAL_STYLES: (()=>{
     // 1) stili vuoti o nulli
-    const reverse :TailwindGroup[] =[];
-    const result  :TailwindGroup[] =[
+    const whiteTransparents :TailwindGroup[] =[
       {
         title: "Nessuno sfondo",
         class_to_insert: "",
         button_icon: "bi-collection", 
       },
-      { title: "", class_to_insert: "" },
-      { title: "", class_to_insert: "" },
-      { title: "", class_to_insert: "" },
-      { title: "", class_to_insert: "" },
-      { title: "", class_to_insert: "" },
     ];
+    const blackTransparents :TailwindGroup[] =[]
+    const gradients  :TailwindGroup[] =[];
+    const reverseGradients :TailwindGroup[] =[];
 
+    // 2) popolamento
     for(let i = 1; i <= 10; i++){
-      // popola gradienti sopre-> sotto
-      result.push({
+      // popola gradazioni nere e bianche
+      const gradiation = i<10 ?`/${i * 10}` :'';
+      whiteTransparents.push({
+        title: `Gradiente bianco ${i * 10}%`,
+        class_to_insert: `py-2 bg-white${gradiation}`,
+        button_icon: `bi-transparency`,
+        button_label: `${i}`,
+        button_className: `text-black bg-white${gradiation}`,
+      })
+      blackTransparents.push({
+        title: `Gradiente nero ${i * 10}%`,
+        class_to_insert: `py-2 bg-black${gradiation}`,
+        button_icon: `bi-transparency`,
+        button_label: `${i}`,
+        button_className: `bg-black${gradiation}`,
+      })
+      
+
+      // popola gradienti sopra -> sotto
+      gradients.push({
         title: `Gradiente ${i * 10}%`,
         class_to_insert: `py-2 bg-fade-${i * 10}`,
         button_icon: `bi-transparency`,
@@ -217,7 +239,7 @@ const _GROUPS_DATAS :Record<string, TailwindGroup[]> ={
         button_className: `bg-fade-${i * 10}`,
       })
       // popola gradienti sotto -> sopra
-      reverse.push({
+      reverseGradients.push({
         title: `Gradiente ${i * 10}%`,
         class_to_insert: `py-2 -bg-fade-${i * 10}`,
         button_icon: `bi-transparency`,
@@ -225,13 +247,21 @@ const _GROUPS_DATAS :Record<string, TailwindGroup[]> ={
         button_className: `-bg-fade-${i * 10}`,
       })
     }
-    // spazi vuoti
-    result.push({ title: "", class_to_insert: "" })
-    result.push({ title: "", class_to_insert: "" })
 
-    return [...result, ...reverse]
+    // 3) spazi vuoti
+    whiteTransparents.push({ title: "", class_to_insert: "" })
+
+    blackTransparents.push({ title: "", class_to_insert: "" })
+    blackTransparents.push({ title: "", class_to_insert: "" })
+
+    gradients.push({ title: "", class_to_insert: "" })
+    gradients.push({ title: "", class_to_insert: "" })
+
+
+    return [...whiteTransparents, ...blackTransparents, ...gradients, ...reverseGradients]
   })()
 };
+
 
 // aggiunge l'attributo key
 export const GROUPS_DATAS :typeof _GROUPS_DATAS = {}
