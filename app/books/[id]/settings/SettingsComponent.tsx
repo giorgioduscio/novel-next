@@ -180,7 +180,7 @@ export default function SettingsComponent(props: UseBookComponentProps) {
 
   return (
     <>
-      <Navbar page_title={book?.title ||""} />    
+      <Navbar page_title={book?.title ||""} back_btn={{ href: `/books/${book?.id}/structure`}} />    
 
       <Breadcrumb routes={["Catalogo:/books", `${book?.title}:/${book?.id}/structure`, "Impostazioni"]} />
 

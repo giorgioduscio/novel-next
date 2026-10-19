@@ -10,16 +10,14 @@ export default function NotFound() {
           <h1 className="text-3xl font-bold">Pagina non trovata</h1>
         </div>
 
-        <p className="m-3 p-2 text-white border-l-4">
+        <p className="m-3 p-2 text-bg-dark border-l-3 rounded">
           <i className="bi bi-exclamation-triangle me-2"></i>
           La pagina che stai cercando non esiste o è stata spostata.
         </p>
 
         <div className="flex justify-center">
-          <Link
-            href="/books"
-            className="mt-6 px-4 py-2 text-bg-primary text-white rounded-md"
-          >
+          <Link href="/books"
+            className="mt-6 px-4 py-2 text-bg-primary text-white rounded-md">
             Torna al catalogo
           </Link>
         </div>

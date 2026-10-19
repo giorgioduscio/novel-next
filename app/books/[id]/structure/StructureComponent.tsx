@@ -40,7 +40,7 @@ export default function StructureComponent(props: UseBookComponentProps) {
       {/* impostazioni del libro */}
       <Frag if={canWrite}>
         <Link href={`/books/${book?.id || ''}/settings`}
-              className="m-1 py-1 px-2 text-bg-tertiary rounded-full"
+              className="m-1 py-1 px-2 text-bg-dark rounded-full"
               title="Vai alle impostazioni">
           <i className="bi bi-three-dots-vertical"></i>
         </Link>

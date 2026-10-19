@@ -11,6 +11,7 @@ import { useAuthContext } from "@/app/data/AuthContext";
 import useSharedText from "@/app/data/sharedText";
 import { toPng } from 'html-to-image';
 import { GROUPS_DATAS, TailwindGroup } from "./TailwindClassGroups";
+import { useSearchParams } from 'next/navigation';
 
 export interface UseSectionComponentProps {
   book_id: string;
@@ -24,6 +25,7 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
   const agree = useAgreeWrapper();
   const page = useCommonPagesContext();
   const authContext = useAuthContext()
+  const searchParams = useSearchParams();
   
   // 1) DATI PRINCIPALI
   const book = useDotNotation<Book | undefined>(undefined);
@@ -481,7 +483,6 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
 
     // Imposta l'input di stile
     setStyleInput(paragraph_i?: number) {
-
       // RESET
       if (paragraph_i === undefined) {
         this.styleInput.set({
@@ -1059,23 +1060,26 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
 
   // 7) segnalibro
   class MARCKERS {
+
     isVisible = useDotNotation(false);
+    currentMarkerId = useDotNotation<string | null>(null);
 
     // tutti i paragrafi segnati con indice originale
     markers = useMemo(() => {
       const paragraphs = getSection()?.paragraphs || [];
-      return paragraphs
+      const result = paragraphs
         .map((paragraph, index) => ({ paragraph, index }))
         .filter((item) => item.paragraph.isMarcked);
+      return result;
     }, [book.get, part_id, section_id]);
 
     // scrolla la pagina fino al segnalibro
     scrollToMarker(id: string | number) {
-      const input = document.getElementById(`${id}>text`);      
+      const input = document.getElementById(`${id}>text`);
 
       setTimeout(() => {
         input?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }, 300);
+      }, 200);
     }
   };
   

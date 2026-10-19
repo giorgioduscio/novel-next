@@ -12,10 +12,7 @@
 # Kanban - Novel Writer (Next.js)
 ## 📌 To Do 
 
-
-* [5] **dimenzioni finestra degli stili**: 
-  - vorrei modificare il popup. vorrei che il popup avesse le coordinate x del pulsante che lo attiva attraverso coordinates. come lo implementeresti?
-
+* [5] applicare loggers.md
 * [5] cerca e sostituisci in tutto il libro
 * [5] problemi caricamento: quando carico la pagina che mi posta ad un libro. all'inizio esegue i caricamenti, poi mostra "sezione non trovata" e poi mostra la sezione.
   * vorrei che "sezione non trovata" venga mostrata solo se necessaria. se i dati stanno ancora caricando, deve mostrare solo 'caricamento dati'

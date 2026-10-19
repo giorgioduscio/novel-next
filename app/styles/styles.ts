@@ -132,11 +132,46 @@ function applyStyle() {
     translateClasses,
     slashClasses,
     textBgClasses,
+    appClasses(),
   ].join("\n");
 
   document.head.appendChild(styleTag);
 }
 
+const colorTokens: Record<string, { value: string; fg: string }> = {
+  primary:   { value: 'var(--color-lime-500)', fg: 'black' },
+  secondary: { value: 'var(--color-lime-700)', fg: 'white' },
+  tertiary:  { value: 'var(--color-lime-800)', fg: 'white' },
+  danger:    { value: 'var(--color-red-500)',  fg: 'white' },
+  light:     { value: 'var(--color-lime-300)', fg: 'black' },
+  neutral:   { value: 'var(--color-gray-600)', fg: 'white' },
+  dark:      { value: 'var(--color-dark)',     fg: 'white' },
+};
+
+function appClasses(): string {
+  const blocks: string[] = [];
+
+  for (const [name, { value, fg }] of Object.entries(colorTokens)) {
+    blocks.push(`.text-${name} {
+      color: ${value};
+    }
+    .text-bg-${name} {
+      background-color: ${value};
+      color: ${fg};
+    }
+    .bg-${name} {
+      background-color: ${value};
+    }
+    .border-${name} {
+      border-color: ${value};
+    }
+    .outline-${name} {
+      outline-color: ${value};
+    }`);
+  }
+
+  return blocks.join('\n');
+};
   
 // bordi della classe .dettaglio
 export class DettaglioBorders {

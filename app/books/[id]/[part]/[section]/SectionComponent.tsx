@@ -12,6 +12,7 @@ import { EditModeToggleButton } from "@/app/data/CommonPagesContext";
 import Bottombar from "@/app/shareds/Bottombar";
 import { Dropdown, DropdownContent, DropdownSummary } from "@/app/shareds/Dropdown";
 import { toast } from "@/app/tools/feedbacksUI";
+import { useSearchParams } from 'next/navigation';
 
 interface AddParagraphButtonProps { handleCreate: Function; if: boolean; className?: string }
 function AddParagraphButton({ if: show, handleCreate, className = "" }: AddParagraphButtonProps) {
@@ -48,7 +49,7 @@ export default function SectionComponent(props: UseSectionComponentProps) {
     isOnline,
     pendingSyncCount,
     syncNow
-  } = useSectionComponent(props); 
+  } = useSectionComponent(props);
     
   const styleInput = GROUPS.styleInput.get
 
@@ -75,21 +76,21 @@ export default function SectionComponent(props: UseSectionComponentProps) {
       <Frag if={section_isEditMode}>
         {/* UNDO */}
         <button onClick={HISTORY.undo} 
-                className="px-3 py-2 text-bg-secondary rounded-start" 
+                className="px-3 py-2 text-primary rounded-start" 
                 title="Annulla">
-          <i className="bi bi-arrow-90deg-left" style={{transform:"rotate(-90) !important"}}></i> 
+          <i className="bi bi-arrow-90deg-left -rotate-45 block" style={{transform:"rotate(-90) !important"}}></i> 
         </button>
         {/* REDO */}
         <button onClick={HISTORY.redo} 
-                className="px-3 py-2 text-bg-secondary rounded-end" 
+                className="px-3 py-2 text-primary rounded-end" 
                 title="Ripeti">
-          <i className="bi bi-arrow-90deg-right rotate-90"></i> 
+          <i className="bi bi-arrow-90deg-right rotate-45 block"></i> 
         </button>
       </Frag>
       
       {/* SEGNALIBRI */}
       <button onClick={()=> MARCKERS.isVisible.set(true)} 
-              className="mx-1 px-3 py-2 text-bg-light rounded" 
+              className="mx-1 px-3 py-2 text-bg-tertiary rounded" 
               title="Apri segnalibri">
         <i className="bi bi-bookmarks-fill"></i> 
         <span className="ms-1 hidden sm:inline">Segnalibri</span>
@@ -106,7 +107,7 @@ export default function SectionComponent(props: UseSectionComponentProps) {
                 <i className="bi bi-cloud-slash"></i>
               </button>
             ) : (
-              <button className="mx-1 p-2 text-bg-tertiary rounded-full"
+              <button className="mx-1 p-2 text-bg-dark rounded-full"
                       title="Impostazioni sezione">
                 <i className="bi bi-three-dots-vertical"></i>
               </button>
@@ -278,25 +279,23 @@ export default function SectionComponent(props: UseSectionComponentProps) {
             </div>
             
             <ol className="space-y-2">
-              {MARCKERS.markers.length === 0 ? (
-                <li className="text-light text-center py-4">
+              {MARCKERS.markers.length === 0 
+              ? <li className="text-light text-center py-4">
                   Nessun segnalibro impostato
                 </li>
-              ) : (
-                MARCKERS.markers.map((item, index) => (  
-                  <li key={index}>
-                    <button onClick={()=> {
-                              MARCKERS.scrollToMarker(item.index.toString());
-                              MARCKERS.isVisible.set(false);
-                            }}
-                            className="w-full py-2 px-3 text-bg-dark text-sm text-left rounded truncate"
-                            title={`Vai al paragrafo: ${item.paragraph.text}`}>
-                      <b>{index +1})</b>
-                      <span className="ms-2 truncate">{item.paragraph.text || 'Paragrafo senza testo'}</span>
-                    </button>
-                  </li>
-                ))
-              )}
+
+              : MARCKERS.markers.map((item, index) => (  
+                <li key={index}>
+                  <button onClick={()=> {
+                            MARCKERS.scrollToMarker(item.index.toString());
+                          }}
+                          className={`w-full py-2 px-3 text-sm text-left rounded truncate ${MARCKERS.currentMarkerId.get === item.index.toString() ? 'text-bg-primary' : 'text-bg-dark'}`}
+                          title={`Vai al paragrafo: ${item.paragraph.text}`}>
+                    <b>{index +1})</b>
+                    <span className="ms-2 truncate">{item.paragraph.text || 'Paragrafo senza testo'}</span>
+                  </button>
+                </li>
+              ))}
             </ol>
           </div>
         </div>
