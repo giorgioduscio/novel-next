@@ -938,14 +938,35 @@ export function ui_addCopyFeedback(e: Event){
  * Inizializza la funzionalità di scroll automatico verso l'input attivo
  * Quando si preme un tasto, la pagina scorre per mantenere l'input visibile
  */
-export function ui_initScrollToInput() {
+export function ui_initScrollToInput() {  
   // Rileva se siamo su mobile (larghezza <= 768px o touch support)
-  const isMobile = () => {
+  function isMobile() {
     return window.innerWidth <= 768 || 'ontouchstart' in window;
   };
 
+  // Logica di scroll (estratta per essere riusabile)
+  function _scrollElementIntoView(target: HTMLElement) {
+    // Esegui solo su mobile
+    if (!isMobile()) {
+      return;
+    }
+
+    // Usa setTimeout per aspettare che la tastiera si apra
+    setTimeout(() => {
+      // Usa scrollIntoView per centrare l'elemento
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+      // Aggiusta l'offset dopo lo scroll (80px dal top)
+      setTimeout(() => {
+        const currentScrollY = window.scrollY;
+        const adjustedY = currentScrollY - 80;
+        window.scrollTo({ top: adjustedY, behavior: 'smooth' });
+      }, 100);
+    }, 300);
+  };
+
   // Handler per il focus su input/textarea
-  const handleFocus = (e: FocusEvent) => {
+  function _scrollIntoElement(e: Event)  {
     const target = e.target as HTMLElement;
     
     // Verifica se è un input o textarea
@@ -953,33 +974,25 @@ export function ui_initScrollToInput() {
       return;
     }
 
-    // Esegui solo su mobile
-    if (!isMobile()) {
+    _scrollElementIntoView(target);
+  };
+
+  // Handler per i tasti (frecce direzionali e Tab)
+  function _scrollOnKeydown(e: KeyboardEvent) {
+    const keys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Tab'];
+    if (!keys.includes(e.key)) {
       return;
     }
-    
-    // Usa setTimeout per aspettare che la tastiera si apra
-    setTimeout(() => {
-      // Usa scrollIntoView per centrare l'elemento
-      target.scrollIntoView({
-        behavior: 'smooth',
-        block: 'center'
-      });
-
-      // Aggiusta l'offset dopo lo scroll (80px dal top)
-      setTimeout(() => {
-        const currentScrollY = window.scrollY;
-        const adjustedY = currentScrollY - 80;
-        window.scrollTo({
-          top: adjustedY,
-          behavior: 'smooth'
-        });
-      }, 100);
-    }, 300);
+    const target = document.activeElement as HTMLElement | null;
+    if (!target || (target.tagName !== 'INPUT' && target.tagName !== 'TEXTAREA')) {
+      return;
+    }
+    _scrollElementIntoView(target);
   };
 
   // Aggiungi listener per focusin (bubble version di focus)
-  document.addEventListener('focusin', handleFocus, true);
+  document.addEventListener('focusin', _scrollIntoElement, true);
+  document.addEventListener('keydown', _scrollOnKeydown, true);
 }
 
 /**
