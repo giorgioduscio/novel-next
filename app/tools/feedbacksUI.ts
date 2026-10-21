@@ -1158,4 +1158,55 @@ export function ui_initTitlePopover() {
   }, true);
 }
 
-// ... rest of the code remains the same ...
+/**
+# MODULO ONVIEW - GESTIONE DI EVENTI DI VISIBILITÀ
+Questo modulo fornisce un'implementazione per rilevare quando un elemento
+entra o esce dal viewport usando Intersection Observer API.
+
+CARATTERISTICHE PRINCIPALI:
+- Trigger ogni volta che l'elemento entra/rientra nel viewport
+- Supporto per opzioni personalizzate di IntersectionObserver
+- Funzione di cleanup per disconnettere l'observer
+- Passa l'evento IntersectionObserver alla callback
+
+ESEMPI D'USO:
+  const element = document.getElementById('my-element');
+  const cleanup = ui_onViewportEnter(element, (entry) => {
+    console.log('Element is visible:', entry.isIntersecting);
+  });
+  
+  // Per disconnettere l'observer
+  cleanup();
+
+METODI DISPONIBILI:
+- ui_onViewportEnter(element, callback, options?): Configura un observer per l'elemento specificato.
+*/
+export function ui_onViewportEnter(
+  element: HTMLElement,
+  callback: (entry: IntersectionObserverEntry) => void,
+  options?: IntersectionObserverInit
+): () => void {
+  const observerOptions: IntersectionObserverInit = {
+    root: null,
+    rootMargin: '0px',
+    threshold: 0,
+    ...options
+  };
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      // Trigger solo quando l'elemento entra nel viewport
+      if (entry.isIntersecting) {
+        callback(entry);
+      }
+    });
+  }, observerOptions);
+
+  observer.observe(element);
+
+  // Restituisce funzione di cleanup
+  return () => {
+    observer.unobserve(element);
+    observer.disconnect();
+  };
+}

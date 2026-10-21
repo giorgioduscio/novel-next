@@ -1060,11 +1060,33 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
 
   // 7) segnalibro
   class MARCKERS {
+    constructor(){
+      useEffect(()=>{
+        // Inizializza l'hash corrente
+        this.currentHash.set(window.location.hash.slice(1));
 
+        // Ascolta i cambiamenti dell'hash
+        const handleHashChange = () => {
+          this.currentHash.set(window.location.hash.slice(1));
+        };
+
+        window.addEventListener('hashchange', handleHashChange);
+
+        // scrolla fino all'ultimo paragrafo selezionato
+        setTimeout(() => {
+          this.scrollToMarker("", window.location.hash.slice(1));
+        }, 300);
+
+        return () => {
+          window.removeEventListener('hashchange', handleHashChange);
+        };
+      },[])
+    }
+
+    // tutti i paragrafi segnati con indice originale
     isVisible = useDotNotation(false);
     currentMarkerId = useDotNotation<string | null>(null);
 
-    // tutti i paragrafi segnati con indice originale
     markers = useMemo(() => {
       const paragraphs = getSection()?.paragraphs || [];
       const result = paragraphs
@@ -1073,15 +1095,39 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
       return result;
     }, [book.get, part_id, section_id]);
 
-    // scrolla la pagina fino al segnalibro
-    scrollToMarker(id: string | number) {
-      const input = document.getElementById(`${id}>text`);
 
+    // scrolla la pagina fino al segnalibro
+    scrollToMarker(index: string | number, paragraph_id:string) {
+      const input = index        ?document.getElementById(`${index}>text`)
+                  : paragraph_id ?document.querySelector(`[data-paragraph-id="${paragraph_id}"]`)
+                  : null;
+
+      if(!input && window.location.hash) return console.error("paragrafo non trovato");
+
+      if(input)
       setTimeout(() => {
-        input?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        this.setUrl(paragraph_id)
       }, 200);
     }
+
+    // SEGNALIBRO INTELLIGENTE
+    // Stato reattivo per l'hash corrente
+    currentHash = useDotNotation<string>("");
+
+    // imposta l'hash del browser
+    setUrl(newParagraphId:string){      
+      const isSame = window.location.hash.slice(1) === newParagraphId
+      if(!isSame)
+        window.location.hash =newParagraphId
+    }
+
+    isSelectedMarker(id:string){
+      return (this.currentHash.get === id)
+    }
   };
+
+
   
   // 8) NAVIGAZIONE TRA SEZIONI
   class NAVIGATION {

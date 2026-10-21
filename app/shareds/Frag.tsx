@@ -1,21 +1,22 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
+import { ui_onViewportEnter } from "../tools/feedbacksUI";
 
 /**
  * -----------------------------------------------------------------------------
  * Frag
  * -----------------------------------------------------------------------------
  *
- * Componente per il rendering condizionale.
+ * Componente per il rendering condizionale con supporto per eventi di visibilità.
  *
  * Funzionamento:
- * - Se la proprietà "if" è true, viene renderizzato il contenuto principale.
+ * - Se la proprietà "if" è true (o non specificata), viene renderizzato il contenuto principale.
  * - Se la proprietà "if" è false, viene renderizzato il contenuto racchiuso
  *   all'interno di <Frag.Else>, se presente.
  * - Se non esiste un ramo Else e la condizione è false, il componente non
  *   renderizza nulla.
  *
  * Il componente può inoltre creare opzionalmente un elemento <div> contenitore
- * quando viene specificata una className o uno style; in caso contrario utilizza
+ * quando viene specificata una className, uno style, o onViewportEnter; in caso contrario utilizza
  * un React.Fragment per non aggiungere nodi inutili al DOM.
  *
  * Esempio:
@@ -27,14 +28,20 @@ import React from "react";
  *     <UserPanel />
  *   </Frag.Else>
  * </Frag>
+ *
+ * <Frag onViewportEnter={(entry) => console.log('Visible:', entry.isIntersecting)}>
+ *   <Content />
+ * </Frag>
  * -----------------------------------------------------------------------------
  */
 
 interface FragProps {
-  if: boolean;
+  if?: boolean;
   children: React.ReactNode;
   className?: string;
   style?: React.CSSProperties;
+  onViewportEnter?: (entry: IntersectionObserverEntry) => void;
+  onViewOptions?: IntersectionObserverInit;
 }
 
 interface ElseProps {
@@ -49,6 +56,16 @@ type FragComponent = React.FC<FragProps> & {
 const Else: React.FC<ElseProps> = ({ children }) => <>{children}</>;
 
 const Frag: FragComponent = (props) => {
+  const ref = useRef<HTMLDivElement>(null);
+
+  // Gestisce IntersectionObserver per onViewportEnter usando ui_onViewportEnter
+  useEffect(() => {
+    if (!props.onViewportEnter || !ref.current) return;
+
+    const cleanup = ui_onViewportEnter(ref.current, props.onViewportEnter, props.onViewOptions);
+
+    return cleanup;
+  }, [props.onViewportEnter, props.onViewOptions]);
 
   // Converte i children in un array per facilitarne l'analisi.
   const children = React.Children.toArray(props.children);
@@ -75,15 +92,17 @@ const Frag: FragComponent = (props) => {
   });
 
   // Seleziona il contenuto da renderizzare.
-  const content = props.if ? mainNodes : elseNode;
+  // Se 'if' non è specificato, assume true
+  const shouldRender = props.if !== undefined ? props.if : true;
+  const content = shouldRender ? mainNodes : elseNode;
 
   // Nessun contenuto disponibile.
   if (content == null) return null;
 
-  // Crea un contenitore solo se richiesto.
-  if (props.className || props.style) {
+  // Crea un contenitore se richiesto (className, style, o onViewportEnter)
+  if (props.className || props.style || props.onViewportEnter) {
     return (
-      <div className={props.className} style={props.style}>
+      <div ref={ref} className={props.className} style={props.style}>
         {content}
       </div>
     );

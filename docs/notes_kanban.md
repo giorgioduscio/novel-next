@@ -18,7 +18,7 @@
 * [] **segnalibri smart**
   * evento custom: in feedbacksUI.tsx crea una funzione-evento 'ui_onView' che si innesca quando visualizzi l'elemento su cui è posto
   * <Frag>: implementa onView come parametro facoltativo in Frag.tsx. risultato atteso: <Frag onView={e=>...}></Frag>
-  * trascrizione: crea una funzione che trascrive una stringa nell'url (#esempio) e implementa <Frag onView> in SectionComponent.tsx (s). quando l'elemento viene visualizzato
+  * trascrizione: crea una funzione che trascrive una stringa nell'url (path/url#esempio) e implementa <Frag onView> in SectionComponent.tsx (s). quando l'elemento viene visualizzato
 
 * [5] applicare loggers.md
 * [5] cerca e sostituisci in tutto il libro

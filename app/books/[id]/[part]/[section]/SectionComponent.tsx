@@ -284,15 +284,17 @@ export default function SectionComponent(props: UseSectionComponentProps) {
                   Nessun segnalibro impostato
                 </li>
 
-              : MARCKERS.markers.map((item, index) => (  
+              : MARCKERS.markers.map((_marker, index) => (  
                 <li key={index}>
-                  <button onClick={()=> {
-                            MARCKERS.scrollToMarker(item.index.toString());
+                  <button onClick={()=> MARCKERS.scrollToMarker(_marker.index.toString(), "")}
+                          onDoubleClick={()=>{ 
+                            MARCKERS.scrollToMarker(_marker.index.toString(), "");
+                            MARCKERS.isVisible.set(false)
                           }}
-                          className={`w-full py-2 px-3 text-sm text-left rounded truncate ${MARCKERS.currentMarkerId.get === item.index.toString() ? 'text-bg-primary' : 'text-bg-dark'}`}
-                          title={`Vai al paragrafo: ${item.paragraph.text}`}>
+                          className={`w-full py-2 px-3 text-sm text-left rounded truncate ${MARCKERS.isSelectedMarker(_marker.paragraph.id) ? 'text-bg-tertiary' : 'text-bg-dark'}`}
+                          title={`Vai al paragrafo: ${_marker.paragraph.text}`}>
                     <b>{index +1})</b>
-                    <span className="ms-2 truncate">{item.paragraph.text || 'Paragrafo senza testo'}</span>
+                    <span className="ms-2 truncate">{_marker.paragraph.text || 'Paragrafo senza testo'}</span>
                   </button>
                 </li>
               ))}
@@ -391,32 +393,33 @@ export default function SectionComponent(props: UseSectionComponentProps) {
                     />
 
                     {/* TESTO PARAGRAFO */}
-                    <div data-external-style className={`${p.ex_style}`}>
-                      <div onClick={(e) => PARAG.handleFocusText(e, paragraph_i)}  className="pb-3">
-                        <div className={section_isEditMode && GROUPS.styleInput.get.index === paragraph_i ? 'outline-3 outline-dashed outline-black' : ''}>
-                          <div className={`${section_isEditMode && GROUPS.styleInput.get.index === paragraph_i ? 'outline-3 outline-white' : ''}`}>
-                            <Field
-                              input_class={`text ${p.scripted_style || ""} ${p.in_style || ""}`}
-                              placeholder="Testo del paragrafo"
-                              value={p.text}
-                              readOnly={!section_isEditMode}
-                              hide_label
-                              label="Descrivi la scena"
-                              asterisk
-                              type="textarea"
-                              id={paragraph_i + ">text"}
-                              onChange={(_e) => PARAG.update(paragraph_i, "text", _e.target.value)}
-                              onKeyDown={(_e: any) => PARAG.handleKey(_e, paragraph_i, "text", p)}
-                              error_message={errors[`${paragraph_i}>text`]}
-                              onFocus={(_e:any) =>{ 
-                                GROUPS.setStyleInput(paragraph_i);
-                              }}
-                            />
+                    <Frag {...(p.isMarcked && { onViewportEnter: () => MARCKERS.setUrl(p.id) })}>
+                      <div data-external-style className={`${p.ex_style}`}>
+                        <div onClick={(e) => PARAG.handleFocusText(e, paragraph_i)}  className="pb-3">
+                          <div className={section_isEditMode && GROUPS.styleInput.get.index === paragraph_i ? 'outline-3 outline-dashed outline-black' : ''}>
+                            <div className={`${section_isEditMode && GROUPS.styleInput.get.index === paragraph_i ? 'outline-3 outline-white' : ''}`}>
+                              <Field
+                                input_class={`text ${p.scripted_style || ""} ${p.in_style || ""}`}
+                                placeholder="Testo del paragrafo"
+                                value={p.text}
+                                readOnly={!section_isEditMode}
+                                hide_label
+                                label="Descrivi la scena"
+                                asterisk
+                                type="textarea"
+                                id={paragraph_i + ">text"}
+                                onChange={(_e) => PARAG.update(paragraph_i, "text", _e.target.value)}
+                                onKeyDown={(_e: any) => PARAG.handleKey(_e, paragraph_i, "text", p)}
+                                error_message={errors[`${paragraph_i}>text`]}
+                                onFocus={(_e:any) => GROUPS.setStyleInput(paragraph_i) }
+                                data-paragraph-id={p.id}
+                              />
+                            </div>
                           </div>
                         </div>
-                      </div>
 
-                    </div>
+                      </div>
+                    </Frag>
 
                     {/* RIMUOVI PARAGRAFO / SEGNALIBRO */}
                     <div className="absolute top-0 end-0 z-2">
