@@ -625,6 +625,14 @@ export function useSectionComponent({ book_id, part_id, section_id }: UseSection
       // Assegna le coordinate x del pulsante premuto
       const rect = e.currentTarget.getBoundingClientRect();
       this.coordinates.set({ x: rect.left, y: rect.top });
+
+      // Scroll fino all'elemento .active
+      setTimeout(() => {
+        const activeButton = document.querySelector('.active') as HTMLElement;
+        if (activeButton) {
+          activeButton.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 100);
     }
 
     // Chiude la finestra popup

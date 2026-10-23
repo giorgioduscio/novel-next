@@ -12,13 +12,6 @@
 # Kanban - Novel Writer (Next.js)
 ## 📌 To Do 
 
-* [x] **scrolling al focus dellinput** quando si digita un (input da mobile) la pagina deve scrollare fino a lui, tenendo conto della navbar e della bottombar
-*  **window degli stili** dobbiamo trovare un modo per far scrollare la finestra fino allo stile selezionato. Idee? la finestra dovrebbe trovare l'unico pulsante con la classe .active e scrollare fino a quell'elemento
-
-* [] **segnalibri smart**
-  * evento custom: in feedbacksUI.tsx crea una funzione-evento 'ui_onView' che si innesca quando visualizzi l'elemento su cui è posto
-  * <Frag>: implementa onView come parametro facoltativo in Frag.tsx. risultato atteso: <Frag onView={e=>...}></Frag>
-  * trascrizione: crea una funzione che trascrive una stringa nell'url (path/url#esempio) e implementa <Frag onView> in SectionComponent.tsx (s). quando l'elemento viene visualizzato
 
 * [5] applicare loggers.md
 * [5] cerca e sostituisci in tutto il libro

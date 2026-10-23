@@ -507,10 +507,8 @@ export default function SectionComponent(props: UseSectionComponentProps) {
         ></div>
 
         {/* POPUP */}
-        <div
-          className={`py-3 px-1 text-bg-tertiary ${GROUPS.isOverStep ?"relative w-[100vw] max-w-[400px]" :"mb-5 absolute rounded-xl"}`}
-          style={GROUPS.isOverStep ?undefined :{ left: GROUPS.coordinates.get.x+10 }}
-        >
+        <div className={`py-3 px-1 text-bg-tertiary ${GROUPS.isOverStep ?"relative w-[100vw] max-w-[400px]" :"mb-5 absolute rounded-xl"}`}
+            style={GROUPS.isOverStep ?undefined :{ left: GROUPS.coordinates.get.x+10 }}>
           <div className={`overflow-y-auto overflow-x-hidden ${GROUPS.isOverStep ?"max-h-[50vh]" :""}`}>
             <div className={`grid gap-1 justify-center       ${GROUPS.isOverStep ?"grid-cols-6" :""}`}>
             
@@ -519,7 +517,7 @@ export default function SectionComponent(props: UseSectionComponentProps) {
                 <Frag if={!_classGroup.title}><i /></Frag>
                 <Frag if={!!_classGroup.title}>
                   <button onClick={()=> GROUPS.toggleGroup(_classGroup)}
-                          className={`px-1 py-3 min-w-[40px] rounded ${_classGroup.button_className} ${GROUPS.isSelected(_classGroup) ?'border-2 border-dashed' :''}`}
+                          className={`px-1 py-3 min-w-[40px] rounded ${_classGroup.button_className} ${GROUPS.isSelected(_classGroup) ?'border-2 border-dashed active' :''}`}
                           title={_classGroup.title}>
                     <div className={`text-nowrap ${_classGroup.button_label && _classGroup.button_label?.length>2 ?'-rotate-45' :''}`}>
                       <small className={`bi ${_classGroup.button_icon ||''}`}> {_classGroup.button_label ||''}</small>
